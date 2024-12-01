@@ -13,3 +13,7 @@
 ### Django 설치
 1. pip install django
 2. pip install django-lint
+
+### 웹 크롤링 라이브러리 설치
+1. pip install requests
+2. pip install bs4
