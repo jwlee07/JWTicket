@@ -10,7 +10,7 @@ class Concert(models.Model):
 
     class Meta:
         verbose_name = "공연 정보"
-        verbose_name_plural = "공연 정보들"
+        verbose_name_plural = "공연 정보"
 
     def __str__(self):
         return self.name
@@ -29,7 +29,7 @@ class Review(models.Model):
 
     class Meta:
         verbose_name = "리뷰"
-        verbose_name_plural = "리뷰들"
+        verbose_name_plural = "리뷰"
 
     def __str__(self):
         return f"{self.concert.name} - {self.title}"
