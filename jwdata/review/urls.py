@@ -1,7 +1,6 @@
 from django.urls import path
-
-from . import views
+from .views import search_and_crawl
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path('', search_and_crawl, name='search_and_crawl'),
 ]

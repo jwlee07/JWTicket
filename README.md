@@ -17,3 +17,10 @@
 ### 웹 크롤링 라이브러리 설치
 1. pip install requests
 2. pip install bs4
+3. pip install selenium
+
+## 기록
+
+### 2024.12.02(월)
+- 동적 웹 페이지의 데이터를 크롤링하기 위해서 selenium을 사용한다.
+- iframe 처리부터 시작하면 된다.

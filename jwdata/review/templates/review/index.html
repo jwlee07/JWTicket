@@ -1,6 +1,32 @@
 {% extends "review/base.html" %}
+
 {% block content %}
-hi this is review site
+<div class="container mt-5">
+    <h1 class="text-center">검색어 입력</h1>
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="query" class="form-label">검색어</label>
+            <input type="text" class="form-control" id="query" name="query" placeholder="공연명을 입력하세요">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">검색</button>
+    </form>
+
+    {% if data %}
+        <h2 class="mt-5">검색 결과</h2>
+        <ul class="list-group mt-3">
+            {% for concert in data %}
+            <li class="list-group-item">
+                <h5>{{ concert.name }}</h5>
+                <p>장소: {{ concert.place }}</p>
+                <p>날짜: {{ concert.date }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {% if request.method == "POST" %}
+        <p class="text-center text-muted mt-5">검색 결과가 없습니다.</p>
+        {% endif %}
+    {% endif %}
+</div>
 {% endblock content %}
-{% block script %}
-{% endblock script %}
