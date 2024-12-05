@@ -11,7 +11,7 @@ import time
 
 
 def search_and_crawl(request):
-    data = []
+    concerts = Concert.objects.all()  # 모든 Concert 데이터를 가져옴
 
     if request.method == 'POST':
         query = request.POST.get('query', '')
@@ -85,7 +85,17 @@ def search_and_crawl(request):
                 time.sleep(2)
 
                 # 관람후기 총 개수
-                review_total_count = int(driver.find_element(By.XPATH, '//*[@id="prdReview"]/div/div[4]/div[1]/div[1]/div[1]/strong/span').text)
+                review_total_count = 0
+                try:
+                    review_total_count_element = driver.find_element(By.XPATH, '//*[@id="prdReview"]/div/div[3]/div[1]/div[1]/div[1]/strong/span')
+                    review_total_count = int(review_total_count_element.text)
+                except NoSuchElementException:
+                    try:
+                        review_total_count_element = driver.find_element(By.XPATH, '//*[@id="prdReview"]/div/div[4]/div[1]/div[1]/div[1]/strong/span')
+                        review_total_count = int(review_total_count_element.text)
+                    except NoSuchElementException:
+                        print("관람후기 총 개수를 찾을 수 없습니다.")
+
                 review_num_pages = (review_total_count + 14) // 15
 
                 for review_page in range(1, review_num_pages + 1):
@@ -124,19 +134,38 @@ def search_and_crawl(request):
                     if review_page < review_num_pages:
                         try:
                             if review_page % 10 == 0:
-                                next_group_button = driver.find_element(By.XPATH, '//*[@id="prdReview"]/div/div[4]/div[2]/a')
-                                driver.execute_script("arguments[0].click();", next_group_button)
+                                group_index = review_page // 10
+                                next_group_button = None
+                                try:
+                                    next_group_button = driver.find_element(By.XPATH, f'//*[@id="prdReview"]/div/div[3]/div[2]/a[{group_index}]')
+                                except NoSuchElementException:
+                                    try:
+                                        next_group_button = driver.find_element(By.XPATH, f'//*[@id="prdReview"]/div/div[4]/div[2]/a[{group_index}]')
+                                    except NoSuchElementException:
+                                        print("다음 그룹 버튼을 찾을 수 없습니다.")
+                                        break
+                                    
+                                if next_group_button:
+                                    driver.execute_script("arguments[0].click();", next_group_button)
+                                    time.sleep(2)
                             else:
-                                next_page_button = driver.find_element(By.LINK_TEXT, str(review_page + 1))
-                                driver.execute_script("arguments[0].click();", next_page_button)
-                            time.sleep(2)
-                        except NoSuchElementException:
-                            print(f"페이지 {review_page + 1}로 이동 실패.")
+                                # 다음 페이지 버튼 클릭
+                                next_page_text = str(review_page + 1)
+                                try:
+                                    next_page_button = WebDriverWait(driver, 5).until(
+                                        EC.element_to_be_clickable((By.LINK_TEXT, next_page_text))
+                                    )
+                                    driver.execute_script("arguments[0].click();", next_page_button)
+                                    time.sleep(2)
+                                except NoSuchElementException:
+                                    print(f"페이지 {next_page_text}로 이동 실패.")
+                                    break
+                        except Exception as e:
+                            print(f"페이지 이동 처리 중 오류 발생: {e}")
                             break
-                        print(f"----------{review_page}/{review_total_count}----------")
-
+                    print(f"----------{review_page}/{review_total_count // 15}----------")
 
             finally:
                 driver.quit()
 
-    return render(request, 'review/index.html', {'data': data})
+    return render(request, 'review/index.html', {'concerts': concerts})

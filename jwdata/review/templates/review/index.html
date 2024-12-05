@@ -1,8 +1,10 @@
 {% extends "review/base.html" %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="text-center">검색어 입력</h1>
+<div class="content-container mt-5">
+    <h1 class="text-center">공연 및 리뷰 정보</h1>
+
+    <!-- 검색 폼 -->
     <form method="POST" class="mt-4">
         {% csrf_token %}
         <div class="mb-3">
@@ -12,21 +14,72 @@
         <button type="submit" class="btn btn-primary w-100">검색</button>
     </form>
 
-    {% if data %}
-        <h2 class="mt-5">검색 결과</h2>
-        <ul class="list-group mt-3">
-            {% for concert in data %}
-            <li class="list-group-item">
-                <h5>{{ concert.name }}</h5>
-                <p>장소: {{ concert.place }}</p>
-                <p>날짜: {{ concert.date }}</p>
-            </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        {% if request.method == "POST" %}
-        <p class="text-center text-muted mt-5">검색 결과가 없습니다.</p>
+    <!-- 공연 정보 버튼 -->
+    {% if concerts %}
+    <h2 class="mt-5">공연 목록</h2>
+    <div id="concert-buttons" class="btn-group mt-3 w-100" role="group" aria-label="공연 선택">
+        {% for concert in concerts %}
+        <button class="btn btn-outline-primary" data-concert-id="{{ concert.id }}" onclick="showConcert('{{ concert.id }}')">
+            {{ concert.name }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <!-- 공연 및 리뷰 정보 -->
+    {% for concert in concerts %}
+    <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="display: none;">
+        <h3>{{ concert.name }}</h3>
+        <p><strong>장소:</strong> {{ concert.place }}</p>
+        <p><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</p>
+        <p><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</p>
+        <p><strong>리뷰 수:</strong> {{ concert.reviews.count }}</p>
+
+        <!-- 리뷰 테이블 -->
+        {% if concert.reviews.exists %}
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">작성자</th>
+                    <th style="width: 150px;">작성일</th>
+                    <th style="width: 80px;">별점</th>
+                    <th>제목</th>
+                    <th>내용</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in concert.reviews.all %}
+                <tr>
+                    <td>{{ review.nickname }}</td>
+                    <td>{{ review.date }}</td>
+                    <td>{{ review.star_rating }}/5</td>
+                    <td>{{ review.title }}</td>
+                    <td>{{ review.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-center">리뷰가 없습니다.</p>
         {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+        <p class="text-center text-muted mt-5">현재 등록된 공연 정보가 없습니다.</p>
     {% endif %}
 </div>
+
+<script>
+    function showConcert(concertId) {
+        document.querySelectorAll('.concert-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        document.getElementById(`concert-${concertId}`).style.display = 'block';
+
+        document.querySelectorAll('#concert-buttons button').forEach(button => {
+            button.classList.remove('active');
+        });
+
+        document.querySelector(`[data-concert-id="${concertId}"]`).classList.add('active');
+    }
+</script>
 {% endblock content %}

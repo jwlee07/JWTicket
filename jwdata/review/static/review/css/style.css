@@ -1,6 +1,74 @@
-
-/* static/css/style.css */
+/* General container padding */
 .content-container {
     padding-left: 24px;
     padding-right: 24px;
+}
+
+/* Background and text color combinations */
+body {
+    background-color: #ffffff; /* Light Background */
+    color: #333333; /* Dark Text */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Header and section titles */
+h1, h2, h3 {
+    color: #333333; /* Dark Text for Headers */
+    border-bottom: 2px solid #cccccc; /* Light Grey Underline */
+    padding-bottom: 10px;
+}
+
+/* Form elements */
+form {
+    background-color: #f8f9fa; /* Light Grey Background */
+    border: 1px solid #cccccc; /* Light Grey Border */
+    border-radius: 5px;
+    padding: 16px;
+}
+
+/* Buttons */
+.btn {
+    background-color: #007bff; /* Primary Blue */
+    color: #ffffff; /* White Text */
+    border: 1px solid #007bff;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.btn:hover {
+    background-color: #0056b3; /* Darker Blue */
+    color: #ffffff;
+}
+
+.btn.active {
+    background-color: #28a745; /* Green for Active */
+    color: #ffffff;
+    border-color: #28a745;
+}
+
+/* Tables */
+table {
+    background-color: #ffffff; /* White Table Background */
+    color: #333333; /* Dark Text for Table */
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table th, table td {
+    border: 1px solid #cccccc; /* Light Grey Border */
+    padding: 8px;
+    text-align: left;
+}
+
+table th {
+    background-color: #f8f9fa; /* Light Grey Header Background */
+    font-weight: bold;
+}
+
+table tr:nth-child(even) {
+    background-color: #f2f2f2; /* Slightly Darker Row */
+}
+
+/* Button group */
+.btn-group .btn {
+    margin-right: 5px;
 }
