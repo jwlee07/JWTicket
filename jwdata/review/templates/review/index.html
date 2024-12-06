@@ -37,18 +37,24 @@
         <!-- 리뷰 분석 버튼 -->
         <h3 class="mt-5">리뷰 분석 리스트</h3>
         <div class="analysis-buttons mt-3">
-            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeLongReviews('{{ concert.id }}')">
-                리뷰를 길게 남긴 사람은 뭐라고 작성했을까?
-            </button>
-            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeFrequentReviewers('{{ concert.id }}')">
-                여러번 리뷰를 작성한 고객은 어떤 리뷰를 달았을까?
-            </button>
-            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeFrequentWords('{{ concert.id }}')">
+            <a href="{% url 'analyze_reviews' concert.id 'long_reviews' %}" class="btn btn-secondary w-30 mb-2">
+                리뷰를 길게 남긴 관객 뭐라고 작성했을까?
+            </a>
+            <a href="{% url 'analyze_reviews' concert.id 'frequent_reviewers' %}" class="btn btn-secondary w-30 mb-2">
+                여러번 리뷰를 작성한 관객 어떤 리뷰를 달았을까?
+            </a>
+            <a href="{% url 'analyze_reviews' concert.id 'frequent_words' %}" class="btn btn-secondary w-30 mb-2">
                 리뷰 텍스트에는 어떤 단어가 가장 많이 나왔을까?
-            </button>
-            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeSimilarReviews('{{ concert.id }}')">
+            </a>
+            <a href="{% url 'analyze_reviews' concert.id 'similar_reviews' %}" class="btn btn-secondary w-30 mb-2">
                 비슷한 리뷰 내용은 어떤 게 있을까?
-            </button>
+            </a>
+            <a href="{% url 'analyze_reviews' concert.id 'top_view_count_reviews' %}" class="btn btn-secondary w-30 mb-2">
+                조회수가 높은 리뷰들은 어떤 내용일까?
+            </a>
+            <a href="{% url 'analyze_reviews' concert.id 'low_star_rating_reviews' %}" class="btn btn-secondary w-30 mb-2">
+                평점이 낮은 리뷰를 작성한 관객은 어떤 리뷰를 달았을까?
+            </a>
         </div>
 
         <!-- 리뷰 테이블 -->
@@ -100,22 +106,6 @@
         });
 
         document.querySelector(`[data-concert-id="${concertId}"]`).classList.add('active');
-    }
-
-    function analyzeLongReviews(concertId) {
-        // 분석 로직을 여기에 추가
-    }
-
-    function analyzeFrequentReviewers(concertId) {
-        // 분석 로직을 여기에 추가
-    }
-
-    function analyzeFrequentWords(concertId) {
-        // 분석 로직을 여기에 추가
-    }
-
-    function analyzeSimilarReviews(concertId) {
-        // 분석 로직을 여기에 추가
     }
 </script>
 {% endblock scripts %}
