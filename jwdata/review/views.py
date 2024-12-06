@@ -18,6 +18,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 def search_and_crawl(request):
     concerts = Concert.objects.all()  # 모든 Concert 데이터를 가져옴
+    active_concert_id = request.GET.get('active_concert_id')  # GET 파라미터에서 active_concert_id 가져오기
 
     if request.method == 'POST':
         query = request.POST.get('query', '')
@@ -176,7 +177,7 @@ def search_and_crawl(request):
             finally:
                 driver.quit()
 
-    return render(request, 'review/index.html', {'concerts': concerts})
+    return render(request, 'review/index.html', { 'concerts': concerts, 'active_concert_id': active_concert_id,})
 
 def analyze_reviews(request, concert_id, analysis_type):
     # 리뷰를 길게 남긴 사람은 뭐라고 작성했을까?

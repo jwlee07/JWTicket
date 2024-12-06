@@ -19,7 +19,9 @@
     <h3 class="mt-5">공연 목록</h3>
     <div id="concert-buttons" class="btn-group mt-3 w-100" role="group" aria-label="공연 선택">
         {% for concert in concerts %}
-        <button class="btn btn-outline-primary" data-concert-id="{{ concert.id }}" onclick="showConcert('{{ concert.id }}')">
+        <button class="btn btn-outline-primary {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                data-concert-id="{{ concert.id }}" 
+                onclick="showConcert('{{ concert.id }}')">
             {{ concert.name }}
         </button>
         {% endfor %}
@@ -27,7 +29,7 @@
 
     <!-- 공연 및 리뷰 정보 -->
     {% for concert in concerts %}
-    <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="display: none;">
+    <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="{% if concert.id|stringformat:"s" != active_concert_id %}display: none;{% endif %}">
         <h3>{{ concert.name }}</h3>
         <p><strong>장소:</strong> {{ concert.place }}</p>
         <p><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</p>
@@ -62,7 +64,7 @@
         {% if concert.reviews.exists %}
         <table class="table table-sm">
             <thead>
-                <tr>
+                <tr class="text-center">
                     <th style="width: 80px;">작성자</th>
                     <th style="width: 150px;">작성일</th>
                     <th style="width: 80px;">별점</th>
@@ -96,16 +98,25 @@
 {% block scripts %}
 <script>
     function showConcert(concertId) {
+        // 모든 공연 섹션 숨기기
         document.querySelectorAll('.concert-section').forEach(section => {
             section.style.display = 'none';
         });
+        // 선택된 공연 섹션 보이기
         document.getElementById(`concert-${concertId}`).style.display = 'block';
 
+        // 모든 버튼의 활성화 클래스 제거
         document.querySelectorAll('#concert-buttons button').forEach(button => {
             button.classList.remove('active');
         });
 
+        // 선택된 버튼 활성화
         document.querySelector(`[data-concert-id="${concertId}"]`).classList.add('active');
+
+        // URL 업데이트
+        const url = new URL(window.location.href);
+        url.searchParams.set('active_concert_id', concertId);
+        history.pushState({}, '', url);
     }
 </script>
 {% endblock scripts %}
