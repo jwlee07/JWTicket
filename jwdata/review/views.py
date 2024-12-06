@@ -11,7 +11,7 @@ import time
 
 
 def search_and_crawl(request):
-    concerts = Concert.objects.all()  # 모든 Concert 데이터를 가져옴
+    concerts = Concert.objects.all()
 
     if request.method == 'POST':
         query = request.POST.get('query', '')
@@ -135,6 +135,8 @@ def search_and_crawl(request):
                         try:
                             if review_page % 10 == 0:
                                 group_index = review_page // 10
+                                if group_index > 2:
+                                    group_index = 2
                                 next_group_button = None
                                 try:
                                     next_group_button = driver.find_element(By.XPATH, f'//*[@id="prdReview"]/div/div[3]/div[2]/a[{group_index}]')
@@ -163,7 +165,7 @@ def search_and_crawl(request):
                         except Exception as e:
                             print(f"페이지 이동 처리 중 오류 발생: {e}")
                             break
-                    print(f"----------{review_page}/{review_total_count // 15}----------")
+                    print(f"----------{review_page}/{review_num_pages}----------")
 
             finally:
                 driver.quit()

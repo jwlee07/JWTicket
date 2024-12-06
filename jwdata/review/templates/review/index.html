@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="content-container mt-5">
-    <h1 class="text-center">공연 및 리뷰 정보</h1>
+    <h1 class="text-center">공연 리뷰 정보</h1>
 
     <!-- 검색 폼 -->
     <form method="POST" class="mt-4">
@@ -16,7 +16,7 @@
 
     <!-- 공연 정보 버튼 -->
     {% if concerts %}
-    <h2 class="mt-5">공연 목록</h2>
+    <h3 class="mt-5">공연 목록</h3>
     <div id="concert-buttons" class="btn-group mt-3 w-100" role="group" aria-label="공연 선택">
         {% for concert in concerts %}
         <button class="btn btn-outline-primary" data-concert-id="{{ concert.id }}" onclick="showConcert('{{ concert.id }}')">
@@ -34,7 +34,25 @@
         <p><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</p>
         <p><strong>리뷰 수:</strong> {{ concert.reviews.count }}</p>
 
+        <!-- 리뷰 분석 버튼 -->
+        <h3 class="mt-5">리뷰 분석 리스트</h3>
+        <div class="analysis-buttons mt-3">
+            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeLongReviews('{{ concert.id }}')">
+                리뷰를 길게 남긴 사람은 뭐라고 작성했을까?
+            </button>
+            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeFrequentReviewers('{{ concert.id }}')">
+                여러번 리뷰를 작성한 고객은 어떤 리뷰를 달았을까?
+            </button>
+            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeFrequentWords('{{ concert.id }}')">
+                리뷰 텍스트에는 어떤 단어가 가장 많이 나왔을까?
+            </button>
+            <button class="btn btn-secondary w-30 mb-2" onclick="analyzeSimilarReviews('{{ concert.id }}')">
+                비슷한 리뷰 내용은 어떤 게 있을까?
+            </button>
+        </div>
+
         <!-- 리뷰 테이블 -->
+        <h3 class="mt-5">리뷰 테이블</h3>
         {% if concert.reviews.exists %}
         <table class="table table-sm">
             <thead>
@@ -64,10 +82,12 @@
     </div>
     {% endfor %}
     {% else %}
-        <p class="text-center text-muted mt-5">현재 등록된 공연 정보가 없습니다.</p>
+    <p class="text-center text-muted mt-5">현재 등록된 공연 정보가 없습니다.</p>
     {% endif %}
 </div>
+{% endblock content %}
 
+{% block scripts %}
 <script>
     function showConcert(concertId) {
         document.querySelectorAll('.concert-section').forEach(section => {
@@ -81,5 +101,21 @@
 
         document.querySelector(`[data-concert-id="${concertId}"]`).classList.add('active');
     }
+
+    function analyzeLongReviews(concertId) {
+        // 분석 로직을 여기에 추가
+    }
+
+    function analyzeFrequentReviewers(concertId) {
+        // 분석 로직을 여기에 추가
+    }
+
+    function analyzeFrequentWords(concertId) {
+        // 분석 로직을 여기에 추가
+    }
+
+    function analyzeSimilarReviews(concertId) {
+        // 분석 로직을 여기에 추가
+    }
 </script>
-{% endblock content %}
+{% endblock scripts %}
