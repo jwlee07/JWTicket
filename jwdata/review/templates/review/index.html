@@ -73,7 +73,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for review in concert.reviews.all %}
+                {% for review in concert.reviews.all|dictsortreversed:"date" %}
                 <tr>
                     <td>{{ review.nickname }}</td>
                     <td>{{ review.date }}</td>
