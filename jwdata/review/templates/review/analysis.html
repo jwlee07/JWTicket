@@ -10,81 +10,101 @@
     <div class="mt-4">
         {% if analysis_type == 'long_reviews' %}
         <h3 class="mt-3">길게 남긴 리뷰</h3>
-        <ul class="list-group">
+        <div class="row">
             {% for review in data %}
-            <li class="list-group-item">
-                <p><strong>닉네임:</strong> {{ review.nickname }}</p>
-                <p><strong>평점:</strong> {{ review.star_rating }}</p>
-                <p><strong>내용:</strong> {{ review.description }}</p>
-            </li>
-            <hr>
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>닉네임:</strong> {{ review.nickname }}</p>
+                        <p><strong>평점:</strong> {{ review.star_rating }}</p>
+                        <p><strong>내용:</strong> {{ review.description }}</p>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
 
         {% elif analysis_type == 'frequent_reviewers' %}
         <h3 class="mt-3">여러 번 리뷰를 작성한 고객</h3>
-        <ul class="list-group">
+        <div class="row">
             {% for reviewer in data %}
-            <li class="list-group-item">
-                <strong>{{ reviewer.nickname }}</strong> - {{ reviewer.review_count }}회 작성
-                <ul>
-                    {% for review in reviewer.reviews %}
-                    <li>
-                        {{ review.description|truncatewords:20 }}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </li>
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>닉네임:</strong> {{ reviewer.nickname }}</p>
+                        <p><strong>리뷰 작성 수:</strong> {{ reviewer.review_count }}</p>
+                        <ul>
+                            {% for review in reviewer.reviews %}
+                            <li>{{ review.description|truncatewords:20 }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
 
         {% elif analysis_type == 'frequent_words' %}
         <h3 class="mt-3">자주 등장한 단어</h3>
-        <ul class="list-group">
+        <div class="row">
             {% for word, count in data %}
-            <li class="list-group-item">
-                <strong>{{ word }}:</strong> {{ count }}회
-            </li>
+            <div class="col-12 mb-2">
+                <div class="card">
+                    <div class="card-body d-flex justify-content-between text-start">
+                        <span><strong>{{ word }}: </strong>{{ count }}회</span>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
 
         {% elif analysis_type == 'similar_reviews' %}
         <h3 class="mt-3">비슷한 리뷰</h3>
-        <ul class="list-group">
+        <div class="row">
             {% for review1, review2, score in data %}
-            <li class="list-group-item">
-                <strong>리뷰 1:</strong> {{ review1|truncatewords:30 }}<br>
-                <strong>리뷰 2:</strong> {{ review2|truncatewords:30 }}<br>
-                <strong>유사도:</strong> {{ score|floatformat:2 }}
-            </li>
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>유사도:</strong> {{ score|floatformat:2 }}</p>
+                        <p><strong>리뷰 1 ({{ review1.nickname }}):</strong> {{ review1.description|truncatewords:30 }}</p>
+                        <p><strong>리뷰 2 ({{ review2.nickname }}):</strong> {{ review2.description|truncatewords:30 }}</p>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
 
         {% elif analysis_type == 'top_view_count_reviews' %}
         <h3 class="mt-3">조회수가 높은 리뷰</h3>
-        <ul class="list-group">
+        <div class="row">
             {% for review in data %}
-            <li class="list-group-item">
-                <p><strong>닉네임:</strong> {{ review.nickname }}</p>
-                <p><strong>조회수:</strong> {{ review.view_count }}</p>
-                <p><strong>내용:</strong> {{ review.description }}</p>
-            </li>
-            <hr>
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>닉네임:</strong> {{ review.nickname }}</p>
+                        <p><strong>조회수:</strong> {{ review.view_count }}</p>
+                        <p><strong>내용:</strong> {{ review.description }}</p>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
 
         {% elif analysis_type == 'low_star_rating_reviews' %}
-        <h3 class="mt-3">평점이 낮은 리뷰</h3>
-        <ul class="list-group">
+        <h3 class="mt-3">평점이 3점 이하인 리뷰</h3>
+        <div class="row">
             {% for review in data %}
-            <li class="list-group-item">
-                <p><strong>닉네임:</strong> {{ review.nickname }}</p>
-                <p><strong>평점:</strong> {{ review.star_rating }}</p>
-                <p><strong>내용:</strong> {{ review.description }}</p>
-            </li>
-            <hr>
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <p><strong>닉네임:</strong> {{ review.nickname }}</p>
+                        <p><strong>평점:</strong> {{ review.star_rating }}</p>
+                        <p><strong>내용:</strong> {{ review.description }}</p>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
 
         {% else %}
         <p class="text-muted text-center">분석 데이터를 찾을 수 없습니다.</p>

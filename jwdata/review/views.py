@@ -15,7 +15,6 @@ from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-
 def search_and_crawl(request):
     concerts = Concert.objects.all()  # 모든 Concert 데이터를 가져옴
     active_concert_id = request.GET.get('active_concert_id')  # GET 파라미터에서 active_concert_id 가져오기
@@ -265,18 +264,31 @@ def analyze_reviews(request, concert_id, analysis_type):
                          '근데', '생각보다', '있는', '공연', '다', '이야기', '어떻게', '함께', '계속', '다시', 
                          '많은', '짱', '다른', '읽고', '이렇게', '모든', '보러', '너무너무', '다들', 
                          '보면', '긴긴밤', '테일러', '본', '배우들의', '공연을', '건', '하는', '조금', '무대', 
-                         '극이', '한', '번', '느낌이', '배우', '있어요', '합니다', '배우님들', '하지만', '되는', '싶어요', '없이', '좋아하는'}
+                         '극이', '한', '번', '느낌이', '있어요', '합니다', '하지만', '되는', 
+                         '싶어요', '없이', '좋아하는', '알', '내내', '날', '있고', '없고', '그런지', '할', '같습니다',
+                         '안', '자칫', '게'}
 
         filtered_words = [word for word in words if word not in exclude_words]
         data = Counter(filtered_words).most_common(20)
 
     # 비슷한 리뷰 내용은 어떤 게 있을까?
     elif analysis_type == 'similar_reviews':
-        reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
-        if len(reviews) < 2:
+        # 닉네임별 리뷰 수 계산
+        frequent_reviewers = Review.objects.filter(concert_id=concert_id).values('nickname').annotate(review_count=Count('id')).filter(review_count__gt=1)
+        nicknames = [reviewer['nickname'] for reviewer in frequent_reviewers]
+
+        # 닉네임이 두 번 이상인 리뷰만 선택
+        reviews_qs = Review.objects.filter(concert_id=concert_id, nickname__in=nicknames)
+        reviews_list = list(reviews_qs.values('description', 'nickname'))
+
+        if len(reviews_list) < 2:
             data = []
         else:
-            # 불용어 목록
+            # 리뷰 설명만 추출
+            descriptions = [review['description'] for review in reviews_list]
+            nicknames_list = [review['nickname'] for review in reviews_list]
+
+            # 불용어 목록 정의
             korean_stop_words = [
                 '이', '그', '저', '그리고', '하지만', '그러나', '그래서', '또한', '더구나', '게다가', '즉',
                 '따라서', '결론적으로', '때문에', '만약', '이러한', '어떤', '어느', '어느정도', '조금', '아주',
@@ -288,29 +300,40 @@ def analyze_reviews(request, concert_id, analysis_type):
                 '느낌이', '배우', '있어요', '합니다', '배우님들', '하지만'
             ]
 
-            # TfidfVectorizer에 불용어 목록 전달
+            # TF-IDF 벡터화
             tfidf_vectorizer = TfidfVectorizer(stop_words=korean_stop_words)
-            tfidf_matrix = tfidf_vectorizer.fit_transform(reviews)
+            tfidf_matrix = tfidf_vectorizer.fit_transform(descriptions)
             similarity_matrix = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-            # 유사도 계산 및 정렬
-            pairs = [
-                (reviews[i], reviews[j], similarity_matrix[i, j])
-                for i in range(len(reviews)) for j in range(i + 1, len(reviews))
-                if similarity_matrix[i, j] > 0.5 and similarity_matrix[i, j] < 0.9
-            ]
+            # 유사한 리뷰 페어 추출 (닉네임 중복 제거)
+            seen_nicknames = set()
+            pairs = []
+            for i in range(len(reviews_list)):
+                for j in range(i + 1, len(reviews_list)):
+                    if (
+                        similarity_matrix[i, j] > 0.5 and 
+                        similarity_matrix[i, j] < 0.9 and 
+                        nicknames_list[i] not in seen_nicknames and
+                        nicknames_list[j] not in seen_nicknames
+                    ):
+                        pairs.append((reviews_list[i], reviews_list[j], similarity_matrix[i, j]))
+                        seen_nicknames.add(nicknames_list[i])
+                        seen_nicknames.add(nicknames_list[j])
 
-            # 유사도 높은 순으로 정렬
+            # 유사도 순으로 정렬
             data = sorted(pairs, key=lambda x: x[2], reverse=True)
 
     # 조회수가 높은 리뷰들은 어떤 내용일까?
     elif analysis_type == 'top_view_count_reviews':
         data = Review.objects.filter(concert_id=concert_id).order_by('-view_count')
     
-    # 평점이 낮은 리뷰를 작성한 관객은 어떤 리뷰를 달았을까?
+    # 평점이 3점 이하인 리뷰를 작성한 관객은 어떤 리뷰를 달았을까?
     elif analysis_type == 'low_star_rating_reviews':
-        reviews = Review.objects.filter(concert_id=concert_id).order_by('star_rating')
+        # 평점 3점 이하인 리뷰 필터링
+        reviews = Review.objects.filter(concert_id=concert_id, star_rating__lte=3).order_by('star_rating')
+        # "뮤지컬 〈테일러〉"가 포함되지 않은 리뷰만 선택
         data = [review for review in reviews if "뮤지컬 〈테일러〉" not in review.description]
+
         
     else:  # 잘못된 분석 유형 처리
         data = []
