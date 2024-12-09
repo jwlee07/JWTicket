@@ -4,6 +4,24 @@
 <div class="content-container mt-5">
     <h1 class="text-center">전체 공연 리뷰 통합 보기</h1>
 
+    <!-- 기간 지정 -->
+    <h2 class="mt-4">기간 지정</h2>
+    <form method="GET" action="{% url 'analyze_all_reviews' %}">
+        <div class="row">
+            <div class="col">
+                <label for="start_date">시작일</label>
+                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col">
+                <label for="end_date">종료일</label>
+                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-auto d-flex align-items-end">
+                <button type="submit" class="btn btn-dark">필터 적용</button>
+            </div>
+        </div>
+    </form>
+
     <!-- 공연별 요약 -->
     {% if concert_summary %}
     <h2 class="mt-4">공연별 요약</h2>
@@ -155,7 +173,7 @@
             ];
 
             new Chart(ctxRating, {
-                type: 'line',
+                type: 'bar',
                 data: { datasets: ratingDatasets },
                 options: {
                     responsive: true,
@@ -218,7 +236,7 @@
                 <td style="white-space: nowrap;">{{ review.작성일 }}</td>
                 <td>{{ review.평점 }}/5</td>
                 <td>{{ review.제목 }}</td>
-                <td>{{ review.내용|truncatewords:20 }}</td>
+                <td>{{ review.내용 }}</td>
                 <td>{{ review.조회수 }}</td>
                 <td>{{ review.좋아요 }}</td>
             </tr>

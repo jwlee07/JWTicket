@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q
 from django.db.models.functions import Length
 from .models import Concert, Review
 from datetime import datetime
@@ -374,11 +374,20 @@ def analyze_reviews(request, concert_id, analysis_type):
     return render(request, 'review/analysis.html', {'data': data, 'analysis_type': analysis_type})
 
 # 모든 공연의 리뷰
+from django.db.models import Q
+
 def analyze_all_reviews(request):
-    # 모든 리뷰 데이터를 가져옴
+    # 기간 필터링
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
     reviews = Review.objects.all().select_related('concert')
 
-    # 공연별 집계
+    # 날짜 필터링
+    if start_date and end_date:
+        reviews = reviews.filter(date__range=[start_date, end_date])
+
+    # 공연별 요약
     concert_summary = (
         reviews
         .values("concert__name", "concert__place")
@@ -436,4 +445,6 @@ def analyze_all_reviews(request):
         'concert_summary': concert_summary,
         'concert_date_summary': concert_date_summary,
         'concert_date_rating_summary': concert_date_rating_summary,
+        'start_date': start_date,
+        'end_date': end_date,
     })
