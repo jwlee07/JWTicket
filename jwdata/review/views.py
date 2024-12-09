@@ -11,6 +11,7 @@ from .models import Concert, Review
 from datetime import datetime
 import time
 import re
+from konlpy.tag import Okt
 from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -252,24 +253,17 @@ def analyze_reviews(request, concert_id, analysis_type):
                 'reviews': reviews
             })
 
-    # 리뷰 텍스트에는 어떤 단어가 가장 많이 나왔을까?
+    # 리뷰 텍스트에서 가장 많이 나온 단어를 추출
     elif analysis_type == 'frequent_words':
         reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
         text = ' '.join(reviews)
-        words = re.findall(r'\w+', text.lower())
-
-        exclude_words = {'이', '그', '저', '것', '수', '더', '또', '아주', '너무', '잘', '정말', '좋은', 
-                         '수', '더', '진짜','또', '보고', '극', '봤습니다', '꼭', '을', 
-                         '뮤지컬', '좀', '좋고', '같아요', '그래도', '그리고', '하고', '많이', '볼', '한번', 
-                         '근데', '생각보다', '있는', '공연', '다', '이야기', '어떻게', '함께', '계속', '다시', 
-                         '많은', '짱', '다른', '읽고', '이렇게', '모든', '보러', '너무너무', '다들', 
-                         '보면', '긴긴밤', '테일러', '본', '배우들의', '공연을', '건', '하는', '조금', '무대', 
-                         '극이', '한', '번', '느낌이', '있어요', '합니다', '하지만', '되는', 
-                         '싶어요', '없이', '좋아하는', '알', '내내', '날', '있고', '없고', '그런지', '할', '같습니다',
-                         '안', '자칫', '게'}
-
-        filtered_words = [word for word in words if word not in exclude_words]
-        data = Counter(filtered_words).most_common(20)
+    
+        # Okt를 사용하여 명사 추출
+        okt = Okt()
+        words = okt.nouns(text)
+    
+        # 빈도 계산
+        data = Counter(words).most_common(20)
 
     # 비슷한 리뷰 내용은 어떤 게 있을까?
     elif analysis_type == 'similar_reviews':
