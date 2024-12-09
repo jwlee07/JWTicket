@@ -40,13 +40,19 @@
         <h3 class="mt-5">리뷰 분석 리스트</h3>
         <div class="analysis-buttons mt-3">
             <a href="{% url 'analyze_reviews' concert.id 'long_reviews' %}" class="btn btn-secondary w-30 mb-2">
-                리뷰를 길게 남긴 관객 뭐라고 작성했을까?
+                길게 남긴 리뷰들은 뭘까?
             </a>
             <a href="{% url 'analyze_reviews' concert.id 'frequent_reviewers' %}" class="btn btn-secondary w-30 mb-2">
-                여러번 리뷰를 작성한 관객 어떤 리뷰를 달았을까?
+                리뷰를 여러번 남긴 관객은 누굴까?
             </a>
             <a href="{% url 'analyze_reviews' concert.id 'frequent_words' %}" class="btn btn-secondary w-30 mb-2">
-                리뷰 텍스트에는 어떤 단어가 가장 많이 나왔을까?
+                어떤 단어가 가장 많이 나왔을까?
+            </a>
+            <a href="{% url 'analyze_reviews' concert.id 'frequent_words_mix' %}" class="btn btn-secondary w-30 mb-2">
+                어떤 단어 조합이 가장 많이 나왔을까?
+            </a>
+            <a href="{% url 'analyze_reviews' concert.id 'frequent_words_important' %}" class="btn btn-secondary w-30 mb-2">
+                상대적 중요도를 반영하여 단어를 조합하면 어떻게 될까?
             </a>
             <a href="{% url 'analyze_reviews' concert.id 'similar_reviews' %}" class="btn btn-secondary w-30 mb-2">
                 비슷한 리뷰 내용은 어떤 게 있을까?
@@ -55,7 +61,7 @@
                 조회수가 높은 리뷰들은 어떤 내용일까?
             </a>
             <a href="{% url 'analyze_reviews' concert.id 'low_star_rating_reviews' %}" class="btn btn-secondary w-30 mb-2">
-                평점이 3점 이하인 리뷰를 작성한 관객은 어떤 리뷰를 달았을까?
+                평점이 3점 이하 리뷰는 어떨까?
             </a>
         </div>
 

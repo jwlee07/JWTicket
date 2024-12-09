@@ -13,8 +13,11 @@ import time
 import re
 from konlpy.tag import Okt
 from collections import Counter
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import cosine_similarity
+import pandas as pd
 
 def search_and_crawl(request):
     concerts = Concert.objects.all()  # 모든 Concert 데이터를 가져옴
@@ -184,53 +187,6 @@ def analyze_reviews(request, concert_id, analysis_type):
     if analysis_type == 'long_reviews':
         data = Review.objects.filter(concert_id=concert_id).annotate(
             content_length=Length('description')
-        ).order_by('-content_length')[:10] 
-    # 여러번 리뷰를 작성한 고객은 어떤 리뷰를 달았을까?        
-    elif analysis_type == 'frequent_reviewers':
-        frequent_reviewers = Review.objects.filter(concert_id=concert_id).values(
-            'nickname'
-        ).annotate(review_count=Count('id')).filter(review_count__gt=1).order_by('-review_count')
-
-        data = []
-        for reviewer in frequent_reviewers:
-            reviews = Review.objects.filter(concert_id=concert_id, nickname=reviewer['nickname']).values(
-                'nickname', 'description'
-            )
-            data.append({
-                'nickname': reviewer['nickname'],
-                'review_count': reviewer['review_count'],
-                'reviews': reviews
-            })
-    # 리뷰 텍스트에는 어떤 단어가 가장 많이 나왔을까?
-    elif analysis_type == 'frequent_words':
-        reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
-        text = ' '.join(reviews)
-        words = re.findall(r'\w+', text.lower())
-        data = Counter(words).most_common(20)
-    # 비슷한 리뷰 내용은 어떤 게 있을까?
-    elif analysis_type == 'similar_reviews':
-        reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
-        if len(reviews) < 2:
-            data = []
-        else:
-            tfidf_vectorizer = TfidfVectorizer(stop_words='korean')
-            tfidf_matrix = tfidf_vectorizer.fit_transform(reviews)
-            similarity_matrix = cosine_similarity(tfidf_matrix, tfidf_matrix)
-            data = [
-                (reviews[i], reviews[j], similarity_matrix[i, j])
-                for i in range(len(reviews)) for j in range(i + 1, len(reviews))
-                if similarity_matrix[i, j] > 0.5
-            ][:10]
-    else:
-        data = []
-
-    return render(request, 'review/analysis.html', {'data': data, 'analysis_type': analysis_type})
-
-def analyze_reviews(request, concert_id, analysis_type):
-    # 리뷰를 길게 남긴 사람은 뭐라고 작성했을까?
-    if analysis_type == 'long_reviews':
-        data = Review.objects.filter(concert_id=concert_id).annotate(
-            content_length=Length('description')
         ).order_by('-content_length')
 
         # "뮤지컬 〈테일러〉"를 포함한 description을 제거
@@ -253,69 +209,149 @@ def analyze_reviews(request, concert_id, analysis_type):
                 'reviews': reviews
             })
 
-    # 리뷰 텍스트에서 가장 많이 나온 단어를 추출
+    # 리뷰 텍스트에는 어떤 단어가 가장 많이 나왔을까?
+    # 텍스트 데이터에서 가장 자주 등장하는 단어를 파악
     elif analysis_type == 'frequent_words':
         reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
         text = ' '.join(reviews)
     
         # Okt를 사용하여 명사 추출
         okt = Okt()
-        words = okt.nouns(text)
-    
+        
+        stop_words = ['것', '정말', '노', '수', '이', '더', '보고', '진짜', '또', '그', 
+                      '꼭', '테일러', '뮤지컬', '좀', '조금', '볼', '말', '은', '는', 
+                      '이런', '그런', '저런', '그리고', '그러나', '그래서', '하지만', '그리고', 
+                      '게다가', '다시', '계속', '정말', '너무', '많이', '많은', '모든', '합니다', 
+                      '있어요', '없어요', '같아요', '보고', '봤습니다', '있습니다', '그렇죠', '맞아요', 
+                      '아니요', '그래요', '배우', '스토리', '내용', '연기', '무대', '공연', '관람', 
+                      '좋아요', '별점', '후기', '리뷰', '추천', '비추천',
+        ]
+
+        words = [word for word in okt.nouns(text) if word not in stop_words]        
+
         # 빈도 계산
         data = Counter(words).most_common(20)
-
-    # 비슷한 리뷰 내용은 어떤 게 있을까?
-    elif analysis_type == 'similar_reviews':
-        # 닉네임별 리뷰 수 계산
-        frequent_reviewers = Review.objects.filter(concert_id=concert_id).values('nickname').annotate(review_count=Count('id')).filter(review_count__gt=1)
-        nicknames = [reviewer['nickname'] for reviewer in frequent_reviewers]
-
-        # 닉네임이 두 번 이상인 리뷰만 선택
-        reviews_qs = Review.objects.filter(concert_id=concert_id, nickname__in=nicknames)
-        reviews_list = list(reviews_qs.values('description', 'nickname'))
-
-        if len(reviews_list) < 2:
+        
+    # 리뷰 텍스트에는 어떤 단어 조합이 가장 많이 나왔을까?
+    # 리뷰 텍스트에서 가장 자주 등장한 단어 조합 추출
+    elif analysis_type == 'frequent_words_mix':
+        reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
+        
+        if not reviews:
             data = []
         else:
-            # 리뷰 설명만 추출
-            descriptions = [review['description'] for review in reviews_list]
-            nicknames_list = [review['nickname'] for review in reviews_list]
+            # 리뷰 데이터를 DataFrame으로 변환
+            df = pd.DataFrame(list(reviews), columns=['CONTENT'])
 
-            # 불용어 목록 정의
-            korean_stop_words = [
-                '이', '그', '저', '그리고', '하지만', '그러나', '그래서', '또한', '더구나', '게다가', '즉',
-                '따라서', '결론적으로', '때문에', '만약', '이러한', '어떤', '어느', '어느정도', '조금', '아주',
-                '너무', '잘', '정말', '좋은', '수', '것', '더', '진짜', '또', '보고', '극',
-                '그', '봤습니다', '꼭', '을', '뮤지컬', '좀', '좋고', '같아요', '그래도', '하고', '많이', '볼', '한번',
-                '근데', '생각보다', '있는', '공연', '다', '이야기', '어떻게', '함께', '계속', '다시', '많은',
-                '짱', '다른', '읽고', '이렇게', '모든', '보러', '너무너무', '다들', '보면',
-                '긴긴밤', '테일러', '본', '배우들의', '공연을', '건', '하는', '조금', '무대', '극이', '한', '번',
-                '느낌이', '배우', '있어요', '합니다', '배우님들', '하지만'
+            # 불용어 설정
+            stop_words = ['것', '정말', '노', '수', '이', '더', '보고', '진짜', '또', '그', 
+              '꼭', '테일러', '뮤지컬', '좀', '조금', '볼', '말', '은', '는', 
+              '이런', '그런', '저런', '그리고', '그러나', '그래서', '하지만', '그리고', 
+              '게다가', '다시', '계속', '정말', '너무', '많이', '많은', '모든', '합니다', 
+              '있어요', '없어요', '같아요', '보고', '봤습니다', '있습니다', '그렇죠', '맞아요', 
+              '아니요', '그래요', '배우', '스토리', '내용', '연기', '무대', '공연', '관람', 
+              '좋아요', '별점', '후기', '리뷰', '추천', '비추천',
             ]
 
+            # CountVectorizer 설정
+            cvect = CountVectorizer(
+                ngram_range=(3, 6), 
+                min_df=2, 
+                max_df=0.8, 
+                max_features=30, 
+                stop_words=stop_words
+            )
+            X = cvect.fit_transform(df['CONTENT'])
+
+            # 결과를 DataFrame으로 변환
+            dtm = pd.DataFrame(X.toarray(), columns=cvect.get_feature_names_out())
+            dtm_sum = dtm.sum().sort_values(ascending=False)
+
+            # 데이터를 리스트 형태로 변환
+            data = list(dtm_sum.items())
+            
+    # 상대적 중요도를 반영하여 단어를 조합하면 어떻게 될까?
+    # 단순 빈도 기반이 아닌 상대적 중요도를 반영하여 단어 조합을 분석.
+    elif analysis_type == 'frequent_words_important':
+        reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
+        
+        if not reviews:
+            data = []
+        else:
+            # 리뷰 데이터를 DataFrame으로 변환
+            df = pd.DataFrame(list(reviews), columns=['CONTENT'])
+
+            # 불용어 설정
+            stop_words = ['것', '정말', '노', '수', '이', '더', '보고', '진짜', '또', '그', 
+              '꼭', '테일러', '뮤지컬', '좀', '조금', '볼', '말', '은', '는', 
+              '이런', '그런', '저런', '그리고', '그러나', '그래서', '하지만', '그리고', 
+              '게다가', '다시', '계속', '정말', '너무', '많이', '많은', '모든', '합니다', 
+              '있어요', '없어요', '같아요', '보고', '봤습니다', '있습니다', '그렇죠', '맞아요', 
+              '아니요', '그래요', '배우', '스토리', '내용', '연기', '무대', '공연', '관람', 
+              '좋아요', '별점', '후기', '리뷰', '추천', '비추천',
+            ]
+
+            # TF-IDF Vectorizer 설정
+            tfidf = TfidfVectorizer(
+                ngram_range=(3, 6),    # 3~6개의 단어 조합을 고려
+                min_df=2,              # 최소 2번 이상 등장
+                max_df=0.9,            # 전체 리뷰 중 90% 이하에서 등장
+                max_features=30,       # 상위 50개의 중요 단어 조합만 선택
+                stop_words=stop_words  # 불용어 제거
+            )
+
+            # TF-IDF 변환 수행
+            X = tfidf.fit_transform(df['CONTENT'])
+
+            # TF-IDF 결과를 DataFrame으로 변환
+            tfidf_df = pd.DataFrame(X.toarray(), columns=tfidf.get_feature_names_out())
+
+            # TF-IDF 값의 합계를 기준으로 단어 조합의 중요도를 계산
+            tfidf_sum = tfidf_df.sum().sort_values(ascending=False)
+
+            # 데이터를 리스트 형태로 변환 (단어 조합, 중요도)
+            data = list(tfidf_sum.items())
+
+    # 비슷한 리뷰 내용은 어떤 게 있을까?
+    # 리뷰 내용의 유사도를 계산하여 클러스터링으로 그룹화.
+    elif analysis_type == 'similar_reviews':
+        reviews = Review.objects.filter(concert_id=concert_id).values('nickname', 'description')
+
+        if not reviews:
+            data = {}
+        else:
+            # 리뷰 데이터를 DataFrame으로 변환
+            df = pd.DataFrame(list(reviews))
+
+            # 텍스트 정제 함수 정의
+            def clean_text(text):
+                # 한글, 영문, 숫자만 남기고 나머지는 제거
+                cleaned_text = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text)
+                # 여러 개의 공백을 하나의 공백으로 변경
+                cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+                # 앞뒤 공백 제거
+                cleaned_text = cleaned_text.strip()
+                return cleaned_text
+
+            # 모든 리뷰에 대해 정제 작업 수행
+            df['CLEANED_CONTENT'] = df['description'].apply(clean_text)
+
             # TF-IDF 벡터화
-            tfidf_vectorizer = TfidfVectorizer(stop_words=korean_stop_words)
-            tfidf_matrix = tfidf_vectorizer.fit_transform(descriptions)
-            similarity_matrix = cosine_similarity(tfidf_matrix, tfidf_matrix)
+            tfidf_vectorizer = TfidfVectorizer()
+            review_dtm = tfidf_vectorizer.fit_transform(df['CLEANED_CONTENT'])
 
-            # 유사한 리뷰 페어 추출 (닉네임 중복 제거)
-            seen_nicknames = set()
-            pairs = []
-            for i in range(len(reviews_list)):
-                for j in range(i + 1, len(reviews_list)):
-                    if (
-                        similarity_matrix[i, j] > 0.5 and 
-                        similarity_matrix[i, j] < 0.9 and 
-                        nicknames_list[i] not in seen_nicknames and
-                        nicknames_list[j] not in seen_nicknames
-                    ):
-                        pairs.append((reviews_list[i], reviews_list[j], similarity_matrix[i, j]))
-                        seen_nicknames.add(nicknames_list[i])
-                        seen_nicknames.add(nicknames_list[j])
+            # K-Means 클러스터링
+            kmeans = KMeans(n_clusters=10, n_init='auto', random_state=42)
+            kmeans.fit(review_dtm)
+            clusters = kmeans.labels_
 
-            # 유사도 순으로 정렬
-            data = sorted(pairs, key=lambda x: x[2], reverse=True)
+            # 클러스터 결과를 DataFrame에 추가
+            df['CLUSTER'] = clusters
+
+            # 클러스터별 닉네임과 리뷰 내용을 그룹화
+            data = df.groupby('CLUSTER').apply(
+                lambda group: [{"nickname": row['nickname'], "content": row['CLEANED_CONTENT']} for _, row in group.iterrows()]
+            ).to_dict()
 
     # 조회수가 높은 리뷰들은 어떤 내용일까?
     elif analysis_type == 'top_view_count_reviews':
