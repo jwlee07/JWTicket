@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="content-container mt-5">
-    <h1 class="text-center">인터파크 티켓 리뷰 분석기</h1>
+    <h1 class="text-center">진욱's 인터파크 티켓 리뷰 분석기</h1>
 
     <!-- 검색 폼 -->
     <form method="POST" class="mt-4">
@@ -17,6 +17,7 @@
     <!-- 공연 정보 버튼 -->
     {% if concerts %}
     <h3 class="mt-5">공연 목록</h3>
+    <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-dark">모든 공연 리뷰 보기</a>
     <div id="concert-buttons" class="btn-group mt-3 w-100" role="group" aria-label="공연 선택">
         {% for concert in concerts %}
         <button class="btn btn-outline-dark {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 

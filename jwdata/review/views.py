@@ -1,23 +1,26 @@
+from django.http import JsonResponse
 from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Avg
 from django.db.models.functions import Length
+from .models import Concert, Review
+from datetime import datetime
+import time
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from .models import Concert, Review
-from datetime import datetime
-import time
+
 import re
+import pandas as pd
 from konlpy.tag import Okt
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import cosine_similarity
-import pandas as pd
 
 def search_and_crawl(request):
     concerts = Concert.objects.all()  # 모든 Concert 데이터를 가져옴
@@ -369,3 +372,68 @@ def analyze_reviews(request, concert_id, analysis_type):
         data = []
 
     return render(request, 'review/analysis.html', {'data': data, 'analysis_type': analysis_type})
+
+# 모든 공연의 리뷰
+def analyze_all_reviews(request):
+    # 모든 리뷰 데이터를 가져옴
+    reviews = Review.objects.all().select_related('concert')
+
+    # 공연별 집계
+    concert_summary = (
+        reviews
+        .values("concert__name", "concert__place")
+        .annotate(
+            average_rating=Avg("star_rating"),
+            total_reviews=Count("id")
+        )
+        .order_by("concert__name")
+    )
+
+    # 공연별 날짜별 리뷰 수 집계
+    concert_date_summary = {}
+    concert_date_rating_summary = {}  # 날짜별 평점 집계
+    for concert in concert_summary:
+        concert_name = concert["concert__name"]
+        
+        # 날짜별 리뷰 수
+        date_summary = (
+            reviews
+            .filter(concert__name=concert_name)
+            .values("date")
+            .annotate(reviews_count=Count("id"))
+            .order_by("-date")
+        )
+        concert_date_summary[concert_name] = date_summary
+        
+        # 날짜별 평균 평점
+        date_rating_summary = (
+            reviews
+            .filter(concert__name=concert_name)
+            .values("date")
+            .annotate(average_rating=Avg("star_rating"))
+            .order_by("-date")
+        )
+        concert_date_rating_summary[concert_name] = date_rating_summary
+
+    # 전체 리뷰 데이터 정리
+    review_data = [
+        {
+            "공연명": review.concert.name,
+            "장소": review.concert.place,
+            "작성자": review.nickname,
+            "작성일": review.date,
+            "평점": review.star_rating,
+            "제목": review.title,
+            "내용": review.description,
+            "조회수": review.view_count,
+            "좋아요": review.like_count,
+        }
+        for review in reviews
+    ]
+
+    return render(request, 'review/all_reviews.html', {
+        'reviews': review_data,
+        'concert_summary': concert_summary,
+        'concert_date_summary': concert_date_summary,
+        'concert_date_rating_summary': concert_date_rating_summary,
+    })
