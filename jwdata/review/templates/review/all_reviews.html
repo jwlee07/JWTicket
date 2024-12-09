@@ -130,7 +130,7 @@
 
     <!-- 공연별 평균 평점 -->
     {% if concert_date_rating_summary %}
-    <h2 class="mt-4">공연별 평균 평점</h2>
+    <h2 class="mt-4">공연별 평균 평점(5점 만점)</h2>
     <canvas id="ratingChart" width="100%" height="50"></canvas>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -173,7 +173,7 @@
             ];
 
             new Chart(ctxRating, {
-                type: 'bar',
+                type: 'line',
                 data: { datasets: ratingDatasets },
                 options: {
                     responsive: true,
@@ -201,7 +201,7 @@
                                 font: { weight: 'bold', size: 14 },
                             },
                             beginAtZero: true,
-                            max: 5,
+                            max: 6,
                         },
                     },
                 },

@@ -374,8 +374,6 @@ def analyze_reviews(request, concert_id, analysis_type):
     return render(request, 'review/analysis.html', {'data': data, 'analysis_type': analysis_type})
 
 # 모든 공연의 리뷰
-from django.db.models import Q
-
 def analyze_all_reviews(request):
     # 기간 필터링
     start_date = request.GET.get('start_date')
