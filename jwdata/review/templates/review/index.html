@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="content-container mt-5">
-    <h1 class="text-center">공연 리뷰 정보</h1>
+    <h1 class="text-center">인터파크 티켓 리뷰 분석기</h1>
 
     <!-- 검색 폼 -->
     <form method="POST" class="mt-4">
@@ -11,7 +11,7 @@
             <label for="query" class="form-label">검색어</label>
             <input type="text" class="form-control" id="query" name="query" placeholder="공연명을 입력하세요">
         </div>
-        <button type="submit" class="btn btn-primary w-100">검색</button>
+        <button type="submit" class="btn btn-dark w-100">검색</button>
     </form>
 
     <!-- 공연 정보 버튼 -->
@@ -19,7 +19,7 @@
     <h3 class="mt-5">공연 목록</h3>
     <div id="concert-buttons" class="btn-group mt-3 w-100" role="group" aria-label="공연 선택">
         {% for concert in concerts %}
-        <button class="btn btn-outline-primary {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+        <button class="btn btn-outline-dark {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
                 data-concert-id="{{ concert.id }}" 
                 onclick="showConcert('{{ concert.id }}')">
             {{ concert.name }}
@@ -69,8 +69,8 @@
         <h3 class="mt-5">리뷰 테이블</h3>
         {% if concert.reviews.exists %}
         <table class="table table-sm">
-            <thead>
-                <tr class="text-center">
+            <thead class="table-dark">
+                <tr>
                     <th style="width: 80px;">작성자</th>
                     <th style="width: 150px;">작성일</th>
                     <th style="width: 80px;">별점</th>
