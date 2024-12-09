@@ -14,13 +14,42 @@
 1. pip install django
 2. pip install django-lint
 
-### 웹 크롤링 라이브러리 설치
-1. pip install requests
-2. pip install bs4
-3. pip install selenium
-
-## 기록
-
-### 2024.12.02(월)
-- 동적 웹 페이지의 데이터를 크롤링하기 위해서 selenium을 사용한다.
-- iframe 처리부터 시작하면 된다.
+### pip list
+Package           Version
+----------------- -----------
+asgiref           3.8.1
+attrs             24.2.0
+beautifulsoup4    4.12.3
+certifi           2024.8.30
+Django            5.1.3
+django-bootstrap5 24.3
+h11               0.14.0
+idna              3.10
+joblib            1.4.2
+jpype1            1.5.1
+konlpy            0.6.0
+lxml              5.3.0
+numpy             2.1.3
+outcome           1.3.0.post0
+packaging         24.2
+pandas            2.2.3
+pip               24.3.1
+PySocks           1.7.1
+python-dateutil   2.9.0.post0
+pytz              2024.2
+scikit-learn      1.5.2
+scipy             1.14.1
+selenium          4.27.1
+six               1.17.0
+sniffio           1.3.1
+sortedcontainers  2.4.0
+soupsieve         2.6
+sqlparse          0.5.2
+threadpoolctl     3.5.0
+trio              0.27.0
+trio-websocket    0.11.1
+typing_extensions 4.12.2
+tzdata            2024.2
+urllib3           2.2.3
+websocket-client  1.8.0
+wsproto           1.2.0
