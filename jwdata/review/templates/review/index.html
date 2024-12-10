@@ -72,20 +72,20 @@
         <table class="table  table-hover table-sm">
             <thead class="table-dark">
                 <tr>
-                    <th style="width: 80px;">작성자</th>
-                    <th style="width: 150px;">작성일</th>
-                    <th style="width: 80px;">별점</th>
-                    <th>제목</th>
+                    <th style="white-space: nowrap;">작성자</th>
+                    <th style="white-space: nowrap;">작성일</th>
+                    <th style="white-space: nowrap;">별점</th>
+                    <th style="white-space: nowrap;">제목</th>
                     <th>내용</th>
                 </tr>
             </thead>
             <tbody>
                 {% for review in concert.reviews.all|dictsortreversed:"date" %}
                 <tr>
-                    <td>{{ review.nickname }}</td>
-                    <td>{{ review.date }}</td>
-                    <td>{{ review.star_rating }}/5</td>
-                    <td>{{ review.title }}</td>
+                    <td style="white-space: nowrap;">{{ review.nickname }}</td>
+                    <td style="white-space: nowrap;">{{ review.date }}</td>
+                    <td style="white-space: nowrap;">{{ review.star_rating }}/5</td>
+                    <td style="white-space: nowrap;">{{ review.title }}</td>
                     <td>{{ review.description }}</td>
                 </tr>
                 {% endfor %}

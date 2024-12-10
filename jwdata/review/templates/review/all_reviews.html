@@ -82,7 +82,12 @@
             {% for nickname, concerts in common_nicknames.items %}
             <tr>
                 <td>{{ nickname }}</td>
-                <td>{{ concerts|join:", " }}</td>
+                <td>
+                    {% for concert in concerts %}
+                        {{ concert.concert__name }}({{ concert.first_date }})
+                        {% if not forloop.last %} -> {% endif %}
+                    {% endfor %}
+                </td>
                 <td>{{ concerts|length }}</td>
             </tr>
             {% endfor %}

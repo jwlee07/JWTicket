@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Q, Min
 from django.db.models.functions import Length
 from .models import Concert, Review
 from datetime import datetime
@@ -422,13 +422,17 @@ def analyze_all_reviews(request):
     nicknames = (
         reviews
         .values('nickname', 'concert__name')
+        .annotate(first_date=Min('date'))
         .distinct()
     )
 
-    # 닉네임별로 관련 공연을 그룹화
-    nickname_to_concerts = defaultdict(set)
+    # 닉네임별로 관련 공연과 최초 작성일을 그룹화
+    nickname_to_concerts = defaultdict(list)
     for entry in nicknames:
-        nickname_to_concerts[entry['nickname']].add(entry['concert__name'])
+        nickname_to_concerts[entry['nickname']].append({
+            'concert__name': entry['concert__name'],
+            'first_date': entry['first_date'].strftime("%Y-%m-%d")  # 날짜를 문자열로 변환
+        })
 
     # 두 개 이상의 공연에 등장한 닉네임 찾기 및 관련 공연 수로 정렬
     common_nicknames = {
@@ -436,10 +440,11 @@ def analyze_all_reviews(request):
         for nickname, concerts in nickname_to_concerts.items()
         if len(concerts) > 1
     }
-    
+
     sorted_common_nicknames = dict(
         sorted(common_nicknames.items(), key=lambda item: len(item[1]), reverse=True)
     )
+
     
     # 공연별 닉네임 집계
     concerts_with_nicknames = reviews.values('concert__name', 'nickname').distinct()
