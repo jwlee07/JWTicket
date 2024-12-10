@@ -51,171 +51,23 @@
     {% if concert_date_summary %}
     <h2 class="mt-4">공연별 리뷰 수</h2>
     <canvas id="reviewChart" width="100%" height="50"></canvas>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('reviewChart').getContext('2d');
-
-            const datasets = [
-                {% for concert_name, date_summary in concert_date_summary.items %}
-                {
-                    label: '{{ concert_name }}',
-                    data: [
-                        {% for date in date_summary %}
-                        { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.reviews_count }} },
-                        {% endfor %}
-                    ],
-                    borderColor: 
-                        {% if concert_name == "뮤지컬 〈긴긴밤〉" %}
-                        'rgba(104, 185, 157, 1)'
-                        {% elif concert_name == "뮤지컬 〈테일러〉" %}
-                        'rgba(0, 6, 6, 1)'
-                        {% elif concert_name == "연극 ＇타인의 삶＇" %}
-                        'rgba(195, 32, 31, 1)'
-                        {% else %}
-                        'rgba(192, 192, 192, 1)'
-                        {% endif %},
-                    backgroundColor: 
-                        {% if concert_name == "뮤지컬 〈긴긴밤〉" %}
-                        'rgba(104, 185, 157, 0.2)'
-                        {% elif concert_name == "뮤지컬 〈테일러〉" %}
-                        'rgba(0, 6, 6, 0.2)'
-                        {% elif concert_name == "연극 ＇타인의 삶＇" %}
-                        'rgba(195, 32, 31, 0.2)'
-                        {% else %}
-                        'rgba(192, 192, 192, 0.2)'
-                        {% endif %},
-                    borderWidth: 2,
-                    tension: 0.2,
-                    fill: false,
-                },
-                {% endfor %}
-            ];
-
-            new Chart(ctx, {
-                type: 'line',
-                data: { datasets: datasets },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: true, position: 'top' },
-                    },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'day',
-                                tooltipFormat: 'MM월 DD일(ddd)',
-                                displayFormats: { day: 'MM월 DD일(ddd)' },
-                            },
-                            title: {
-                                display: true,
-                                text: '날짜',
-                                font: { weight: 'bold', size: 14 },
-                            },
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: '리뷰 수',
-                                font: { weight: 'bold', size: 14 },
-                            },
-                            beginAtZero: true,
-                        },
-                    },
-                },
-            });
-        });
-    </script>
     {% endif %}
 
     <!-- 공연별 평균 평점 -->
     {% if concert_date_rating_summary %}
     <h2 class="mt-4">공연별 평균 평점(5점 만점)</h2>
     <canvas id="ratingChart" width="100%" height="50"></canvas>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctxRating = document.getElementById('ratingChart').getContext('2d');
-
-            const ratingDatasets = [
-                {% for concert_name, date_rating_summary in concert_date_rating_summary.items %}
-                {
-                    label: '{{ concert_name }}',
-                    data: [
-                        {% for date in date_rating_summary %}
-                        { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.average_rating|floatformat:1 }} },
-                        {% endfor %}
-                    ],
-                    borderColor: 
-                        {% if concert_name == "뮤지컬 〈긴긴밤〉" %}
-                        'rgba(104, 185, 157, 1)'
-                        {% elif concert_name == "뮤지컬 〈테일러〉" %}
-                        'rgba(0, 6, 6, 1)'
-                        {% elif concert_name == "연극 ＇타인의 삶＇" %}
-                        'rgba(195, 32, 31, 1)'
-                        {% else %}
-                        'rgba(192, 192, 192, 1)'
-                        {% endif %},
-                    backgroundColor: 
-                        {% if concert_name == "뮤지컬 〈긴긴밤〉" %}
-                        'rgba(104, 185, 157, 0.2)'
-                        {% elif concert_name == "뮤지컬 〈테일러〉" %}
-                        'rgba(0, 6, 6, 0.2)'
-                        {% elif concert_name == "연극 ＇타인의 삶＇" %}
-                        'rgba(195, 32, 31, 0.2)'
-                        {% else %}
-                        'rgba(192, 192, 192, 0.2)'
-                        {% endif %},
-                    borderWidth: 2,
-                    tension: 0.2,
-                    fill: false,
-                },
-                {% endfor %}
-            ];
-
-            new Chart(ctxRating, {
-                type: 'line',
-                data: { datasets: ratingDatasets },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: true, position: 'top' },
-                    },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'day',
-                                tooltipFormat: 'MM월 DD일(ddd)',
-                                displayFormats: { day: 'MM월 DD일(ddd)' },
-                            },
-                            title: {
-                                display: true,
-                                text: '날짜',
-                                font: { weight: 'bold', size: 14 },
-                            },
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: '평균 평점',
-                                font: { weight: 'bold', size: 14 },
-                            },
-                            beginAtZero: true,
-                            max: 6,
-                        },
-                    },
-                },
-            });
-        });
-    </script>
     {% endif %}
-    
+
+    <!-- 공연 조합별 관객 분포 -->
     {% if combination_counts %}
     <h2 class="mt-4">공연 조합별 관객 분포</h2>
     <canvas id="combinationChart" style="max-width: 100%; max-height: 500px;"></canvas>
     {% else %}
     <p class="text-muted">공연 조합별 닉네임 데이터가 없습니다.</p>
     {% endif %}    
+
+    <!-- 닉네임 별 관람 공연 -->
     {% if common_nicknames %}
     <h2 class="mt-4">닉네임 별 관람 공연</h2>
     <table class="table table-bordered table-hover mt-4">
@@ -285,29 +137,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const ctx = document.getElementById('combinationChart').getContext('2d');
-
-        // 공연별 색상 정의
         const colors = {
-            "뮤지컬 〈긴긴밤〉": {
-                border: 'rgba(104, 185, 157, 1)',
-                background: 'rgba(104, 185, 157, 0.2)'
-            },
-            "뮤지컬 〈테일러〉": {
-                border: 'rgba(0, 6, 6, 1)',
-                background: 'rgba(0, 6, 6, 0.2)'
-            },
-            "연극 ＇타인의 삶＇": {
-                border: 'rgba(195, 32, 31, 1)',
-                background: 'rgba(195, 32, 31, 0.2)'
-            },
-            "기타": {
-                border: 'rgba(192, 192, 192, 1)',
-                background: 'rgba(192, 192, 192, 0.2)'
-            }
+            "뮤지컬 〈긴긴밤〉": { border: 'rgba(104, 185, 157, 1)', background: 'rgba(104, 185, 157, 0.3)' },
+            "뮤지컬 〈테일러〉": { border: 'rgba(41, 128, 185, 1)', background: 'rgba(41, 128, 185, 0.3)' },
+            "연극 ＇타인의 삶＇": { border: 'rgba(231, 76, 60, 1)', background: 'rgba(231, 76, 60, 0.3)' },
+            "기타": { border: 'rgba(149, 165, 166, 1)', background: 'rgba(149, 165, 166, 0.3)' }
         };
 
-        // 겹치는 공연의 경우 색상 조합 생성
         const generateMixedColor = (combo, type) => {
             const individualColors = combo.split(", ").map(name => (colors[name.trim()] || colors["기타"])[type]);
             const mixedColor = individualColors.reduce((acc, color) => {
@@ -321,39 +157,120 @@
             return `rgba(${mixedColor[0]}, ${mixedColor[1]}, ${mixedColor[2]}, ${mixedColor[3]})`;
         };
 
-        // 공연 조합과 데이터 준비
+        {% if concert_date_summary %}
+        const ctxReview = document.getElementById('reviewChart').getContext('2d');
+        const datasetsReview = [
+            {% for concert_name, date_summary in concert_date_summary.items %}
+            {
+                label: '{{ concert_name }}',
+                data: [
+                    {% for date in date_summary %}
+                    { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.reviews_count }} },
+                    {% endfor %}
+                ],
+                borderColor: colors['{{ concert_name }}']?.border || colors["기타"].border,
+                backgroundColor: colors['{{ concert_name }}']?.background || colors["기타"].background,
+                borderWidth: 2,
+                tension: 0.2,
+                fill: false,
+            },
+            {% endfor %}
+        ];
+
+        new Chart(ctxReview, {
+            type: 'line',
+            data: { datasets: datasetsReview },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true, position: 'top' } },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'MM월DD일(ddd)',
+                            displayFormats: { day: 'MM월DD일(ddd)' }
+                        },
+                        title: { display: true, text: '날짜', font: { size: 14, weight: 'bold' } }
+                    },
+                    y: { title: { display: true, text: '리뷰 수', font: { size: 14, weight: 'bold' } }, beginAtZero: true }
+                }
+            }
+        });
+        {% endif %}
+
+        {% if concert_date_rating_summary %}
+        const ctxRating = document.getElementById('ratingChart').getContext('2d');
+        const datasetsRating = [
+            {% for concert_name, date_rating_summary in concert_date_rating_summary.items %}
+            {
+                label: '{{ concert_name }}',
+                data: [
+                    {% for date in date_rating_summary %}
+                    { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.average_rating|floatformat:1 }} },
+                    {% endfor %}
+                ],
+                borderColor: colors['{{ concert_name }}']?.border || colors["기타"].border,
+                backgroundColor: colors['{{ concert_name }}']?.background || colors["기타"].background,
+                borderWidth: 2,
+                tension: 0.2,
+                fill: false,
+            },
+            {% endfor %}
+        ];
+
+        new Chart(ctxRating, {
+            type: 'line',
+            data: { datasets: datasetsRating },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true, position: 'top' } },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'MM월DD일(ddd)',
+                            displayFormats: { day: 'MM월DD일(ddd)' }
+                        },
+                        title: { display: true, text: '날짜', font: { size: 14, weight: 'bold' } }
+                    },
+                    y: { title: { display: true, text: '평균 평점', font: { size: 14, weight: 'bold' } }, beginAtZero: true, max: 6 }
+                }
+            }
+        });
+        {% endif %}
+
+        {% if combination_counts %}
+        const ctxCombination = document.getElementById('combinationChart').getContext('2d');
         const combinationData = [
             {% for combo, count in combination_counts.items %}
             { label: "{{ combo }}", count: {{ count }} },
             {% endfor %}
         ];
 
-        // 데이터 정렬 (명수 높은 순)
         combinationData.sort((a, b) => b.count - a.count);
 
-        // 정렬된 데이터를 기반으로 labels, data, backgroundColors, borderColors 생성
-        const labels = combinationData.map(item => item.label);
-        const data = combinationData.map(item => item.count);
-        const backgroundColors = labels.map(combo => generateMixedColor(combo, "background"));
-        const borderColors = labels.map(combo => generateMixedColor(combo, "border"));
+        const labelsCombination = combinationData.map(item => item.label);
+        const dataCombination = combinationData.map(item => item.count);
+        const backgroundColorsCombination = labelsCombination.map(combo => generateMixedColor(combo, "background"));
+        const borderColorsCombination = labelsCombination.map(combo => generateMixedColor(combo, "border"));
 
-        new Chart(ctx, {
+        new Chart(ctxCombination, {
             type: 'pie',
             data: {
-                labels: labels,
+                labels: labelsCombination,
                 datasets: [{
-                    data: data,
-                    backgroundColor: backgroundColors,
-                    borderColor: borderColors,
+                    data: dataCombination,
+                    backgroundColor: backgroundColorsCombination,
+                    borderColor: borderColorsCombination,
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: {
-                        position: 'top',
-                    },
+                    legend: { position: 'top' },
                     tooltip: {
                         callbacks: {
                             label: function (context) {
@@ -364,6 +281,7 @@
                 }
             }
         });
+        {% endif %}
     });
 </script>
 {% endblock scripts %}
