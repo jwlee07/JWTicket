@@ -431,12 +431,12 @@ def analyze_all_reviews(request):
     for entry in nicknames:
         nickname_to_concerts[entry['nickname']].append({
             'concert__name': entry['concert__name'],
-            'first_date': entry['first_date'].strftime("%Y-%m-%d")  # 날짜를 문자열로 변환
+            'first_date': entry['first_date'].strftime("%Y-%m-%d")
         })
 
     # 두 개 이상의 공연에 등장한 닉네임 찾기 및 관련 공연 수로 정렬
     common_nicknames = {
-        nickname: concerts
+        nickname: sorted(concerts, key=lambda x: x['first_date'])
         for nickname, concerts in nickname_to_concerts.items()
         if len(concerts) > 1
     }
@@ -444,7 +444,6 @@ def analyze_all_reviews(request):
     sorted_common_nicknames = dict(
         sorted(common_nicknames.items(), key=lambda item: len(item[1]), reverse=True)
     )
-
     
     # 공연별 닉네임 집계
     concerts_with_nicknames = reviews.values('concert__name', 'nickname').distinct()
