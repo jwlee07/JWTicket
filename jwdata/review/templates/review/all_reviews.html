@@ -210,6 +210,32 @@
     </script>
     {% endif %}
 
+    <h2 class="mt-4">닉네임 별 관람 공연</h2>
+    {% if common_nicknames %}
+    <table class="table table-bordered table-hover mt-4">
+        <thead class="table-dark">
+            <tr>
+                <th>닉네임</th>
+                <th>관련 공연</th>
+                <th>관련 공연 수</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nickname, concerts in common_nicknames.items %}
+            <tr>
+                <td>{{ nickname }}</td>
+                <td>{{ concerts|join:", " }}</td>
+                <td>{{ concerts|length }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">닉네임 별 관람 공연이 없습니다.</p>
+    <!-- 디버깅 정보 -->
+    <p>common_nicknames 데이터: {{ common_nicknames }}</p>
+    {% endif %}    
+
     <!-- 모든 리뷰 최신순 출력 -->
     {% if reviews %}
     <h2 class="mt-4">전체 리뷰</h2>
