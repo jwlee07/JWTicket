@@ -14,8 +14,9 @@ from selenium.common.exceptions import NoSuchElementException
 
 import re
 import pandas as pd
-from konlpy.tag import Okt
 from collections import Counter, defaultdict
+from itertools import combinations
+from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
@@ -440,6 +441,23 @@ def analyze_all_reviews(request):
         sorted(common_nicknames.items(), key=lambda item: len(item[1]), reverse=True)
     )
     
+    # 공연별 닉네임 집계
+    concerts_with_nicknames = reviews.values('concert__name', 'nickname').distinct()
+    concert_to_nicknames = defaultdict(set)
+    for entry in concerts_with_nicknames:
+        concert_to_nicknames[entry['concert__name']].add(entry['nickname'])
+
+    # 모든 공연 리스트
+    concerts = list(concert_to_nicknames.keys())
+
+    # 조합별 닉네임 계산
+    combination_counts = {}
+    for r in range(1, len(concerts) + 1):
+        for combo in combinations(concerts, r):
+            # 조합에 포함된 공연들의 닉네임 교집합 계산
+            intersected_nicknames = set.intersection(*(concert_to_nicknames[c] for c in combo))
+            combination_counts[", ".join(combo)] = len(intersected_nicknames)
+    
     # 전체 리뷰 데이터 정리
     review_data = [
         {
@@ -463,5 +481,6 @@ def analyze_all_reviews(request):
         'concert_date_summary': concert_date_summary,
         'concert_date_rating_summary': concert_date_rating_summary,
         'common_nicknames': sorted_common_nicknames,
+        'combination_counts': combination_counts,
         'reviews': review_data,
     })

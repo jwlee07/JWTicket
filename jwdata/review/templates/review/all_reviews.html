@@ -25,7 +25,7 @@
     <!-- 공연별 요약 -->
     {% if concert_summary %}
     <h2 class="mt-4">공연별 요약</h2>
-    <table class="table table-bordered mt-3">
+    <table class="table table-bordered table-hover mt-3">
         <thead class="table-dark">
             <tr>
                 <th>공연명</th>
@@ -209,9 +209,15 @@
         });
     </script>
     {% endif %}
-
-    <h2 class="mt-4">닉네임 별 관람 공연</h2>
+    
+    {% if combination_counts %}
+    <h2 class="mt-4">공연 조합별 관객 분포</h2>
+    <canvas id="combinationChart" style="max-width: 100%; max-height: 500px;"></canvas>
+    {% else %}
+    <p class="text-muted">공연 조합별 닉네임 데이터가 없습니다.</p>
+    {% endif %}    
     {% if common_nicknames %}
+    <h2 class="mt-4">닉네임 별 관람 공연</h2>
     <table class="table table-bordered table-hover mt-4">
         <thead class="table-dark">
             <tr>
@@ -232,14 +238,12 @@
     </table>
     {% else %}
     <p class="text-muted">닉네임 별 관람 공연이 없습니다.</p>
-    <!-- 디버깅 정보 -->
-    <p>common_nicknames 데이터: {{ common_nicknames }}</p>
-    {% endif %}    
+    {% endif %}
 
     <!-- 모든 리뷰 최신순 출력 -->
     {% if reviews %}
     <h2 class="mt-4">전체 리뷰</h2>
-    <table class="table table-bordered mt-3">
+    <table class="table table-bordered table-hover mt-3">
         <thead class="table-dark">
             <tr>
                 <th style="white-space: nowrap;">공연명</th>
@@ -279,4 +283,87 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('combinationChart').getContext('2d');
+
+        // 공연별 색상 정의
+        const colors = {
+            "뮤지컬 〈긴긴밤〉": {
+                border: 'rgba(104, 185, 157, 1)',
+                background: 'rgba(104, 185, 157, 0.2)'
+            },
+            "뮤지컬 〈테일러〉": {
+                border: 'rgba(0, 6, 6, 1)',
+                background: 'rgba(0, 6, 6, 0.2)'
+            },
+            "연극 ＇타인의 삶＇": {
+                border: 'rgba(195, 32, 31, 1)',
+                background: 'rgba(195, 32, 31, 0.2)'
+            },
+            "기타": {
+                border: 'rgba(192, 192, 192, 1)',
+                background: 'rgba(192, 192, 192, 0.2)'
+            }
+        };
+
+        // 겹치는 공연의 경우 색상 조합 생성
+        const generateMixedColor = (combo, type) => {
+            const individualColors = combo.split(", ").map(name => (colors[name.trim()] || colors["기타"])[type]);
+            const mixedColor = individualColors.reduce((acc, color) => {
+                const rgba = color.match(/\d+/g).map(Number);
+                acc[0] += rgba[0];
+                acc[1] += rgba[1];
+                acc[2] += rgba[2];
+                acc[3] += rgba[3] || 1;
+                return acc;
+            }, [0, 0, 0, 0]).map(value => value / individualColors.length);
+            return `rgba(${mixedColor[0]}, ${mixedColor[1]}, ${mixedColor[2]}, ${mixedColor[3]})`;
+        };
+
+        // 공연 조합과 데이터 준비
+        const combinationData = [
+            {% for combo, count in combination_counts.items %}
+            { label: "{{ combo }}", count: {{ count }} },
+            {% endfor %}
+        ];
+
+        // 데이터 정렬 (명수 높은 순)
+        combinationData.sort((a, b) => b.count - a.count);
+
+        // 정렬된 데이터를 기반으로 labels, data, backgroundColors, borderColors 생성
+        const labels = combinationData.map(item => item.label);
+        const data = combinationData.map(item => item.count);
+        const backgroundColors = labels.map(combo => generateMixedColor(combo, "background"));
+        const borderColors = labels.map(combo => generateMixedColor(combo, "border"));
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.label}: ${context.raw}명`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock scripts %}
