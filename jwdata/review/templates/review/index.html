@@ -75,7 +75,7 @@
                     <th style="white-space: nowrap;">작성자</th>
                     <th style="white-space: nowrap;">작성일</th>
                     <th style="white-space: nowrap;">별점</th>
-                    <th style="white-space: nowrap;">제목</th>
+                    <th>제목</th>
                     <th>내용</th>
                 </tr>
             </thead>
@@ -85,7 +85,7 @@
                     <td style="white-space: nowrap;">{{ review.nickname }}</td>
                     <td style="white-space: nowrap;">{{ review.date }}</td>
                     <td style="white-space: nowrap;">{{ review.star_rating }}/5</td>
-                    <td style="white-space: nowrap;">{{ review.title }}</td>
+                    <td>{{ review.title }}</td>
                     <td>{{ review.description }}</td>
                 </tr>
                 {% endfor %}

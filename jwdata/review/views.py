@@ -184,6 +184,16 @@ def search_and_crawl(request):
 
     return render(request, 'review/index.html', { 'concerts': concerts, 'active_concert_id': active_concert_id,})
 
+# 텍스트 정제 함수 정의
+def clean_text(text):
+    # 한글, 영문, 숫자만 남기고 나머지는 제거
+    cleaned_text = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text)
+    # 여러 개의 공백을 하나의 공백으로 변경
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+    # 앞뒤 공백 제거
+    cleaned_text = cleaned_text.strip()
+    return cleaned_text
+            
 def analyze_reviews(request, concert_id, analysis_type):
     # 리뷰를 길게 남긴 사람은 뭐라고 작성했을까?
     if analysis_type == 'long_reviews':
@@ -212,7 +222,6 @@ def analyze_reviews(request, concert_id, analysis_type):
             })
 
     # 리뷰 텍스트에는 어떤 단어가 가장 많이 나왔을까?
-    # 텍스트 데이터에서 가장 자주 등장하는 단어를 파악
     elif analysis_type == 'frequent_words':
         reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
         text = ' '.join(reviews)
@@ -233,35 +242,36 @@ def analyze_reviews(request, concert_id, analysis_type):
 
         # 빈도 계산
         data = Counter(words).most_common(20)
-        
+
     # 리뷰 텍스트에는 어떤 단어 조합이 가장 많이 나왔을까?
-    # 리뷰 텍스트에서 가장 자주 등장한 단어 조합 추출
     elif analysis_type == 'frequent_words_mix':
         reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
         
         if not reviews:
             data = []
         else:
-            # 리뷰 데이터를 DataFrame으로 변환
-            df = pd.DataFrame(list(reviews), columns=['CONTENT'])
+            # 리뷰 데이터를 정제
+            cleaned_reviews = [clean_text(review) for review in reviews]
+
+            # DataFrame으로 변환
+            df = pd.DataFrame(cleaned_reviews, columns=['CONTENT'])
 
             # 불용어 설정
             stop_words = ['것', '정말', '노', '수', '이', '더', '보고', '진짜', '또', '그', 
-              '꼭', '테일러', '뮤지컬', '좀', '조금', '볼', '말', '은', '는', 
-              '이런', '그런', '저런', '그리고', '그러나', '그래서', '하지만', '그리고', 
-              '게다가', '다시', '계속', '정말', '너무', '많이', '많은', '모든', '합니다', 
-              '있어요', '없어요', '같아요', '보고', '봤습니다', '있습니다', '그렇죠', '맞아요', 
-              '아니요', '그래요', '배우', '스토리', '내용', '연기', '무대', '공연', '관람', 
-              '좋아요', '별점', '후기', '리뷰', '추천', '비추천',
+                          '꼭', '테일러', '뮤지컬', '좀', '조금', '볼', '말', '은', '는', 
+                          '이런', '그런', '저런', '그리고', '그러나', '그래서', '하지만', '그리고', 
+                          '게다가', '다시', '계속', '정말', '너무', '많이', '많은', '모든', '합니다', 
+                          '있어요', '없어요', '같아요', '보고', '봤습니다', '있습니다', '그렇죠', '맞아요', 
+                          '아니요', '그래요', '테일러뮤지컬',
             ]
 
             # CountVectorizer 설정
             cvect = CountVectorizer(
-                ngram_range=(3, 6), 
-                min_df=2, 
-                max_df=0.8, 
-                max_features=30, 
-                stop_words=stop_words
+                ngram_range=(2, 6),    # 2~6개의 단어 조합을 고려
+                min_df=2,              # 최소 2번 이상 등장
+                max_df=0.9,            # 전체 리뷰 중 90% 이하에서 등장
+                max_features=50,       # 상위 50개의 중요 단어 조합만 선택
+                stop_words=stop_words  # 불용어 제거
             )
             X = cvect.fit_transform(df['CONTENT'])
 
@@ -273,32 +283,33 @@ def analyze_reviews(request, concert_id, analysis_type):
             data = list(dtm_sum.items())
             
     # 상대적 중요도를 반영하여 단어를 조합하면 어떻게 될까?
-    # 단순 빈도 기반이 아닌 상대적 중요도를 반영하여 단어 조합을 분석.
     elif analysis_type == 'frequent_words_important':
         reviews = Review.objects.filter(concert_id=concert_id).values_list('description', flat=True)
         
         if not reviews:
             data = []
         else:
-            # 리뷰 데이터를 DataFrame으로 변환
-            df = pd.DataFrame(list(reviews), columns=['CONTENT'])
+            # 리뷰 데이터를 정제
+            cleaned_reviews = [clean_text(review) for review in reviews]
+
+            # DataFrame으로 변환
+            df = pd.DataFrame(cleaned_reviews, columns=['CONTENT'])
 
             # 불용어 설정
             stop_words = ['것', '정말', '노', '수', '이', '더', '보고', '진짜', '또', '그', 
-              '꼭', '테일러', '뮤지컬', '좀', '조금', '볼', '말', '은', '는', 
-              '이런', '그런', '저런', '그리고', '그러나', '그래서', '하지만', '그리고', 
-              '게다가', '다시', '계속', '정말', '너무', '많이', '많은', '모든', '합니다', 
-              '있어요', '없어요', '같아요', '보고', '봤습니다', '있습니다', '그렇죠', '맞아요', 
-              '아니요', '그래요', '배우', '스토리', '내용', '연기', '무대', '공연', '관람', 
-              '좋아요', '별점', '후기', '리뷰', '추천', '비추천',
+                          '꼭', '테일러', '뮤지컬', '좀', '조금', '볼', '말', '은', '는', 
+                          '이런', '그런', '저런', '그리고', '그러나', '그래서', '하지만', '그리고', 
+                          '게다가', '다시', '계속', '정말', '너무', '많이', '많은', '모든', '합니다', 
+                          '있어요', '없어요', '같아요', '보고', '봤습니다', '있습니다', '그렇죠', '맞아요', 
+                          '아니요', '그래요', '테일러뮤지컬',
             ]
 
             # TF-IDF Vectorizer 설정
             tfidf = TfidfVectorizer(
-                ngram_range=(3, 6),    # 3~6개의 단어 조합을 고려
+                ngram_range=(2, 6),    # 2~6개의 단어 조합을 고려
                 min_df=2,              # 최소 2번 이상 등장
                 max_df=0.9,            # 전체 리뷰 중 90% 이하에서 등장
-                max_features=30,       # 상위 50개의 중요 단어 조합만 선택
+                max_features=50,       # 상위 50개의 중요 단어 조합만 선택
                 stop_words=stop_words  # 불용어 제거
             )
 
@@ -311,8 +322,8 @@ def analyze_reviews(request, concert_id, analysis_type):
             # TF-IDF 값의 합계를 기준으로 단어 조합의 중요도를 계산
             tfidf_sum = tfidf_df.sum().sort_values(ascending=False)
 
-            # 데이터를 리스트 형태로 변환 (단어 조합, 중요도)
-            data = list(tfidf_sum.items())
+            # 데이터를 리스트 형태로 변환 (단어 조합, 중요도) + 소수점 둘째자리로 반올림
+            data = [(word, round(importance, 2)) for word, importance in tfidf_sum.items()]
 
     # 비슷한 리뷰 내용은 어떤 게 있을까?
     # 리뷰 내용의 유사도를 계산하여 클러스터링으로 그룹화.
@@ -324,16 +335,6 @@ def analyze_reviews(request, concert_id, analysis_type):
         else:
             # 리뷰 데이터를 DataFrame으로 변환
             df = pd.DataFrame(list(reviews))
-
-            # 텍스트 정제 함수 정의
-            def clean_text(text):
-                # 한글, 영문, 숫자만 남기고 나머지는 제거
-                cleaned_text = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text)
-                # 여러 개의 공백을 하나의 공백으로 변경
-                cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
-                # 앞뒤 공백 제거
-                cleaned_text = cleaned_text.strip()
-                return cleaned_text
 
             # 모든 리뷰에 대해 정제 작업 수행
             df['CLEANED_CONTENT'] = df['description'].apply(clean_text)
@@ -366,7 +367,6 @@ def analyze_reviews(request, concert_id, analysis_type):
         # "뮤지컬 〈테일러〉"가 포함되지 않은 리뷰만 선택
         data = [review for review in reviews if "뮤지컬 〈테일러〉" not in review.description]
 
-        
     else:  # 잘못된 분석 유형 처리
         data = []
 
