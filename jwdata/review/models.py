@@ -33,3 +33,23 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.concert.name} - {self.title}"
+    
+# 잔여 좌석 정보를 저장하는 모델
+class Seat(models.Model):
+    concert = models.ForeignKey(Concert, on_delete=models.CASCADE, related_name="seats", verbose_name="공연")
+    year = models.IntegerField(verbose_name="연도")
+    month = models.IntegerField(verbose_name="월")
+    day_num = models.IntegerField(verbose_name="일")
+    day_str = models.CharField(verbose_name="요일", max_length=10)
+    round_name = models.CharField(verbose_name="회차 번호", max_length=10)
+    round_time = models.TimeField(verbose_name="회차 시간")
+    seat_class = models.CharField(verbose_name="좌석 등급", max_length=10)
+    count = models.IntegerField(verbose_name="잔여 좌석")
+    actors = models.TextField(verbose_name="캐스팅 배우들", blank=True, help_text="해당 회차에 캐스팅된 배우 목록을 저장합니다.")
+
+    class Meta:
+        verbose_name = "잔여 좌석 정보"
+        verbose_name_plural = "잔여 좌석 정보"
+
+    def __str__(self):
+        return f"{self.concert.name} - {self.year}-{self.month:02d}-{self.day_num:02d} {self.round_name} {self.seat_class}"  
