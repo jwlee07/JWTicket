@@ -51,9 +51,13 @@ def search_and_crawl(request):
                 active_input.send_keys(Keys.RETURN)
 
                 # 첫 번째 검색 결과 클릭
-                WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[1]/div[2]/a[1]/ul'))
-                ).click()
+                element = WebDriverWait(driver, 10).until(
+                    EC.any_of(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[1]/div[2]/a[1]/ul')),
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[2]/div[2]/a[1]/ul'))
+                    )
+                )
+                element.click()
                 time.sleep(2)
 
                 # 새 창으로 전환
