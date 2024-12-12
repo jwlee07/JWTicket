@@ -1,138 +1,162 @@
 {% extends "review/base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="content-container mt-5">
-    <h1 class="text-center">전체 공연 리뷰 통합 보기</h1>
+<div class="container-fluid py-4" style="min-height: 100vh;">
+    <div class="content-container">
 
-    <!-- 기간 지정 -->
-    <h2 class="mt-4">기간 지정</h2>
-    <form method="GET" action="{% url 'analyze_all_reviews' %}">
-        <div class="row">
-            <div class="col">
-                <label for="start_date">시작일</label>
-                <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
-            </div>
-            <div class="col">
-                <label for="end_date">종료일</label>
-                <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
-            </div>
-            <div class="col-auto d-flex align-items-end">
-                <button type="submit" class="btn btn-dark">필터 적용</button>
+        <h1 class="text-center">전체 공연 리뷰 통합 보기</h1>
+
+        <!-- 기간 지정 필터 영역 -->
+        <div class="card p-3 mt-4">
+            <h2 class="mb-3">기간 지정</h2>
+            <form method="GET" action="{% url 'analyze_all_reviews' %}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label">시작일</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end_date" class="form-label">종료일</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" class="btn btn-dark">필터 적용</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 공연별 요약 테이블 -->
+        {% if concert_summary %}
+        <div class="mt-5">
+            <h2>공연별 요약</h2>
+            <table class="table table-bordered table-hover mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>공연명</th>
+                        <th>장소</th>
+                        <th>평균 평점</th>
+                        <th>총 리뷰 수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for concert in concert_summary %}
+                    <tr>
+                        <td>{{ concert.concert__name }}</td>
+                        <td>{{ concert.concert__place }}</td>
+                        <td>{{ concert.average_rating|floatformat:1 }}/5</td>
+                        <td>{{ concert.total_reviews }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- 공연별 리뷰 수 차트 -->
+        {% if concert_date_summary %}
+        <div class="mt-5">
+            <h2>공연별 리뷰 수</h2>
+            <div class="card p-3">
+                <canvas id="reviewChart" width="100%" height="50"></canvas>
             </div>
         </div>
-    </form>
+        {% endif %}
 
-    <!-- 공연별 요약 -->
-    {% if concert_summary %}
-    <h2 class="mt-4">공연별 요약</h2>
-    <table class="table table-bordered table-hover mt-3">
-        <thead class="table-dark">
-            <tr>
-                <th>공연명</th>
-                <th>장소</th>
-                <th>평균 평점</th>
-                <th>총 리뷰 수</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for concert in concert_summary %}
-            <tr>
-                <td>{{ concert.concert__name }}</td>
-                <td>{{ concert.concert__place }}</td>
-                <td>{{ concert.average_rating|floatformat:1 }}/5</td>
-                <td>{{ concert.total_reviews }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
+        <!-- 공연별 평균 평점 차트 -->
+        {% if concert_date_rating_summary %}
+        <div class="mt-5">
+            <h2>공연별 평균 평점(5점 만점)</h2>
+            <div class="card p-3">
+                <canvas id="ratingChart" width="100%" height="50"></canvas>
+            </div>
+        </div>
+        {% endif %}
 
-    <!-- 공연별 리뷰 수 -->
-    {% if concert_date_summary %}
-    <h2 class="mt-4">공연별 리뷰 수</h2>
-    <canvas id="reviewChart" width="100%" height="50"></canvas>
-    {% endif %}
+        <!-- 공연 조합별 관객 분포 파이 차트 -->
+        {% if combination_counts %}
+        <div class="mt-5">
+            <h2>공연 조합별 관객 분포</h2>
+            <div class="card p-3">
+                <canvas id="combinationChart" style="max-width: 100%; max-height: 500px;"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted mt-5">공연 조합별 닉네임 데이터가 없습니다.</p>
+        {% endif %}
 
-    <!-- 공연별 평균 평점 -->
-    {% if concert_date_rating_summary %}
-    <h2 class="mt-4">공연별 평균 평점(5점 만점)</h2>
-    <canvas id="ratingChart" width="100%" height="50"></canvas>
-    {% endif %}
-
-    <!-- 공연 조합별 관객 분포 -->
-    {% if combination_counts %}
-    <h2 class="mt-4">공연 조합별 관객 분포</h2>
-    <canvas id="combinationChart" style="max-width: 100%; max-height: 500px;"></canvas>
-    {% else %}
-    <p class="text-muted">공연 조합별 닉네임 데이터가 없습니다.</p>
-    {% endif %}    
-
-    <!-- 닉네임 별 관람 공연 -->
-    {% if common_nicknames %}
-    <h2 class="mt-4">닉네임 별 관람 공연</h2>
-    <table class="table table-bordered table-hover mt-4">
-        <thead class="table-dark">
-            <tr>
-                <th>닉네임</th>
-                <th>관련 공연</th>
-                <th>관련 공연 수</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for nickname, concerts in common_nicknames.items %}
-            <tr>
-                <td>{{ nickname }}</td>
-                <td>
-                    {% for concert in concerts %}
-                        {{ concert.concert__name }}({{ concert.first_date }})
-                        {% if not forloop.last %} -> {% endif %}
+        <!-- 닉네임 별 관람 공연 테이블 -->
+        {% if common_nicknames %}
+        <div class="mt-5">
+            <h2>닉네임 별 관람 공연</h2>
+            <table class="table table-bordered table-hover mt-4">
+                <thead class="table-dark">
+                    <tr>
+                        <th>닉네임</th>
+                        <th>관련 공연</th>
+                        <th>관련 공연 수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nickname, concerts in common_nicknames.items %}
+                    <tr>
+                        <td>{{ nickname }}</td>
+                        <td>
+                            {% for concert in concerts %}
+                                {{ concert.concert__name }}({{ concert.first_date }})
+                                {% if not forloop.last %} -> {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>{{ concerts|length }}</td>
+                    </tr>
                     {% endfor %}
-                </td>
-                <td>{{ concerts|length }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="text-muted">닉네임 별 관람 공연이 없습니다.</p>
-    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mt-5">닉네임 별 관람 공연이 없습니다.</p>
+        {% endif %}
 
-    <!-- 모든 리뷰 최신순 출력 -->
-    {% if reviews %}
-    <h2 class="mt-4">전체 리뷰</h2>
-    <table class="table table-bordered table-hover mt-3">
-        <thead class="table-dark">
-            <tr>
-                <th style="white-space: nowrap;">공연명</th>
-                <th style="white-space: nowrap;">장소</th>
-                <th style="white-space: nowrap;">작성자</th>
-                <th style="white-space: nowrap;">작성일</th>
-                <th style="white-space: nowrap;">평점</th>
-                <th style="white-space: nowrap;">제목</th>
-                <th style="white-space: nowrap;">내용</th>
-                <th style="white-space: nowrap;">조회수</th>
-                <th style="white-space: nowrap;">좋아요</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for review in reviews|dictsortreversed:"작성일" %}
-            <tr>
-                <td style="white-space: nowrap;">{{ review.공연명 }}</td>
-                <td style="white-space: nowrap;">{{ review.장소 }}</td>
-                <td>{{ review.작성자 }}</td>
-                <td style="white-space: nowrap;">{{ review.작성일 }}</td>
-                <td>{{ review.평점 }}/5</td>
-                <td>{{ review.제목 }}</td>
-                <td>{{ review.내용 }}</td>
-                <td>{{ review.조회수 }}</td>
-                <td>{{ review.좋아요 }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="text-center text-muted mt-5">등록된 리뷰가 없습니다.</p>
-    {% endif %}
+        <!-- 전체 리뷰 테이블 -->
+        {% if reviews %}
+        <div class="mt-5">
+            <h2>전체 리뷰</h2>
+            <table class="table table-bordered table-hover mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="white-space: nowrap;">공연명</th>
+                        <th style="white-space: nowrap;">장소</th>
+                        <th style="white-space: nowrap;">작성자</th>
+                        <th style="white-space: nowrap;">작성일</th>
+                        <th style="white-space: nowrap;">평점</th>
+                        <th style="white-space: nowrap;">제목</th>
+                        <th style="white-space: nowrap;">내용</th>
+                        <th style="white-space: nowrap;">조회수</th>
+                        <th style="white-space: nowrap;">좋아요</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in reviews|dictsortreversed:"작성일" %}
+                    <tr>
+                        <td style="white-space: nowrap;">{{ review.공연명 }}</td>
+                        <td style="white-space: nowrap;">{{ review.장소 }}</td>
+                        <td>{{ review.작성자 }}</td>
+                        <td style="white-space: nowrap;">{{ review.작성일 }}</td>
+                        <td>{{ review.평점 }}/5</td>
+                        <td>{{ review.제목 }}</td>
+                        <td>{{ review.내용 }}</td>
+                        <td>{{ review.조회수 }}</td>
+                        <td>{{ review.좋아요 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted mt-5">등록된 리뷰가 없습니다.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock content %}
 
@@ -141,152 +165,157 @@
 <script src="https://cdn.jsdelivr.net/npm/moment"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const colors = {
-            "뮤지컬 〈긴긴밤〉": { border: 'rgba(104, 185, 157, 1)', background: 'rgba(104, 185, 157, 0.3)' },
-            "뮤지컬 〈테일러〉": { border: 'rgba(41, 128, 185, 1)', background: 'rgba(41, 128, 185, 0.3)' },
-            "연극 ＇타인의 삶＇": { border: 'rgba(231, 76, 60, 1)', background: 'rgba(231, 76, 60, 0.3)' },
-            "기타": { border: 'rgba(149, 165, 166, 1)', background: 'rgba(149, 165, 166, 0.3)' }
-        };
+// 화면 로딩 후 실행
+document.addEventListener('DOMContentLoaded', function () {
+    // 색상 설정
+    const colors = {
+        "뮤지컬 〈긴긴밤〉": { border: 'rgba(104, 185, 157, 1)', background: 'rgba(104, 185, 157, 0.3)' },
+        "뮤지컬 〈테일러〉": { border: 'rgba(41, 128, 185, 1)', background: 'rgba(41, 128, 185, 0.3)' },
+        "연극 ＇타인의 삶＇": { border: 'rgba(231, 76, 60, 1)', background: 'rgba(231, 76, 60, 0.3)' },
+        "기타": { border: 'rgba(149, 165, 166, 1)', background: 'rgba(149, 165, 166, 0.3)' }
+    };
 
-        const generateMixedColor = (combo, type) => {
-            const individualColors = combo.split(", ").map(name => (colors[name.trim()] || colors["기타"])[type]);
-            const mixedColor = individualColors.reduce((acc, color) => {
-                const rgba = color.match(/\d+/g).map(Number);
-                acc[0] += rgba[0];
-                acc[1] += rgba[1];
-                acc[2] += rgba[2];
-                acc[3] += rgba[3] || 1;
-                return acc;
-            }, [0, 0, 0, 0]).map(value => value / individualColors.length);
-            return `rgba(${mixedColor[0]}, ${mixedColor[1]}, ${mixedColor[2]}, ${mixedColor[3]})`;
-        };
+    const generateMixedColor = (combo, type) => {
+        const individualColors = combo.split(", ").map(name => (colors[name.trim()] || colors["기타"])[type]);
+        const mixedColor = individualColors.reduce((acc, color) => {
+            const rgba = color.match(/\d+/g).map(Number);
+            acc[0] += rgba[0];
+            acc[1] += rgba[1];
+            acc[2] += rgba[2];
+            acc[3] += rgba[3] || 1;
+            return acc;
+        }, [0, 0, 0, 0]).map(value => value / individualColors.length);
+        return `rgba(${mixedColor[0]}, ${mixedColor[1]}, ${mixedColor[2]}, ${mixedColor[3]})`;
+    };
 
-        {% if concert_date_summary %}
-        const ctxReview = document.getElementById('reviewChart').getContext('2d');
-        const datasetsReview = [
-            {% for concert_name, date_summary in concert_date_summary.items %}
-            {
-                label: '{{ concert_name }}',
-                data: [
-                    {% for date in date_summary %}
-                    { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.reviews_count }} },
-                    {% endfor %}
-                ],
-                borderColor: colors['{{ concert_name }}']?.border || colors["기타"].border,
-                backgroundColor: colors['{{ concert_name }}']?.background || colors["기타"].background,
-                borderWidth: 2,
-                tension: 0.2,
-                fill: false,
-            },
-            {% endfor %}
-        ];
+    // 리뷰 수 차트
+    {% if concert_date_summary %}
+    const ctxReview = document.getElementById('reviewChart').getContext('2d');
+    const datasetsReview = [
+        {% for concert_name, date_summary in concert_date_summary.items %}
+        {
+            label: '{{ concert_name }}',
+            data: [
+                {% for date in date_summary %}
+                { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.reviews_count }} },
+                {% endfor %}
+            ],
+            borderColor: colors['{{ concert_name }}']?.border || colors["기타"].border,
+            backgroundColor: colors['{{ concert_name }}']?.background || colors["기타"].background,
+            borderWidth: 2,
+            tension: 0.2,
+            fill: false,
+        },
+        {% endfor %}
+    ];
 
-        new Chart(ctxReview, {
-            type: 'line',
-            data: { datasets: datasetsReview },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: true, position: 'top' } },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'MM월DD일(ddd)',
-                            displayFormats: { day: 'MM월DD일(ddd)' }
-                        },
-                        title: { display: true, text: '날짜', font: { size: 14, weight: 'bold' } }
+    new Chart(ctxReview, {
+        type: 'line',
+        data: { datasets: datasetsReview },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'top' } },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        tooltipFormat: 'MM월DD일(ddd)',
+                        displayFormats: { day: 'MM월DD일(ddd)' }
                     },
-                    y: { title: { display: true, text: '리뷰 수', font: { size: 14, weight: 'bold' } }, beginAtZero: true }
-                }
+                    title: { display: true, text: '날짜', font: { size: 14, weight: 'bold' } }
+                },
+                y: { title: { display: true, text: '리뷰 수', font: { size: 14, weight: 'bold' } }, beginAtZero: true }
             }
-        });
-        {% endif %}
+        }
+    });
+    {% endif %}
 
-        {% if concert_date_rating_summary %}
-        const ctxRating = document.getElementById('ratingChart').getContext('2d');
-        const datasetsRating = [
-            {% for concert_name, date_rating_summary in concert_date_rating_summary.items %}
-            {
-                label: '{{ concert_name }}',
-                data: [
-                    {% for date in date_rating_summary %}
-                    { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.average_rating|floatformat:1 }} },
-                    {% endfor %}
-                ],
-                borderColor: colors['{{ concert_name }}']?.border || colors["기타"].border,
-                backgroundColor: colors['{{ concert_name }}']?.background || colors["기타"].background,
-                borderWidth: 2,
-                tension: 0.2,
-                fill: false,
-            },
-            {% endfor %}
-        ];
+    // 평점 차트
+    {% if concert_date_rating_summary %}
+    const ctxRating = document.getElementById('ratingChart').getContext('2d');
+    const datasetsRating = [
+        {% for concert_name, date_rating_summary in concert_date_rating_summary.items %}
+        {
+            label: '{{ concert_name }}',
+            data: [
+                {% for date in date_rating_summary %}
+                { x: '{{ date.date|date:"Y-m-d" }}', y: {{ date.average_rating|floatformat:1 }} },
+                {% endfor %}
+            ],
+            borderColor: colors['{{ concert_name }}']?.border || colors["기타"].border,
+            backgroundColor: colors['{{ concert_name }}']?.background || colors["기타"].background,
+            borderWidth: 2,
+            tension: 0.2,
+            fill: false,
+        },
+        {% endfor %}
+    ];
 
-        new Chart(ctxRating, {
-            type: 'line',
-            data: { datasets: datasetsRating },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: true, position: 'top' } },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'MM월DD일(ddd)',
-                            displayFormats: { day: 'MM월DD일(ddd)' }
-                        },
-                        title: { display: true, text: '날짜', font: { size: 14, weight: 'bold' } }
+    new Chart(ctxRating, {
+        type: 'line',
+        data: { datasets: datasetsRating },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true, position: 'top' } },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        tooltipFormat: 'MM월DD일(ddd)',
+                        displayFormats: { day: 'MM월DD일(ddd)' }
                     },
-                    y: { title: { display: true, text: '평균 평점', font: { size: 14, weight: 'bold' } }, beginAtZero: true, max: 6 }
-                }
+                    title: { display: true, text: '날짜', font: { size: 14, weight: 'bold' } }
+                },
+                y: { title: { display: true, text: '평균 평점', font: { size: 14, weight: 'bold' } }, beginAtZero: true, max: 6 }
             }
-        });
-        {% endif %}
+        }
+    });
+    {% endif %}
 
-        {% if combination_counts %}
-        const ctxCombination = document.getElementById('combinationChart').getContext('2d');
-        const combinationData = [
-            {% for combo, count in combination_counts.items %}
-            { label: "{{ combo }}", count: {{ count }} },
-            {% endfor %}
-        ];
+    // 공연 조합별 분포 파이 차트
+    {% if combination_counts %}
+    const ctxCombination = document.getElementById('combinationChart').getContext('2d');
+    const combinationData = [
+        {% for combo, count in combination_counts.items %}
+        { label: "{{ combo }}", count: {{ count }} },
+        {% endfor %}
+    ];
 
-        combinationData.sort((a, b) => b.count - a.count);
+    combinationData.sort((a, b) => b.count - a.count);
 
-        const labelsCombination = combinationData.map(item => item.label);
-        const dataCombination = combinationData.map(item => item.count);
-        const backgroundColorsCombination = labelsCombination.map(combo => generateMixedColor(combo, "background"));
-        const borderColorsCombination = labelsCombination.map(combo => generateMixedColor(combo, "border"));
+    const labelsCombination = combinationData.map(item => item.label);
+    const dataCombination = combinationData.map(item => item.count);
+    const backgroundColorsCombination = labelsCombination.map(combo => generateMixedColor(combo, "background"));
+    const borderColorsCombination = labelsCombination.map(combo => generateMixedColor(combo, "border"));
 
-        new Chart(ctxCombination, {
-            type: 'pie',
-            data: {
-                labels: labelsCombination,
-                datasets: [{
-                    data: dataCombination,
-                    backgroundColor: backgroundColorsCombination,
-                    borderColor: borderColorsCombination,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                return `${context.label}: ${context.raw}명`;
-                            }
+    new Chart(ctxCombination, {
+        type: 'pie',
+        data: {
+            labels: labelsCombination,
+            datasets: [{
+                data: dataCombination,
+                backgroundColor: backgroundColorsCombination,
+                borderColor: borderColorsCombination,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return `${context.label}: ${context.raw}명`;
                         }
                     }
                 }
             }
-        });
-        {% endif %}
+        }
     });
+    {% endif %}
+});
 </script>
 {% endblock scripts %}

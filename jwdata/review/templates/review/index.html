@@ -1,143 +1,144 @@
 {% extends "review/base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="content-container mt-5">
-    <h1 class="text-center">인터파크 티켓 공연 분석기</h1>
-
-    <!-- 검색 폼 -->
-    <form method="POST" class="mt-4">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="query" class="form-label">검색어</label>
-            <input type="text" class="form-control" id="query" name="query" placeholder="공연명을 입력하세요">
-        </div>
-        <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="search_type" id="search_type_review" value="review" checked>
-                <label class="form-check-label" for="search_type_review">
-                    리뷰 검색
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="search_type" id="search_type_seat" value="seat">
-                <label class="form-check-label" for="search_type_seat">
-                    잔여 좌석 검색
-                </label>
-            </div>
-        </div>
-        <button type="submit" class="btn btn-dark w-100">검색</button>
-    </form>
-
-    <!-- 바로가기 -->
-    {% if concerts %}
-    <h3 class="mt-5">통합</h3>
-    <div id="concert-buttons" class="btn-group mt-3 w-50" role="group" aria-label="바로가기">
-        <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-dark">공연 리뷰</a>
-        <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-dark">잔여 좌석</a>
-    </div>
-
-    <!-- 공연 정보 버튼 -->
-    <h3 class="mt-5">공연 목록</h3>
-    <div id="concert-buttons" class="btn-group mt-3 w-100" role="group" aria-label="공연 선택">
-        {% for concert in concerts %}
-        <button class="btn btn-outline-dark {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
-                data-concert-id="{{ concert.id }}" 
-                onclick="showConcert('{{ concert.id }}')">
-            {{ concert.name }}
-        </button>
-        {% endfor %}
-    </div>
-
-    <!-- 공연 및 리뷰 정보 -->
-    {% for concert in concerts %}
-    <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="{% if concert.id|stringformat:"s" != active_concert_id %}display: none;{% endif %}">
-        <h3>{{ concert.name }}</h3>
-        <p><strong>장소:</strong> {{ concert.place }}</p>
-        <p><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</p>
-        <p><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</p>
-        <p><strong>리뷰 수:</strong> {{ concert.reviews.count }}</p>
-
-        <!-- 리뷰 분석 버튼 -->
-        <h3 class="mt-5">리뷰 분석 리스트</h3>
-        <div class="analysis-buttons mt-3">
-            <a href="{% url 'analyze_reviews' concert.id 'long_reviews' %}" class="btn btn-secondary w-30 mb-2">
-                길게 남긴 리뷰들은 뭘까?
-            </a>
-            <a href="{% url 'analyze_reviews' concert.id 'frequent_reviewers' %}" class="btn btn-secondary w-30 mb-2">
-                리뷰를 여러번 남긴 관객은 누굴까?
-            </a>
-            <a href="{% url 'analyze_reviews' concert.id 'frequent_words' %}" class="btn btn-secondary w-30 mb-2">
-                어떤 단어가 가장 많이 나왔을까?
-            </a>
-            <a href="{% url 'analyze_reviews' concert.id 'frequent_words_mix' %}" class="btn btn-secondary w-30 mb-2">
-                어떤 단어 조합이 가장 많이 나왔을까?
-            </a>
-            <a href="{% url 'analyze_reviews' concert.id 'frequent_words_important' %}" class="btn btn-secondary w-30 mb-2">
-                상대적 중요도를 반영하여 단어를 조합하면 어떻게 될까?
-            </a>
-            <a href="{% url 'analyze_reviews' concert.id 'similar_reviews' %}" class="btn btn-secondary w-30 mb-2">
-                비슷한 리뷰 내용은 어떤 게 있을까?
-            </a>
-            <a href="{% url 'analyze_reviews' concert.id 'top_view_count_reviews' %}" class="btn btn-secondary w-30 mb-2">
-                조회수가 높은 리뷰들은 어떤 내용일까?
-            </a>
-            <a href="{% url 'analyze_reviews' concert.id 'low_star_rating_reviews' %}" class="btn btn-secondary w-30 mb-2">
-                평점이 3점 이하 리뷰는 어떨까?
-            </a>
+<div class="d-flex" style="min-height: 100vh;">
+    <!-- 사이드바 -->
+    <nav id="sidebar" class="bg-dark text-white p-3" style="min-width:250px; transition: all 0.3s;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">공연 대시보드</h4>
+            <button class="btn btn-sm btn-outline-light" id="toggleSidebarBtn">◀</button>
         </div>
 
-        <!-- 리뷰 테이블 -->
-        <h3 class="mt-5">리뷰 테이블</h3>
-        {% if concert.reviews.exists %}
-        <table class="table  table-hover table-sm">
-            <thead class="table-dark">
-                <tr>
-                    <th style="white-space: nowrap;">작성자</th>
-                    <th style="white-space: nowrap;">작성일</th>
-                    <th style="white-space: nowrap;">별점</th>
-                    <th>제목</th>
-                    <th>내용</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for review in concert.reviews.all|dictsortreversed:"date" %}
-                <tr>
-                    <td style="white-space: nowrap;">{{ review.nickname }}</td>
-                    <td style="white-space: nowrap;">{{ review.date }}</td>
-                    <td style="white-space: nowrap;">{{ review.star_rating }}/5</td>
-                    <td>{{ review.title }}</td>
-                    <td>{{ review.description }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% if concerts %}
+        <!-- 통합 메뉴 -->
+        <h5 class="mt-4">통합</h5>
+        <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="통합 바로가기">
+            <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-light text-start">공연 리뷰</a>
+            <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-light text-start">잔여 좌석</a>
+        </div>
+
+        <!-- 공연 목록 -->
+        <h5 class="mt-4">공연 목록</h5>
+        <div id="concert-buttons" class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
+            {% for concert in concerts %}
+            <button class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                    data-concert-id="{{ concert.id }}" 
+                    onclick="showConcert('{{ concert.id }}')">
+                {{ concert.name }}
+            </button>
+            {% endfor %}
+        </div>
         {% else %}
-        <p class="text-muted text-center">리뷰가 없습니다.</p>
+        <p class="mt-5 text-muted">현재 등록된 공연 정보가 없습니다.</p>
+        {% endif %}
+    </nav>
+
+    <!-- 메인 영역 -->
+    <div class="flex-grow-1 p-4">
+        <!-- 검색 폼 -->
+        <div class="card p-3 mb-4">
+            <h2 class="text-center mb-4">공연 검색</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <!-- 첫 번째 라인: 검색 타입 -->
+                <div class="mb-3">
+                    <span class="form-label d-block mb-2">검색 타입</span>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="search_type_review" value="review" checked>
+                        <label class="form-check-label" for="search_type_review">리뷰 검색</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="search_type" id="search_type_seat" value="seat">
+                        <label class="form-check-label" for="search_type_seat">잔여 좌석 검색</label>
+                    </div>
+                </div>
+                <!-- 두 번째 라인: 텍스트 필드, 검색 버튼 -->
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-9">
+                        <label for="query" class="form-label">검색어</label>
+                        <input type="text" class="form-control" id="query" name="query" placeholder="공연명을 입력하세요">
+                    </div>
+                    <div class="col-md-3 d-grid">
+                        <button type="submit" class="btn btn-dark">검색</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 공연 상세 정보 및 리뷰 정보 표시 영역 -->
+        {% if concerts %}
+            {% for concert in concerts %}
+            <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="{% if concert.id|stringformat:"s" != active_concert_id %}display: none;{% endif %}">
+                <h3 class="mb-4">{{ concert.name }}</h3>
+                <div class="mb-3"><strong>장소:</strong> {{ concert.place }}</div>
+                <div class="mb-3"><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</div>
+                <div class="mb-3"><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</div>
+                <div class="mb-3"><strong>리뷰 수:</strong> {{ concert.reviews.count }}</div>
+
+                <!-- 리뷰 분석 리스트 -->
+                <h4 class="mt-5 mb-3">리뷰 분석</h4>
+                <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'long_reviews' %}" class="btn btn-secondary w-100">길게 남긴 리뷰</a></div>
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_reviewers' %}" class="btn btn-secondary w-100">여러번 남긴 관객</a></div>
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_words' %}" class="btn btn-secondary w-100">가장 많이 나온 단어</a></div>
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_words_mix' %}" class="btn btn-secondary w-100">가장 많이 나온 단어 조합</a></div>
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_words_important' %}" class="btn btn-secondary w-100">상대적 중요 단어 조합</a></div>
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'similar_reviews' %}" class="btn btn-secondary w-100">비슷한 리뷰</a></div>
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'top_view_count_reviews' %}" class="btn btn-secondary w-100">조회수 높은 리뷰</a></div>
+                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'low_star_rating_reviews' %}" class="btn btn-secondary w-100">평점 3점 이하 리뷰</a></div>
+                </div>
+
+                <!-- 리뷰 테이블 -->
+                <h4 class="mb-3">리뷰 목록</h4>
+                {% if concert.reviews.exists %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="white-space: nowrap;">작성자</th>
+                                <th style="white-space: nowrap;">작성일</th>
+                                <th style="white-space: nowrap;">별점</th>
+                                <th>제목</th>
+                                <th>내용</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for review in concert.reviews.all|dictsortreversed:"date" %}
+                            <tr>
+                                <td style="white-space: nowrap;">{{ review.nickname }}</td>
+                                <td style="white-space: nowrap;">{{ review.date }}</td>
+                                <td style="white-space: nowrap;">{{ review.star_rating }}/5</td>
+                                <td>{{ review.title }}</td>
+                                <td>{{ review.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">리뷰가 없습니다.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
         {% endif %}
     </div>
-    {% endfor %}
-    {% else %}
-    <p class="text-center text-muted mt-5">현재 등록된 공연 정보가 없습니다.</p>
-    {% endif %}
 </div>
 {% endblock content %}
 
 {% block scripts %}
 <script>
+    // 공연 선택 시 해당 공연 섹션 보여주기
     function showConcert(concertId) {
-        // 모든 공연 섹션 숨기기
         document.querySelectorAll('.concert-section').forEach(section => {
             section.style.display = 'none';
         });
-        // 선택된 공연 섹션 보이기
         document.getElementById(`concert-${concertId}`).style.display = 'block';
 
-        // 모든 버튼의 활성화 클래스 제거
+        // 버튼 활성화 상태 갱신
         document.querySelectorAll('#concert-buttons button').forEach(button => {
             button.classList.remove('active');
         });
-
-        // 선택된 버튼 활성화
         document.querySelector(`[data-concert-id="${concertId}"]`).classList.add('active');
 
         // URL 업데이트
@@ -145,5 +146,28 @@
         url.searchParams.set('active_concert_id', concertId);
         history.pushState({}, '', url);
     }
+
+    // 사이드바 토글 기능
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    toggleSidebarBtn.addEventListener('click', () => {
+        if (sidebar.style.minWidth === '250px') {
+            sidebar.style.minWidth = '70px';
+            // 글자 숨기기
+            sidebar.querySelectorAll('h4, h5, p, a, button').forEach(el => {
+                if (el !== toggleSidebarBtn) {
+                    el.style.display = 'none';
+                }
+            });
+            toggleSidebarBtn.textContent = '▶';
+        } else {
+            sidebar.style.minWidth = '250px';
+            // 글자 보이기
+            sidebar.querySelectorAll('h4, h5, p, a, button').forEach(el => {
+                el.style.display = '';
+            });
+            toggleSidebarBtn.textContent = '◀';
+        }
+    });
 </script>
 {% endblock scripts %}

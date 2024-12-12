@@ -1,4 +1,5 @@
 {% extends "review/base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="content-container mt-5">
@@ -32,7 +33,7 @@
                 <div class="card">
                     <div class="card-body">
                         <p><strong>닉네임:</strong> {{ reviewer.nickname }}</p>
-                        <p><strong>리뷰 작성 수:</strong> {{ reviewer.review_count }}</p>
+                        <p><strong>리뷰 작성 수:</strong> {{ reviewer.review_count }}회</p>
                         <ul>
                             {% for review in reviewer.reviews %}
                             <li>{{ review.description|truncatewords:20 }}</li>
@@ -46,44 +47,23 @@
 
         {% elif analysis_type == 'frequent_words' %}
         <h3 class="mt-3">자주 등장한 단어 - Konlpy OKt 분석 적용</h3>
-        <div class="row">
-            {% for word, count in data %}
-            <div class="col-12 mb-2">
-                <div class="card">
-                    <div class="card-body d-flex justify-content-between text-start">
-                        <span><strong>{{ word }}</strong> - {{ count }}회</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+        <!-- 막대 그래프를 그릴 canvas 추가 -->
+        <div class="card p-3">
+            <canvas id="frequentWordsChart" width="100%" height="50"></canvas>
         </div>
 
         {% elif analysis_type == 'frequent_words_mix' %}
         <h3 class="mt-3">자주 등장한 단어 조합 - scikit-learn, CountVectorizer 적용</h3>
-        <div class="row">
-            {% for word, count in data %}
-            <div class="col-12 mb-2">
-                <div class="card">
-                    <div class="card-body d-flex justify-content-between text-start">
-                        <span><strong>{{ word }}</strong> - {{ count }}회</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+        <!-- 막대 그래프를 그릴 canvas 추가 -->
+        <div class="card p-3">
+            <canvas id="frequentWordsMixChart" width="100%" height="50"></canvas>
         </div>
 
         {% elif analysis_type == 'frequent_words_important' %}
         <h3 class="mt-3">상대적 중요도가 높은 단어 조합 - scikit-learn, TfidfVectorizer 적용</h3>
-        <div class="row">
-            {% for word, importance in data %}
-            <div class="col-12 mb-2">
-                <div class="card">
-                    <div class="card-body d-flex justify-content-between text-start">
-                        <span><strong>{{ word }}</strong> - {{ importance }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+        <!-- 막대 그래프를 그릴 canvas 추가 -->
+        <div class="card p-3">
+            <canvas id="frequentWordsImportantChart" width="100%" height="50"></canvas>
         </div>
 
         {% elif analysis_type == 'similar_reviews' %}
@@ -148,3 +128,83 @@
 </div>
 <div class="mt-5" style="height: 12px;"></div>
 {% endblock content %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// DOM 로드 후 실행
+document.addEventListener('DOMContentLoaded', function() {
+    // 막대 그래프를 그리는 함수
+    function drawBarChart(ctxId, labels, values, title) {
+        const ctx = document.getElementById(ctxId).getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: title,
+                    data: values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: '단어/단어 조합', font: {size:14, weight:'bold'} } },
+                    y: { beginAtZero: true, title: { display: true, text: '빈도/중요도', font: {size:14, weight:'bold'} } }
+                },
+                plugins: {
+                    legend: { display: false },
+                }
+            }
+        });
+    }
+
+    {% if analysis_type == 'frequent_words' %}
+    // data: [(word, count), ...], 상위 20개만
+    const fwLabels = [
+        {% for word, count in data|slice:":20" %}
+        "{{ word }}",
+        {% endfor %}
+    ];
+    const fwValues = [
+        {% for word, count in data|slice:":20" %}
+        {{ count }},
+        {% endfor %}
+    ];
+    drawBarChart('frequentWordsChart', fwLabels, fwValues, '단어 빈도');
+
+    {% elif analysis_type == 'frequent_words_mix' %}
+    // data: [(word, count), ...], 상위 20개만
+    const fwmLabels = [
+        {% for word, count in data|slice:":20" %}
+        "{{ word }}",
+        {% endfor %}
+    ];
+    const fwmValues = [
+        {% for word, count in data|slice:":20" %}
+        {{ count }},
+        {% endfor %}
+    ];
+    drawBarChart('frequentWordsMixChart', fwmLabels, fwmValues, '단어 조합 빈도');
+
+    {% elif analysis_type == 'frequent_words_important' %}
+    // data: [(word, importance), ...], 상위 20개만
+    const fwiLabels = [
+        {% for word, importance in data|slice:":20" %}
+        "{{ word }}",
+        {% endfor %}
+    ];
+    const fwiValues = [
+        {% for word, importance in data|slice:":20" %}
+        {{ importance }},
+        {% endfor %}
+    ];
+    drawBarChart('frequentWordsImportantChart', fwiLabels, fwiValues, '단어 조합 중요도');
+
+    {% endif %}
+});
+</script>
+{% endblock scripts %}
