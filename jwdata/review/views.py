@@ -1,13 +1,10 @@
 from django.shortcuts import render
 from django.db.models import Count, Avg, Min
 from django.db.models.functions import Length
-from .models import Concert, Review
+from .models import Concert, Review, Seat
+
 from datetime import datetime
 import time
-import re
-import pandas as pd
-from collections import Counter, defaultdict
-from itertools import combinations
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -16,6 +13,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 
+import re
+import pandas as pd
+from collections import Counter, defaultdict
+from itertools import combinations
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.cluster import KMeans
@@ -143,6 +144,131 @@ def crawl_concert_reviews(driver, concert):
                 print(f"페이지 이동 처리 중 오류 발생: {e}")
                 break
 
+def crawl_concert_seats(driver, concert):
+    """
+    공연의 좌석 정보를 크롤링하여 Seat 모델에 저장하는 함수.
+    """
+    # Seat 모델의 모든 데이터 삭제
+    Seat.objects.all().delete()
+
+    # 모든 월 탐색
+    while True:
+        # 현재 월
+        current_month = driver.find_element(By.XPATH, '//li[@data-view="month current"]').text
+
+        # 비활성화되지 않은 날짜 탐색
+        days = driver.find_elements(By.XPATH, '//ul[@data-view="days"]/li[not(contains(@class, "disabled")) and not(contains(@class, "muted"))]')
+
+
+        for day in days:
+            day_num = day.text
+
+            # 안전한 클릭 메커니즘 적용
+            try:
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable(day))
+                driver.execute_script("arguments[0].click();", day)
+            except Exception as e:
+                print(f"날짜 클릭 실패: {e}")
+                continue
+            
+            time.sleep(2)
+
+            # 회차 정보 탐색
+            rounds = driver.find_elements(By.CLASS_NAME, 'timeTableLabel')
+            for round_element in rounds:
+                round_name = round_element.get_attribute('data-text').split()[0]
+                round_time = round_element.get_attribute('data-text').split()[1]
+                try:
+                    driver.execute_script("arguments[0].click();", round_element)
+                except Exception as e:
+                    print(f"회차 클릭 실패: {e}")
+                    continue
+                
+                time.sleep(2)
+
+                # 좌석 정보 탐색
+                seats = driver.find_elements(By.CLASS_NAME, 'seatTableItem')
+                for seat in seats:
+                    seat_class = seat.find_element(By.CLASS_NAME, 'seatTableName').text
+
+                    # 숫자만 추출하여 변환
+                    count_text = seat.find_element(By.CLASS_NAME, 'seatTableStatus').text
+                    try:
+                        count = int(''.join(filter(str.isdigit, count_text)))
+                    except ValueError:
+                        count = 0  # 변환 실패 시 기본값 설정
+
+                    # 캐스팅 정보 탐색
+                    try:
+                        actors_element = driver.find_element(By.XPATH, '//*[@id="productSide"]/div/div[1]/div[3]/div[2]/div/p')
+                        actors = actors_element.text  # 요소의 텍스트를 추출
+                    except NoSuchElementException:
+                        actors = ""
+
+                    # Seat 모델에 저장
+                    date_parts = current_month.split('.')
+                    year = int(date_parts[0].strip())
+                    month = int(date_parts[1].strip())
+                    day_num = int(day_num)
+                    
+                    # 요일 리스트 (0: 월요일, 6: 일요일)
+                    KOREAN_DAYS = ['월', '화', '수', '목', '금', '토', '일']
+
+                    # year, month, day_num에서 한글 요일 계산
+                    def get_korean_day_of_week(year, month, day_num):
+                        try:
+                            day_num = int(day_num)  # day_num을 정수로 변환
+                            date = datetime(year, month, day_num)  # 날짜 객체 생성
+                            day_index = date.weekday()  # 요일 인덱스 계산
+                            return KOREAN_DAYS[day_index]
+                        except Exception as e:
+                            print(f"요일 계산 중 오류 발생: {e}")  # 디버깅 정보 출력
+                            return ''  # 오류 발생 시 빈 문자열 반환
+                    
+                day_str = get_korean_day_of_week(year, month, day_num)
+
+                # 데이터 중복 체크
+                existing_seat = Seat.objects.filter(
+                    concert=concert,
+                    year=year,
+                    month=month,
+                    day_num=day_num,
+                    day_str=day_str,
+                    round_name=round_name,
+                    round_time=round_time,
+                    seat_class=seat_class,
+                    actors=actors
+                ).exists()
+
+                # 중복이 없을 경우에만 저장
+                if not existing_seat:
+                    Seat.objects.create(
+                        concert=concert,
+                        year=year,
+                        month=month,
+                        day_num=day_num,
+                        day_str=day_str,
+                        round_name=round_name,
+                        round_time=round_time,
+                        seat_class=seat_class,
+                        count=count,
+                        actors=actors
+                    )
+                
+                print(f"{concert} - {year}년{month}월{day_num}일({day_str}) - {round_name}/{round_time} - {seat_class}/{count} - 캐스팅: {actors})")
+
+            # 다음 회차로 이동
+            driver.back()
+            time.sleep(2)
+
+        # 다음 월 버튼 확인
+        try:
+            next_month = driver.find_element(By.XPATH, '//li[@data-view="month next" and not(contains(@class, "disabled"))]')
+            driver.execute_script("arguments[0].click();", next_month)
+            time.sleep(2)
+        except NoSuchElementException:
+            break
+
 # -------------------- 뷰 함수 --------------------
 def search_and_crawl(request):
     """
@@ -204,6 +330,8 @@ def search_and_crawl(request):
                 # 리뷰 크롤링(검색 타입이 리뷰일 경우)
                 if search_type == 'review':
                     crawl_concert_reviews(driver, concert)
+                if search_type == 'seat':
+                    crawl_concert_seats(driver, concert)
 
             finally:
                 driver.quit()
