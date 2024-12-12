@@ -83,6 +83,7 @@ def crawl_concert_reviews(driver, concert):
     review_num_pages = (review_total_count + 14) // 15
 
     for page in range(1, review_num_pages + 1):
+        print(f"----------{page}/{review_num_pages}----------")  # 현재 페이지 출력
         # 리뷰 리스트 추출
         review_elements = driver.find_elements(By.XPATH, '//ul[@class="bbsList reviewList"]/li[@class="bbsItem"]')
         for rev_el in review_elements:
@@ -108,6 +109,7 @@ def crawl_concert_reviews(driver, concert):
                         description=description,
                         star_rating=star_rating,
                     )
+                    print(f"[리뷰 저장 성공] 공연이름: {concert}, 닉네임: {nickname}, 제목: {title}, 내용: {description}, 조회: {view_count}, 좋아요: {like_count}, 별점: {star_rating}")
             except Exception as e:
                 print(f"리뷰 처리 중 오류 발생: {e}")
 
@@ -194,9 +196,9 @@ def crawl_concert_seats(driver, concert):
                     # 숫자만 추출하여 변환
                     count_text = seat.find_element(By.CLASS_NAME, 'seatTableStatus').text
                     try:
-                        count = int(''.join(filter(str.isdigit, count_text)))
+                        seat_count = int(''.join(filter(str.isdigit, count_text)))
                     except ValueError:
-                        count = 0  # 변환 실패 시 기본값 설정
+                        seat_count = 0  # 변환 실패 시 기본값 설정
 
                     # 캐스팅 정보 탐색
                     try:
@@ -225,23 +227,8 @@ def crawl_concert_seats(driver, concert):
                             print(f"요일 계산 중 오류 발생: {e}")  # 디버깅 정보 출력
                             return ''  # 오류 발생 시 빈 문자열 반환
                     
-                day_str = get_korean_day_of_week(year, month, day_num)
-
-                # 데이터 중복 체크
-                existing_seat = Seat.objects.filter(
-                    concert=concert,
-                    year=year,
-                    month=month,
-                    day_num=day_num,
-                    day_str=day_str,
-                    round_name=round_name,
-                    round_time=round_time,
-                    seat_class=seat_class,
-                    actors=actors
-                ).exists()
-
-                # 중복이 없을 경우에만 저장
-                if not existing_seat:
+                    day_str = get_korean_day_of_week(year, month, day_num)
+                
                     Seat.objects.create(
                         concert=concert,
                         year=year,
@@ -251,11 +238,11 @@ def crawl_concert_seats(driver, concert):
                         round_name=round_name,
                         round_time=round_time,
                         seat_class=seat_class,
-                        count=count,
+                        seat_count=seat_count,
                         actors=actors
                     )
                 
-                print(f"{concert} - {year}년{month}월{day_num}일({day_str}) - {round_name}/{round_time} - {seat_class}/{count} - 캐스팅: {actors})")
+                    print(f"[좌석 저장 성공] 공연이름: {concert}, 날짜: {year}년{month}월{day_num}일({day_str}), 회차 정보: {round_name}/{round_time}, 좌석 정보: {seat_class}/{seat_count}, 캐스팅 배우: {actors})")
 
             # 다음 회차로 이동
             driver.back()
