@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
 
 # 공연 정보를 저장하는 모델
 class Concert(models.Model):
@@ -44,12 +45,13 @@ class Seat(models.Model):
     round_name = models.CharField(verbose_name="회차 번호", max_length=10)
     round_time = models.TimeField(verbose_name="회차 시간")
     seat_class = models.CharField(verbose_name="좌석 등급", max_length=10)
-    count = models.IntegerField(verbose_name="잔여 좌석")
+    seat_count = models.IntegerField(verbose_name="잔여 좌석")
     actors = models.TextField(verbose_name="캐스팅 배우들", blank=True, help_text="해당 회차에 캐스팅된 배우 목록을 저장합니다.")
+    created_at = models.DateTimeField(verbose_name="데이터 삽입 시간", default=now, help_text="이 데이터가 생성된 시간을 저장합니다.")
 
     class Meta:
         verbose_name = "잔여 좌석 정보"
         verbose_name_plural = "잔여 좌석 정보"
 
     def __str__(self):
-        return f"{self.concert.name} - {self.year}-{self.month:02d}-{self.day_num:02d} {self.round_name} {self.seat_class}"  
+        return f"{self.concert.name} - {self.year}-{self.month:02d}-{self.day_num:02d} {self.round_name} {self.seat_class}"
