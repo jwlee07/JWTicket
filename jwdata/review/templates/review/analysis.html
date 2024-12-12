@@ -4,7 +4,6 @@
 {% block content %}
 <div class="content-container mt-5">
     <div class="d-flex align-items-center justify-content-between">
-        <!-- 리뷰 분석 결과 제목 -->
         <h1 class="text-center flex-grow-1">리뷰 분석 결과</h1>
     </div>
 
@@ -46,28 +45,48 @@
         </div>
 
         {% elif analysis_type == 'frequent_words' %}
-        <h3 class="mt-3">자주 등장한 단어 - Konlpy OKt 분석 적용</h3>
+        <h3 class="mt-3">
+            자주 등장한 단어
+            <span class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="여러 관객이 공통적으로 많이 언급한 단어들을 그래프로 보여줍니다. 어떤 단어들이 가장 많이 언급되었는지 알 수 있어요.(Konlpy OKt 적용)">
+                <i class="bi bi-question-circle" style="cursor: pointer;"></i>
+            </span>
+        </h3>
         <!-- 막대 그래프를 그릴 canvas 추가 -->
         <div class="card p-3">
             <canvas id="frequentWordsChart" width="100%" height="50"></canvas>
         </div>
 
         {% elif analysis_type == 'frequent_words_mix' %}
-        <h3 class="mt-3">자주 등장한 단어 조합 - scikit-learn, CountVectorizer 적용</h3>
+        <h3 class="mt-3">
+            자주 등장한 단어 조합
+            <span class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="단어들이 함께 자주 언급되는 조합을 보여줍니다. 어떤 단어들이 짝을 이루어 자주 등장하는지 알 수 있어, 관객들이 어떤 주제를 함께 묶어 이야기하는지 파악할 수 있어요.(scikit-learn, CountVectorizer 적용)">
+                <i class="bi bi-question-circle" style="cursor: pointer;"></i>
+            </span>
+        </h3>
         <!-- 막대 그래프를 그릴 canvas 추가 -->
         <div class="card p-3">
             <canvas id="frequentWordsMixChart" width="100%" height="50"></canvas>
         </div>
 
         {% elif analysis_type == 'frequent_words_important' %}
-        <h3 class="mt-3">상대적 중요도가 높은 단어 조합 - scikit-learn, TfidfVectorizer 적용</h3>
+        <h3 class="mt-3">
+            상대적 중요도가 높은 단어 조합
+            <span class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="단순히 많이 나오는 단어뿐 아니라, 다른 단어들과 비교했을 때 상대적으로 중요하고 의미 있는 단어 조합을 보여줍니다. 즉, 전체 리뷰 중에서 특별히 의미가 두드러지는 단어 묶음을 알 수 있어요.(scikit-learn, TfidfVectorizer 적용)">
+                <i class="bi bi-question-circle" style="cursor: pointer;"></i>
+            </span>
+        </h3>
         <!-- 막대 그래프를 그릴 canvas 추가 -->
         <div class="card p-3">
             <canvas id="frequentWordsImportantChart" width="100%" height="50"></canvas>
         </div>
 
         {% elif analysis_type == 'similar_reviews' %}
-        <h3 class="mt-3">비슷한 리뷰 - scikit-learn, cluster.KMeans 알고리즘 적용</h3>
+        <h3 class="mt-3">
+            비슷한 리뷰
+            <span class="ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="비슷한 내용의 리뷰들을 모아 보여줍니다. 이를 통해 비슷한 의견, 느낌, 분위기를 가진 관객들의 생각을 한눈에 파악할 수 있어요.(scikit-learn, KMeans Clustering 적용)">
+                <i class="bi bi-question-circle" style="cursor: pointer;"></i>
+            </span>
+        </h3>
         <div class="row">
             {% for cluster, reviews in data.items %}
             <div class="col-12 mb-3">
@@ -134,6 +153,12 @@
 <script>
 // DOM 로드 후 실행
 document.addEventListener('DOMContentLoaded', function() {
+    // Bootstrap Tooltip 초기화 (Bootstrap 5)
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
     // 막대 그래프를 그리는 함수
     function drawBarChart(ctxId, labels, values, title) {
         const ctx = document.getElementById(ctxId).getContext('2d');
@@ -163,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     {% if analysis_type == 'frequent_words' %}
-    // data: [(word, count), ...], 상위 20개만
     const fwLabels = [
         {% for word, count in data|slice:":20" %}
         "{{ word }}",
@@ -177,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
     drawBarChart('frequentWordsChart', fwLabels, fwValues, '단어 빈도');
 
     {% elif analysis_type == 'frequent_words_mix' %}
-    // data: [(word, count), ...], 상위 20개만
     const fwmLabels = [
         {% for word, count in data|slice:":20" %}
         "{{ word }}",
@@ -191,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function() {
     drawBarChart('frequentWordsMixChart', fwmLabels, fwmValues, '단어 조합 빈도');
 
     {% elif analysis_type == 'frequent_words_important' %}
-    // data: [(word, importance), ...], 상위 20개만
     const fwiLabels = [
         {% for word, importance in data|slice:":20" %}
         "{{ word }}",
