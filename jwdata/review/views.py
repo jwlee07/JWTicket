@@ -150,9 +150,7 @@ def crawl_concert_seats(driver, concert):
     """
     공연의 좌석 정보를 크롤링하여 Seat 모델에 저장하는 함수.
     """
-    # Seat 모델의 모든 데이터 삭제
-    Seat.objects.all().delete()
-
+    
     # 모든 월 탐색
     while True:
         # 현재 월
