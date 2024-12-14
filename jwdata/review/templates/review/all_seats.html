@@ -1,0 +1,38 @@
+{% extends "review/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">전체 잔여 좌석 분석</h1>
+
+    <h2 class="mt-5">전체 좌석 데이터</h2>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>공연명</th>
+                    <th>날짜</th>
+                    <th>회차</th>
+                    <th>좌석 등급</th>
+                    <th>잔여 좌석 수</th>
+                    <th>배우</th>
+                    <th>생성 시간</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for seat in all_seat_data %}
+                <tr>
+                    <td>{{ seat.concert_name }}</td>
+                    <td>{{ seat.date }}</td>
+                    <td>{{ seat.round_info }}</td>
+                    <td>{{ seat.seat_class }}</td>
+                    <td>{{ seat.remaining_seats }}</td>
+                    <td>{{ seat.actors }}</td>
+                    <td>{{ seat.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

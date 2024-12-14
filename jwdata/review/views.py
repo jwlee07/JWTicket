@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from django.db.models import Count, Avg, Min
+from django.db.models import Count, Avg, Min, Sum
 from django.db.models.functions import Length
 from .models import Concert, Review, Seat
 
 from datetime import datetime
 import time
+import pytz
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -537,4 +538,31 @@ def analyze_all_reviews(request):
         'common_nicknames': sorted_common_nicknames,
         'combination_counts': combination_counts,
         'reviews': review_data,
+    })
+
+def analyze_all_seats(request):
+    """
+    모든 공연의 잔여 좌석 정보를 분석하여 대시보드로 보여주는 뷰.
+    """
+    seats = Seat.objects.all()
+    
+    # 한국 시간대 설정
+    KST = pytz.timezone('Asia/Seoul')
+
+    # 전체 좌석 데이터
+    all_seat_data = [
+        {
+            "concert_name": seat.concert.name,
+            "date": f"{seat.year}-{seat.month:02d}-{seat.day_num:02d}",
+            "round_info": f"{seat.round_name} ({seat.round_time})",
+            "seat_class": seat.seat_class,
+            "remaining_seats": seat.seat_count,
+            "actors": seat.actors,
+            "created_at": seat.created_at.astimezone(KST).strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        for seat in seats.select_related("concert")
+    ]
+
+    return render(request, 'review/all_seats.html', {
+        "all_seat_data": all_seat_data,
     })
