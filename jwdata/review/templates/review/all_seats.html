@@ -27,6 +27,17 @@
                     <label for="date" class="form-label">날짜</label>
                     <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}">
                 </div>
+
+                <!-- 회차 선택 -->
+                <div class="col-md-3">
+                    <label for="roundFilter" class="form-label">회차 선택</label>
+                    <select id="roundFilter" class="form-control">
+                        <option value="">-- 회차 선택 --</option>
+                        {% for round in unique_rounds %}
+                        <option value="{{ round }}">{{ round }}</option>
+                        {% endfor %}
+                    </select>
+                </div> 
         
                 <!-- 조회 버튼 -->
                 <div class="col-md-3 d-grid">
@@ -76,19 +87,19 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // 데이터 준비
+    // 좌석 데이터 준비
     const seatData = [
         {% for item in seat_data %}
         {
-            seatClass: "{{ item.seat_class }}",
-            seatCount: {{ item.seat_count }},
-            createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}",
-            roundName: "{{ item.round_name }}"
+            seatClass: "{{ item.seat_class }}", // 좌석 등급
+            seatCount: {{ item.seat_count }},  // 좌석 수
+            createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}", // 수집 시간
+            roundName: "{{ item.round_name }}" // 회차 이름
         },
         {% endfor %}
     ];
 
-    // 등급별 색상 설정
+    // 좌석 등급별 색상 설정
     const colors = {
         "VIP석": "#FF6384",
         "R석": "#36A2EB",
@@ -97,64 +108,87 @@
         "B석": "#9966FF"
     };
 
-    // 회차 및 시간 조합 데이터 생성
-    const groupedData = {};
-    seatData.forEach(item => {
-        const key = `${item.roundName} - ${item.createdAt}`;
-        if (!groupedData[key]) groupedData[key] = {};
-        if (!groupedData[key][item.seatClass]) groupedData[key][item.seatClass] = 0;
-        groupedData[key][item.seatClass] += item.seatCount;
-    });
+    // DOM 요소 가져오기
+    const roundFilter = document.getElementById('roundFilter'); // 회차 선택 필터
+    const ctx = document.getElementById('seatChart').getContext('2d'); // 차트 캔버스
+    let chartInstance = null; // Chart.js 인스턴스
 
-    // X축 레이블 생성 (회차 - 수집 시간)
-    const labels = Object.keys(groupedData);
+    // 선택된 회차에 따라 데이터를 필터링하고 그룹화하는 함수
+    function filterDataByRound(selectedRound) {
+        const filteredData = seatData.filter(item => !selectedRound || item.roundName === selectedRound);
 
-    // 등급별 데이터셋 생성
-    const datasets = Object.keys(colors).map(seatClass => ({
-        label: seatClass,
-        data: labels.map(label => groupedData[label][seatClass] || 0),
-        backgroundColor: colors[seatClass]
-    }));
+        const groupedData = {};
+        filteredData.forEach(item => {
+            const key = `${item.roundName} - ${item.createdAt}`;
+            if (!groupedData[key]) groupedData[key] = {};
+            if (!groupedData[key][item.seatClass]) groupedData[key][item.seatClass] = 0;
+            groupedData[key][item.seatClass] += item.seatCount;
+        });
 
-    // 차트 생성
-    const ctx = document.getElementById('seatChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels, // X축 레이블 (회차 - 수집 시간)
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    type: 'category',
-                    title: {
-                        display: true,
-                        text: '회차 - 수집 시간'
+        const labels = Object.keys(groupedData);
+        const datasets = Object.keys(colors).map(seatClass => ({
+            label: seatClass, // 좌석 등급 레이블
+            data: labels.map(label => groupedData[label][seatClass] || 0), // 좌석 수 데이터
+            backgroundColor: colors[seatClass] // 색상
+        }));
+
+        return { labels, datasets };
+    }
+
+    // 차트를 업데이트하는 함수
+    function updateChart(selectedRound) {
+        const { labels, datasets } = filterDataByRound(selectedRound);
+
+        if (chartInstance) {
+            chartInstance.destroy(); // 기존 차트 삭제
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: 'bar', // 막대 그래프
+            data: {
+                labels: labels, // X축 레이블
+                datasets: datasets // 데이터셋
+            },
+            options: {
+                responsive: true, // 반응형
+                scales: {
+                    x: {
+                        type: 'category', // X축 카테고리
+                        title: {
+                            display: true,
+                            text: '회차 - 수집 시간' // X축 제목
+                        },
+                        ticks: {
+                            autoSkip: false, // 레이블 생략 비활성화
+                            maxRotation: 45, // 최대 회전 각도
+                            minRotation: 0 // 최소 회전 각도
+                        }
                     },
-                    ticks: {
-                        autoSkip: false, // 모든 레이블 표시
-                        maxRotation: 45, // 회전으로 가독성 개선
-                        minRotation: 0
+                    y: {
+                        title: {
+                            display: true,
+                            text: '좌석 수' // Y축 제목
+                        },
+                        beginAtZero: true // Y축 0부터 시작
                     }
                 },
-                y: {
-                    title: {
-                        display: true,
-                        text: '좌석 수'
-                    },
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
+                plugins: {
+                    legend: {
+                        display: true, // 범례 표시
+                        position: 'top' // 범례 위치
+                    }
                 }
             }
-        }
+        });
+    }
+
+    // 초기 차트 로드
+    updateChart(''); // 전체 데이터로 차트 렌더링
+
+    // 회차 선택 이벤트 처리
+    roundFilter.addEventListener('change', () => {
+        const selectedRound = roundFilter.value; // 선택된 회차 가져오기
+        updateChart(selectedRound); // 선택된 회차로 차트 업데이트
     });
 </script>
-
 {% endblock scripts %}

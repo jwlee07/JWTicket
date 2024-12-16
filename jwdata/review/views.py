@@ -578,9 +578,15 @@ def analyze_all_seats(request):
     # 모든 공연 이름 가져오기
     all_concerts = Concert.objects.values_list('name', flat=True).distinct()
 
+    # 중복 제거된 회차 목록 생성
+    unique_rounds = list(
+        Seat.objects.values_list('round_name', flat=True).distinct().order_by('round_name')
+    )
+
     return render(request, 'review/all_seats.html', {
         'seat_data': seat_data,
         'selected_date': selected_date,
         'selected_concert': selected_concert,
         'all_concerts': all_concerts,
+        'unique_rounds': unique_rounds,  # 중복 제거된 회차 목록 전달
     })
