@@ -1,6 +1,10 @@
 from django.shortcuts import render
-from django.db.models import Count, Avg, Min, Sum
+from django.db.models import F, Count, Max, Min, Avg
 from django.db.models.functions import Length
+from django.db.models.functions import TruncHour
+from django.db.models import Value
+from django.db.models.functions import Concat, Cast
+from django.db.models import CharField
 from .models import Concert, Review, Seat
 
 from datetime import datetime
@@ -542,27 +546,41 @@ def analyze_all_reviews(request):
 
 def analyze_all_seats(request):
     """
-    모든 공연의 잔여 좌석 정보를 분석하여 대시보드로 보여주는 뷰.
+    선택한 날짜와 공연에 따라 좌석 데이터를 필터링하여 보여주는 뷰.
     """
-    seats = Seat.objects.all()
-    
-    # 한국 시간대 설정
-    KST = pytz.timezone('Asia/Seoul')
+    # GET 요청에서 날짜와 공연 값 가져오기
+    selected_date = request.GET.get('date')
+    selected_concert = request.GET.get('concert')
 
-    # 전체 좌석 데이터
-    all_seat_data = [
-        {
-            "concert_name": seat.concert.name,
-            "date": f"{seat.year}-{seat.month:02d}-{seat.day_num:02d}",
-            "round_info": f"{seat.round_name} ({seat.round_time})",
-            "seat_class": seat.seat_class,
-            "remaining_seats": seat.seat_count,
-            "actors": seat.actors,
-            "created_at": seat.created_at.astimezone(KST).strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        for seat in seats.select_related("concert")
-    ]
+    # 날짜를 가상 필드로 생성
+    seats_with_date = (
+        Seat.objects.annotate(
+            date=Concat(
+                Cast(F('year'), output_field=CharField()), Value('-'),
+                Cast(F('month'), output_field=CharField()), Value('-'),
+                Cast(F('day_num'), output_field=CharField())
+            )
+        )
+    )
+
+    # 날짜와 공연에 따른 필터링
+    if selected_date:
+        seats_with_date = seats_with_date.filter(date=selected_date)
+    if selected_concert:
+        seats_with_date = seats_with_date.filter(concert__name=selected_concert)
+
+    # 데이터를 정렬하여 반환
+    seat_data = (
+        seats_with_date.order_by('concert__name', 'date', 'day_str', 'round_name', 'seat_class', 'created_at')
+        .values('concert__name', 'date', 'day_str', 'round_name', 'seat_class', 'created_at', 'seat_count')
+    )
+
+    # 모든 공연 이름 가져오기
+    all_concerts = Concert.objects.values_list('name', flat=True).distinct()
 
     return render(request, 'review/all_seats.html', {
-        "all_seat_data": all_seat_data,
+        'seat_data': seat_data,
+        'selected_date': selected_date,
+        'selected_concert': selected_concert,
+        'all_concerts': all_concerts,
     })

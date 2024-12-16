@@ -1,38 +1,80 @@
 {% extends "review/base.html" %}
-{% load static %}
-
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4 text-center">전체 잔여 좌석 분석</h1>
+<div class="container-fluid py-4" style="min-height: 100vh;">
+    <div class="content-container">
 
-    <h2 class="mt-5">전체 좌석 데이터</h2>
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>공연명</th>
-                    <th>날짜</th>
-                    <th>회차</th>
-                    <th>좌석 등급</th>
-                    <th>잔여 좌석 수</th>
-                    <th>배우</th>
-                    <th>생성 시간</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for seat in all_seat_data %}
-                <tr>
-                    <td>{{ seat.concert_name }}</td>
-                    <td>{{ seat.date }}</td>
-                    <td>{{ seat.round_info }}</td>
-                    <td>{{ seat.seat_class }}</td>
-                    <td>{{ seat.remaining_seats }}</td>
-                    <td>{{ seat.actors }}</td>
-                    <td>{{ seat.created_at }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h1 class="text-center">좌석 데이터 분석</h1>
+
+        <!-- 선택 필터 영역 -->
+        <div class="card p-3 mt-4">
+            <h2 class="mb-3">필터 설정</h2>
+            <form method="GET" class="row g-3">
+                <!-- 공연 선택 -->
+                <div class="col-md-4">
+                    <label for="concert" class="form-label">공연 선택</label>
+                    <select id="concert" name="concert" class="form-control">
+                        <option value="">-- 공연 선택 --</option>
+                        {% for concert in all_concerts %}
+                        <option value="{{ concert }}" {% if concert == selected_concert %}selected{% endif %}>
+                            {{ concert }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 날짜 선택 -->
+                <div class="col-md-4">
+                    <label for="date" class="form-label">날짜 선택</label>
+                    <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}">
+                </div>
+
+                <!-- 조회 버튼 -->
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-dark btn-sm">조회</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 결과 테이블 -->
+        {% if seat_data %}
+        <div class="mt-5">
+            <h2>좌석 데이터</h2>
+            <table class="table table-bordered table-hover mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>공연명</th>
+                        <th>날짜</th>
+                        <th>요일</th>
+                        <th>회차</th>
+                        <th>좌석 등급</th>
+                        <th>수집 시간</th>
+                        <th>좌석 수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in seat_data %}
+                    <tr>
+                        <td>{{ item.concert__name }}</td>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.day_str }}</td>
+                        <td>{{ item.round_name }}</td>
+                        <td>{{ item.seat_class }}</td>
+                        <td>{{ item.created_at }}</td>
+                        <td>{{ item.seat_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>            
+        </div>
+
+        <!-- 좌석 데이터 (그래프)-->
+        <div class="mt-5">
+            <h2>좌석 데이터 (그래프)</h2>
+            <div class="card p-3">
+                <canvas id="seatChart" width="100%" height="50"></canvas>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
