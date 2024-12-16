@@ -21,25 +21,19 @@
                         {% endfor %}
                     </select>
                 </div>
-            
-                <!-- 시작 날짜 선택 -->
+        
+                <!-- 날짜 선택 -->
                 <div class="col-md-3">
-                    <label for="start_date" class="form-label">시작 날짜</label>
-                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ selected_start_date }}">
+                    <label for="date" class="form-label">날짜</label>
+                    <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}">
                 </div>
-            
-                <!-- 종료 날짜 선택 -->
-                <div class="col-md-3">
-                    <label for="end_date" class="form-label">종료 날짜</label>
-                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ selected_end_date }}">
-                </div>
-            
+        
                 <!-- 조회 버튼 -->
                 <div class="col-md-3 d-grid">
                     <button type="submit" class="btn btn-dark btn-sm">조회</button>
                 </div>
             </form>
-        </div>
+        </div>        
 
         <!-- 결과 테이블 -->
         {% if seat_data %}
@@ -65,7 +59,7 @@
                         <td>{{ item.day_str }}</td>
                         <td>{{ item.round_name }}</td>
                         <td>{{ item.seat_class }}</td>
-                        <td>{{ item.created_at }}</td>
+                        <td>{{ item.created_at|date:"Y년 m월 d일 H시" }}</td>
                         <td>{{ item.seat_count }}</td>
                     </tr>
                     {% endfor %}

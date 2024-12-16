@@ -549,8 +549,7 @@ def analyze_all_seats(request):
     선택한 날짜와 공연에 따라 좌석 데이터를 필터링하여 보여주는 뷰.
     """
     # GET 요청에서 필터 값 가져오기
-    selected_start_date = request.GET.get('start_date')
-    selected_end_date = request.GET.get('end_date')
+    selected_date = request.GET.get('date')
     selected_concert = request.GET.get('concert')
 
     # 날짜를 가상 필드로 생성
@@ -565,8 +564,8 @@ def analyze_all_seats(request):
     )
 
     # 날짜와 공연에 따른 필터링
-    if selected_start_date and selected_end_date:
-        seats_with_date = seats_with_date.filter(date__range=[selected_start_date, selected_end_date])
+    if selected_date:
+        seats_with_date = seats_with_date.filter(date=selected_date)
     if selected_concert:
         seats_with_date = seats_with_date.filter(concert__name=selected_concert)
 
@@ -581,8 +580,7 @@ def analyze_all_seats(request):
 
     return render(request, 'review/all_seats.html', {
         'seat_data': seat_data,
-        'selected_start_date': selected_start_date,
-        'selected_end_date': selected_end_date,
+        'selected_date': selected_date,
         'selected_concert': selected_concert,
         'all_concerts': all_concerts,
     })
