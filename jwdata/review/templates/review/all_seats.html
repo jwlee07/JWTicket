@@ -38,7 +38,10 @@
         <!-- 결과 테이블 -->
         {% if seat_data %}
         <div class="mt-5">
-            <h2>좌석 데이터</h2>
+            <!-- 그래프를 표시할 공간 -->
+            <h2>좌석 데이터(막대 그래프)</h2>
+            <canvas id="seatChart" class="mt-4"></canvas>
+            <h2>좌석 데이터(테이블)</h2>
             <table class="table table-bordered table-hover mt-3">
                 <thead class="table-dark">
                     <tr>
@@ -70,3 +73,88 @@
     </div>
 </div>
 {% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 데이터 준비
+    const seatData = [
+        {% for item in seat_data %}
+        {
+            seatClass: "{{ item.seat_class }}",
+            seatCount: {{ item.seat_count }},
+            createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}",
+            roundName: "{{ item.round_name }}"
+        },
+        {% endfor %}
+    ];
+
+    // 등급별 색상 설정
+    const colors = {
+        "VIP석": "#FF6384",
+        "R석": "#36A2EB",
+        "S석": "#FFCE56",
+        "A석": "#4BC0C0",
+        "B석": "#9966FF"
+    };
+
+    // 회차 및 시간 조합 데이터 생성
+    const groupedData = {};
+    seatData.forEach(item => {
+        const key = `${item.roundName} - ${item.createdAt}`;
+        if (!groupedData[key]) groupedData[key] = {};
+        if (!groupedData[key][item.seatClass]) groupedData[key][item.seatClass] = 0;
+        groupedData[key][item.seatClass] += item.seatCount;
+    });
+
+    // X축 레이블 생성 (회차 - 수집 시간)
+    const labels = Object.keys(groupedData);
+
+    // 등급별 데이터셋 생성
+    const datasets = Object.keys(colors).map(seatClass => ({
+        label: seatClass,
+        data: labels.map(label => groupedData[label][seatClass] || 0),
+        backgroundColor: colors[seatClass]
+    }));
+
+    // 차트 생성
+    const ctx = document.getElementById('seatChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels, // X축 레이블 (회차 - 수집 시간)
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'category',
+                    title: {
+                        display: true,
+                        text: '회차 - 수집 시간'
+                    },
+                    ticks: {
+                        autoSkip: false, // 모든 레이블 표시
+                        maxRotation: 45, // 회전으로 가독성 개선
+                        minRotation: 0
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: '좌석 수'
+                    },
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock scripts %}
