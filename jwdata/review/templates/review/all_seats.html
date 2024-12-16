@@ -10,7 +10,7 @@
             <h2 class="mb-3">필터 설정</h2>
             <form method="GET" class="row g-3">
                 <!-- 공연 선택 -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="concert" class="form-label">공연 선택</label>
                     <select id="concert" name="concert" class="form-control">
                         <option value="">-- 공연 선택 --</option>
@@ -21,15 +21,21 @@
                         {% endfor %}
                     </select>
                 </div>
-
-                <!-- 날짜 선택 -->
-                <div class="col-md-4">
-                    <label for="date" class="form-label">날짜 선택</label>
-                    <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}">
+            
+                <!-- 시작 날짜 선택 -->
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">시작 날짜</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ selected_start_date }}">
                 </div>
-
+            
+                <!-- 종료 날짜 선택 -->
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">종료 날짜</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ selected_end_date }}">
+                </div>
+            
                 <!-- 조회 버튼 -->
-                <div class="col-md-2 d-grid">
+                <div class="col-md-3 d-grid">
                     <button type="submit" class="btn btn-dark btn-sm">조회</button>
                 </div>
             </form>
