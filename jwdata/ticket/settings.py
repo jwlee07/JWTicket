@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django_bootstrap5',
     # contents apps
     'review.apps.ReviewConfig',
+    # crontab
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -114,7 +116,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -130,3 +132,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CRONTAB List
+CRONJOBS = [
+    # ('0 0,6,12,18 * * *', 'myapp.tasks.my_scheduled_task'),
+    ('* * * * *', 'review.tasks.my_scheduled_task'),
+]
