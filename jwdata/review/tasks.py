@@ -15,14 +15,15 @@ def get_chrome_driver():
     Headless Chrome 드라이버를 반환하는 함수.
     크론 실행 환경(백그라운드)에서 UI 없는 크롤링을 가능하게 함.
     """
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')         # 화면 없이 동작
-    chrome_options.add_argument('--no-sandbox')        # 리눅스 환경에서 권한 문제 방지
-    chrome_options.add_argument('--disable-dev-shm-usage') # /dev/shm 사용 비활성화(메모리 부족 문제 회피)
-    chrome_options.add_argument('--disable-gpu')       # GPU 비활성화 (일부 환경에서 필요)
-    chrome_options.add_argument('--window-size=1920,1080') # 넉넉한 가상 화면 크기 지정
+    # chrome_options = Options()
+    # chrome_options.add_argument('--headless')         # 화면 없이 동작
+    # chrome_options.add_argument('--no-sandbox')        # 리눅스 환경에서 권한 문제 방지
+    # chrome_options.add_argument('--disable-dev-shm-usage') # /dev/shm 사용 비활성화(메모리 부족 문제 회피)
+    # chrome_options.add_argument('--disable-gpu')       # GPU 비활성화 (일부 환경에서 필요)
+    # chrome_options.add_argument('--window-size=1920,1080') # 넉넉한 가상 화면 크기 지정
 
-    return webdriver.Chrome(options=chrome_options)
+    # return webdriver.Chrome(options=chrome_options)
+    return webdriver.Chrome()
 
 def log(message):
     """
