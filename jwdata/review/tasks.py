@@ -27,11 +27,10 @@ def get_chrome_driver():
 
 def log(message):
     """
-    메시지를 콘솔 출력하고 /tmp/cron_test.log 파일에도 기록하는 함수.
+    메시지를 /tmp/cron_test.log 파일에 기록하는 함수.
     """
-    print(message)
     with open('/tmp/cron_test.log', 'a') as f:
-        f.write(f"{message} (at {datetime.now()})\n")
+        f.write(f"실행 시간: {datetime.now()}, 메세지: {message}\n")
 
 def crawl_all_concerts_reviews():
     """
