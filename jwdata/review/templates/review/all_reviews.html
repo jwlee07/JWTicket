@@ -5,9 +5,19 @@
 <div class="container-fluid py-4" style="min-height: 100vh;">
     <div class="content-container">
 
-        <h1 class="text-center">공연 리뷰</h1>
+        <!-- 페이지 제목 -->
+        <!-- 
+            "공연 리뷰" 대시보드 페이지.
+            여기서는 모든 공연에 대한 리뷰 정보를 한 번에 확인하고,
+            기간 필터링, 공연별 요약, 차트 분석, 닉네임별 관람 패턴 등 다양한 분석 결과를 확인할 수 있습니다.
+        -->
+        <h1 class="text-center mb-5">공연 리뷰 대시보드</h1>
 
         <!-- 기간 지정 필터 영역 -->
+        <!-- 
+            시작일과 종료일을 지정하여 해당 기간에 해당하는 리뷰만 분석하도록 필터링합니다.
+            기간 필터를 적용하면 아래 표나 차트가 선택 기간에 맞게 업데이트됩니다.
+        -->
         <div class="card p-3 mt-4">
             <h2 class="mb-3">기간 지정</h2>
             <form method="GET" action="{% url 'analyze_all_reviews' %}">
@@ -21,16 +31,21 @@
                         <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
                     </div>
                     <div class="col-md-2 d-grid">
+                        <!-- 기간 필터 적용 버튼 -->
                         <button type="submit" class="btn btn-dark">필터 적용</button>
                     </div>
                 </div>
             </form>
         </div>
 
-        <!-- 공연별 요약 테이블 -->
+        <!-- 공연별 요약 테이블 영역 -->
+        <!-- 
+            필터 조건에 맞는 공연 리스트를 테이블 형태로 보여줍니다.
+            공연명, 장소, 평균 평점, 총 리뷰 수 등 기본 정보를 한눈에 파악할 수 있습니다.
+        -->
         {% if concert_summary %}
         <div class="mt-5">
-            <h2>공연별 요약</h2>
+            <h2>공연별 요약 정보</h2>
             <table class="table table-bordered table-hover mt-3">
                 <thead class="table-dark">
                     <tr>
@@ -55,9 +70,13 @@
         {% endif %}
 
         <!-- 공연별 리뷰 수 차트 -->
+        <!-- 
+            각 공연별로 날짜별 리뷰 수 추이를 선 그래프로 시각화합니다.
+            기간 변경 시 해당 기간의 리뷰 추이만 표시됩니다.
+        -->
         {% if concert_date_summary %}
         <div class="mt-5">
-            <h2>공연별 리뷰 수</h2>
+            <h2>공연별 리뷰 수 추이</h2>
             <div class="card p-3">
                 <canvas id="reviewChart" width="100%" height="50"></canvas>
             </div>
@@ -65,9 +84,13 @@
         {% endif %}
 
         <!-- 공연별 평균 평점 차트 -->
+        <!-- 
+            각 공연별 날짜별 평균 평점을 선 그래프로 보여줍니다.
+            공연의 평점 변화를 시계열 형태로 파악할 수 있습니다.
+        -->
         {% if concert_date_rating_summary %}
         <div class="mt-5">
-            <h2>공연별 평균 평점(5점 만점)</h2>
+            <h2>공연별 평균 평점 추이 (5점 만점)</h2>
             <div class="card p-3">
                 <canvas id="ratingChart" width="100%" height="50"></canvas>
             </div>
@@ -75,6 +98,10 @@
         {% endif %}
 
         <!-- 공연 조합별 관객 분포 파이 차트 -->
+        <!-- 
+            여러 공연을 관람한 닉네임(즉, 중복 관람 고객) 비중을 파악하기 위한 차트.
+            예를 들어 "A공연, B공연"을 모두 관람한 닉네임 수 등을 파이차트로 보여줍니다.
+        -->
         {% if combination_counts %}
         <div class="mt-5">
             <h2>공연 조합별 관객 분포</h2>
@@ -87,9 +114,13 @@
         {% endif %}
 
         <!-- 닉네임 별 관람 공연 테이블 -->
+        <!-- 
+            여러 공연을 관람한 닉네임 정보를 표로 나타냅니다.
+            해당 닉네임이 어떤 공연들을 언제부터 관람했는지 확인할 수 있습니다.
+        -->
         {% if common_nicknames %}
         <div class="mt-5">
-            <h2>닉네임 별 관람 공연</h2>
+            <h2>닉네임 별 관람 패턴</h2>
             <table class="table table-bordered table-hover mt-4">
                 <thead class="table-dark">
                     <tr>
@@ -115,13 +146,17 @@
             </table>
         </div>
         {% else %}
-        <p class="text-muted mt-5">닉네임 별 관람 공연이 없습니다.</p>
+        <p class="text-muted mt-5">닉네임 별 관람 공연 데이터가 없습니다.</p>
         {% endif %}
 
         <!-- 전체 리뷰 테이블 -->
+        <!-- 
+            모든 리뷰에 대한 상세 정보를 테이블로 표시합니다.
+            공연명, 장소, 작성자, 작성일, 평점, 조회수 등 다양한 정보를 한 번에 파악할 수 있습니다.
+        -->
         {% if reviews %}
         <div class="mt-5">
-            <h2>전체 리뷰</h2>
+            <h2>전체 리뷰 목록</h2>
             <table class="table table-bordered table-hover mt-3">
                 <thead class="table-dark">
                     <tr>
@@ -161,13 +196,15 @@
 {% endblock content %}
 
 {% block scripts %}
+<!-- Chart.js 라이브러리를 사용하여 차트 시각화 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 <script>
-// 화면 로딩 후 실행
+// DOMContentLoaded 이벤트는 HTML이 모두 로딩된 후 실행됩니다.
 document.addEventListener('DOMContentLoaded', function () {
-    // 색상 설정
+    // 색상 팔레트 (공연명별로 다른 색상 지정)
+    // 공연명이 추가될 경우 colors 객체에 추가하거나, 없을 경우 '기타' 색상 사용
     const colors = {
         "뮤지컬 〈긴긴밤〉": { border: 'rgba(104, 185, 157, 1)', background: 'rgba(104, 185, 157, 0.3)' },
         "뮤지컬 〈테일러〉": { border: 'rgba(41, 128, 185, 1)', background: 'rgba(41, 128, 185, 0.3)' },
@@ -175,6 +212,8 @@ document.addEventListener('DOMContentLoaded', function () {
         "기타": { border: 'rgba(149, 165, 166, 1)', background: 'rgba(149, 165, 166, 0.3)' }
     };
 
+    // 공연 조합 색상 생성 함수
+    // 여러 공연의 색상을 혼합하여 파이차트 색상 생성
     const generateMixedColor = (combo, type) => {
         const individualColors = combo.split(", ").map(name => (colors[name.trim()] || colors["기타"])[type]);
         const mixedColor = individualColors.reduce((acc, color) => {
@@ -188,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return `rgba(${mixedColor[0]}, ${mixedColor[1]}, ${mixedColor[2]}, ${mixedColor[3]})`;
     };
 
-    // 리뷰 수 차트
+    // 리뷰 수 차트 생성
     {% if concert_date_summary %}
     const ctxReview = document.getElementById('reviewChart').getContext('2d');
     const datasetsReview = [
@@ -231,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     {% endif %}
 
-    // 평점 차트
+    // 평균 평점 차트 생성
     {% if concert_date_rating_summary %}
     const ctxRating = document.getElementById('ratingChart').getContext('2d');
     const datasetsRating = [
@@ -274,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     {% endif %}
 
-    // 공연 조합별 분포 파이 차트
+    // 공연 조합별 관객 분포 파이 차트
     {% if combination_counts %}
     const ctxCombination = document.getElementById('combinationChart').getContext('2d');
     const combinationData = [
@@ -283,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
         {% endfor %}
     ];
 
+    // 많이 나온 조합 순으로 정렬 (내림차순)
     combinationData.sort((a, b) => b.count - a.count);
 
     const labelsCombination = combinationData.map(item => item.label);
@@ -307,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 legend: { position: 'top' },
                 tooltip: {
                     callbacks: {
+                        // 툴팁에 "명" 단위 표시
                         label: function (context) {
                             return `${context.label}: ${context.raw}명`;
                         }

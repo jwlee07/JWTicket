@@ -3,15 +3,24 @@
 <div class="container-fluid py-4" style="min-height: 100vh;">
     <div class="content-container">
 
-        <h1 class="text-center mb-4">잔여 좌석</h1>
+        <!-- 페이지 제목 -->
+        <!-- 
+            "잔여 좌석" 페이지에서는 선택한 공연과 날짜에 따라 남아있는 좌석 정보를 확인할 수 있습니다.
+            그래프와 테이블로 데이터를 보여주어 시각적으로 분석하기 쉽습니다.
+        -->
+        <h1 class="text-center mb-4">잔여 좌석 현황</h1>
 
         <!-- 필터 섹션 -->
+        <!-- 
+            사용자가 원하는 공연과 날짜를 선택한 뒤 '조회' 버튼을 눌러 해당 조건에 맞는 잔여 좌석 정보를 조회할 수 있습니다.
+        -->
         <div class="card p-4 shadow-sm mb-5">
-            <h2 class="mb-3">필터 설정</h2>
+            <h2 class="mb-3">조건 선택</h2>
             <form method="GET" class="row g-3">
                 <!-- 공연 선택 -->
+                <!-- 사용자가 특정 공연 이름을 선택할 수 있는 드롭다운 메뉴 -->
                 <div class="col-lg-3 col-md-6 col-sm-12">
-                    <label for="concert" class="form-label">공연 선택</label>
+                    <label for="concert" class="form-label">공연명</label>
                     <select id="concert" name="concert" class="form-control">
                         <option value="">-- 공연 선택 --</option>
                         {% for concert in all_concerts %}
@@ -23,12 +32,14 @@
                 </div>
         
                 <!-- 날짜 선택 -->
+                <!-- 특정 날짜의 잔여 좌석 정보를 확인하고자 할 때 날짜를 선택 -->
                 <div class="col-lg-3 col-md-6 col-sm-12">
-                    <label for="date" class="form-label">날짜</label>
+                    <label for="date" class="form-label">날짜 선택</label>
                     <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}">
                 </div>
         
                 <!-- 조회 버튼 -->
+                <!-- 선택한 조건을 적용하여 데이터 조회 -->
                 <div class="col-lg-3 col-md-6 col-sm-12 d-grid">
                     <label class="form-label invisible">조회 버튼</label>
                     <button type="submit" class="btn btn-dark btn-block">조회</button>
@@ -38,9 +49,13 @@
 
         {% if seat_data %}
         <!-- 그래프 섹션 -->
+        <!-- 
+            선택한 조건에 따른 잔여 좌석 정보를 막대 그래프로 보여줍니다.
+            회차별/시간별 좌석 변화를 비교할 수 있으며, '회차 선택' 드롭다운을 통해 특정 회차만 볼 수도 있습니다.
+        -->
         <div class="card p-4 shadow-sm mb-5">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="mb-0">좌석 데이터 (막대 그래프)</h2>
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <h2 class="mb-3 mb-lg-0">좌석 현황 그래프</h2>
                 <div style="width: 300px;">
                     <label for="roundFilter" class="form-label">회차 선택</label>
                     <select id="roundFilter" class="form-control">
@@ -55,8 +70,12 @@
         </div>
 
         <!-- 테이블 섹션 -->
+        <!-- 
+            그래프 정보에 더해 세부적인 정보를 테이블로 확인할 수 있습니다.
+            공연명, 날짜, 요일, 회차, 좌석 등급, 수집 시간, 좌석 수 등이 상세히 나와 있어 데이터 분석에 유용합니다.
+        -->
         <div class="card p-4 shadow-sm">
-            <h2 class="mb-3">좌석 데이터 (테이블)</h2>
+            <h2 class="mb-3">좌석 현황 상세 테이블</h2>
             <table class="table table-bordered table-hover mt-3">
                 <thead class="table-dark">
                     <tr>
@@ -65,7 +84,7 @@
                         <th>요일</th>
                         <th>회차</th>
                         <th>좌석 등급</th>
-                        <th>수집 시간</th>
+                        <th>데이터 수집 시각</th>
                         <th>좌석 수</th>
                     </tr>
                 </thead>
@@ -84,6 +103,9 @@
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <!-- 데이터가 없을 경우 사용자에게 안내 -->
+        <p class="text-center text-muted mt-5">조건에 맞는 좌석 데이터가 없습니다.</p>
         {% endif %}
     </div>
 </div>
@@ -91,7 +113,7 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // 좌석 데이터 준비
+    // seat_data를 기반으로 차트를 렌더링하기 위한 준비
     const seatData = [
         {% for item in seat_data %}
         {
@@ -103,6 +125,7 @@
         {% endfor %}
     ];
 
+    // 좌석 등급별로 다른 색상으로 표시
     const colors = {
         "VIP석": "#FF6384",
         "R석": "#36A2EB",
@@ -115,9 +138,11 @@
     const ctx = document.getElementById('seatChart').getContext('2d');
     let chartInstance = null;
 
+    // 선택한 회차에 따라 데이터 필터링
     function filterDataByRound(selectedRound) {
         const filteredData = seatData.filter(item => !selectedRound || item.roundName === selectedRound);
 
+        // 회차-수집시간을 key로 하여 좌석 등급별 좌석 수를 합산
         const groupedData = {};
         filteredData.forEach(item => {
             const key = `${item.roundName} - ${item.createdAt}`;
@@ -126,6 +151,7 @@
             groupedData[key][item.seatClass] += item.seatCount;
         });
 
+        // 차트에 사용할 라벨(회차-시간)과 데이터셋(좌석 등급별) 생성
         const labels = Object.keys(groupedData);
         const datasets = Object.keys(colors).map(seatClass => ({
             label: seatClass,
@@ -136,9 +162,11 @@
         return { labels, datasets };
     }
 
+    // 차트 업데이트 함수
     function updateChart(selectedRound) {
         const { labels, datasets } = filterDataByRound(selectedRound);
 
+        // 기존 차트 인스턴스가 있으면 제거하고 새로 생성
         if (chartInstance) {
             chartInstance.destroy();
         }
@@ -152,15 +180,25 @@
             options: {
                 responsive: true,
                 scales: {
-                    x: { title: { display: true, text: '회차 - 수집 시간' } },
-                    y: { title: { display: true, text: '좌석 수' }, beginAtZero: true }
+                    x: { 
+                        title: { display: true, text: '회차 - 수집 시간' }
+                    },
+                    y: { 
+                        title: { display: true, text: '좌석 수' }, 
+                        beginAtZero: true 
+                    }
                 },
-                plugins: { legend: { display: true, position: 'top' } }
+                plugins: { 
+                    legend: { display: true, position: 'top' } 
+                }
             }
         });
     }
 
+    // 초기 차트 표시 (모든 회차)
     updateChart('');
+
+    // 회차 변경 시 차트 갱신
     roundFilter.addEventListener('change', () => updateChart(roundFilter.value));
 </script>
 {% endblock scripts %}
