@@ -24,10 +24,37 @@ def get_chrome_driver():
 
     return webdriver.Chrome(options=chrome_options)
 
+from datetime import datetime
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
+from .models import Concert, Review
+from .views import crawl_concert_info, crawl_concert_reviews, crawl_concert_seats
+
+def get_chrome_driver():
+    """
+    Headless Chrome 드라이버를 반환하는 함수.
+    크론 실행 환경(백그라운드)에서 UI 없는 크롤링을 가능하게 함.
+    """
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')  # 화면 없이 동작
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--window-size=1920,1080')
+
+    return webdriver.Chrome(options=chrome_options)
+
 def crawl_all_concerts_reviews():
     """
-    매일 새벽 3시에 실행(예시):
+    매일 새벽 3시에 실행:
     DB에 있는 모든 공연(Concert)을 대상으로 리뷰 크롤링을 수행.
+    기존 리뷰 데이터를 모두 삭제한 뒤 최신 리뷰로 갱신.
     """
     print("[crawl_all_concerts_reviews] 시작:", datetime.now())
     driver = get_chrome_driver()
@@ -42,6 +69,11 @@ def crawl_all_concerts_reviews():
                 continue
 
             print(f"[INFO] 공연명: {concert_name}에 대한 리뷰 크롤링 시작")
+
+            # 기존 리뷰 삭제
+            deleted_count, _ = Review.objects.filter(concert=concert).delete()
+            print(f"[INFO] 기존 리뷰 {deleted_count}개 삭제 완료")
+
             # 인터파크 메인 페이지 접근
             driver.get("https://tickets.interpark.com/")
             WebDriverWait(driver, 10).until(
@@ -107,7 +139,6 @@ def crawl_all_concerts_reviews():
     finally:
         driver.quit()
         print("[crawl_all_concerts_reviews] 종료:", datetime.now())
-
 
 def crawl_all_concerts_seats():
     """
