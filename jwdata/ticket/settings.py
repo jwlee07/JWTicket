@@ -135,6 +135,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CRONTAB List
 CRONJOBS = [
-    # ('0 0,6,12,18 * * *', 'myapp.tasks.my_scheduled_task'),
-    ('* * * * *', 'review.tasks.crawling_scheduled_task'),
+    # 매일 새벽 3시에 모든 콘서트 리뷰 크롤링 (변경)
+    ('0 3 * * *', 'review.tasks.crawl_all_concerts_reviews'),
+    # 매일 00시, 06시, 12시, 18시에 잔여 좌석 크롤링
+    ('0 0,6,12,18 * * *', 'review.tasks.crawl_all_concerts_seats'),
 ]
