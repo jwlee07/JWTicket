@@ -618,6 +618,16 @@ def analyze_all_seats(request):
     selected_date = request.GET.get('date')
     selected_concert = request.GET.get('concert')
 
+    # selected_date가 존재하면, 월과 일의 앞에 있는 0을 제거
+    if selected_date:
+        try:
+            year, month, day = selected_date.split('-')
+            month = str(int(month))
+            day = str(int(day))
+            selected_date = f"{year}-{month}-{day}"
+        except ValueError:
+            selected_date = None
+
     # 날짜를 'YYYY-MM-DD' 형태로 연결해서 가상 필드 date 생성
     seats_with_date = (
         Seat.objects.annotate(
