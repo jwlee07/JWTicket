@@ -67,8 +67,10 @@ def crawl_concert_info(driver):
         name=name,
         place=place,
         start_date=start_date,
-        end_date=end_date,
-        defaults={'duration_minutes': int(duration_text) if duration_text.isdigit() else None},
+        defaults={
+            'end_date': end_date,
+            'duration_minutes': int(duration_text) if duration_text.isdigit() else None
+        },
     )
     return concert
 
