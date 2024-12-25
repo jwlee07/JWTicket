@@ -8,7 +8,7 @@
         <!-- 필터 섹션 -->
         <div class="card p-4 shadow-sm mb-5">
             <h2 class="mb-3">조건 선택</h2>
-            <form method="GET" class="row g-3">
+            <form method="GET" class="row g-3" id="settingsForm">
                 <!-- 공연 선택 -->
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <label for="concert" class="form-label">공연명</label>
@@ -26,6 +26,23 @@
                 <div class="col-lg-3 col-md-6 col-sm-12 d-grid">
                     <label class="form-label invisible">조회 버튼</label>
                     <button type="submit" class="btn btn-dark btn-block">조회</button>
+                </div>
+
+                <!-- 한 행에 그래프 개수 선택 -->
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label for="charts_per_row" class="form-label">그래프 개수 (한 행에)</label>
+                    <select id="charts_per_row" name="charts_per_row" class="form-control">
+                        <option value="1">1개</option>
+                        <option value="2" selected>2개</option>
+                        <option value="3">3개</option>
+                        <option value="4">4개</option>
+                    </select>
+                </div>
+
+                <!-- 그래프 높이 설정 -->
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label for="graph_height" class="form-label">그래프 높이 (px)</label>
+                    <input type="number" id="graph_height" name="graph_height" class="form-control" value="300" min="100" max="1000">
                 </div>
             </form>
         </div>
@@ -56,9 +73,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // 그래프 개수를 설정하는 변수
-        const chartsPerRow = 2; // 한 행에 배치할 그래프 개수
-
         // 부트스트랩 컬럼 클래스를 반환하는 함수
         function getBootstrapColumnClasses(perRow) {
             const columns = {
@@ -66,7 +80,6 @@
                 2: 'col-lg-6 col-md-6 col-sm-12',
                 3: 'col-lg-4 col-md-6 col-sm-12',
                 4: 'col-lg-3 col-md-4 col-sm-6',
-                // 필요에 따라 더 추가 가능
             };
             return columns[perRow] || 'col-lg-6 col-md-6 col-sm-12'; // 기본값: 2개
         }
@@ -108,6 +121,10 @@
 
         // 저장된 차트 인스턴스
         const chartInstances = {};
+
+        // 사용자 설정 변수
+        let chartsPerRow = parseInt(document.getElementById('charts_per_row').value) || 2;
+        let graphHeight = parseInt(document.getElementById('graph_height').value) || 300;
 
         // 함수: 회차별 데이터 필터링
         function filterDataByRound(data, selectedRound) {
@@ -236,6 +253,46 @@
             }
         }
 
+        // 함수: 컬럼 클래스 업데이트
+        function updateColumnClasses(newPerRow) {
+            const newColumnClasses = getBootstrapColumnClasses(newPerRow);
+            const columnDivs = chartsContainer.querySelectorAll('.col-lg-12, .col-lg-6, .col-lg-4, .col-lg-3, .col-md-12, .col-md-6, .col-md-4, .col-md-3, .col-sm-12, .col-sm-6');
+
+            columnDivs.forEach(col => {
+                // 기존의 col-lg-*, col-md-*, col-sm-* 클래스 제거
+                col.classList.remove('col-lg-12', 'col-lg-6', 'col-lg-4', 'col-lg-3');
+                col.classList.remove('col-md-12', 'col-md-6', 'col-md-4', 'col-md-3');
+                col.classList.remove('col-sm-12', 'col-sm-6');
+
+                // 새로운 컬럼 클래스 추가
+                newColumnClasses.split(' ').forEach(cls => col.classList.add(cls));
+            });
+        }
+
+        // 함수: 그래프 높이 업데이트
+        function updateGraphHeights(newHeight) {
+            const canvases = chartsContainer.querySelectorAll('canvas');
+            canvases.forEach(canvas => {
+                canvas.style.height = `${newHeight}px`;
+            });
+
+            // 업데이트된 높이에 맞게 차트를 리사이즈
+            for (const chartId in chartInstances) {
+                chartInstances[chartId].resize();
+            }
+        }
+
+        // 함수: 그래프 레이아웃 및 높이 업데이트
+        function applyUserSettings() {
+            // 그래프 개수 설정
+            chartsPerRow = parseInt(document.getElementById('charts_per_row').value, 10) || 2;
+            updateColumnClasses(chartsPerRow);
+
+            // 그래프 높이 설정
+            graphHeight = parseInt(document.getElementById('graph_height').value, 10) || 300;
+            updateGraphHeights(graphHeight);
+        }
+
         // 함수: 초기 그래프 생성
         function initializeCharts() {
             for (const date in dataGroupedByDate) {
@@ -310,7 +367,7 @@
 
                 const canvas = document.createElement('canvas');
                 canvas.id = `seatChart_${date}`;
-                canvas.style.height = '300px'; // 고정 높이 설정
+                canvas.style.height = `${graphHeight}px`; // 사용자 설정 그래프 높이
 
                 cardBody.appendChild(canvas);
                 cardDiv.appendChild(cardBody);
@@ -329,9 +386,21 @@
 
         // 함수: 이벤트 리스너 추가
         function addEventListeners() {
+            // 회차 선택 필터 변경 시 차트 업데이트
             const filters = document.querySelectorAll('.round-filter');
             filters.forEach(filter => {
                 filter.addEventListener('change', updateChart);
+            });
+
+            // 사용자 설정 이벤트 리스너
+            const chartsPerRowSelect = document.getElementById('charts_per_row');
+            const graphHeightInput = document.getElementById('graph_height');
+
+            chartsPerRowSelect.addEventListener('change', function() {
+                applyUserSettings();
+            });
+            graphHeightInput.addEventListener('input', function() {
+                applyUserSettings();
             });
         }
 
