@@ -615,18 +615,7 @@ def analyze_all_seats(request):
     - 해당 좌석 정보를 표 형태로 'review/all_seats.html'에 렌더링
     """
     # GET 요청에서 필터 값 가져오기
-    selected_date = request.GET.get('date')
     selected_concert = request.GET.get('concert')
-
-    # selected_date가 존재하면, 월과 일의 앞에 있는 0을 제거
-    if selected_date:
-        try:
-            year, month, day = selected_date.split('-')
-            month = str(int(month))
-            day = str(int(day))
-            selected_date = f"{year}-{month}-{day}"
-        except ValueError:
-            selected_date = None
 
     # 날짜를 'YYYY-MM-DD' 형태로 연결해서 가상 필드 date 생성
     seats_with_date = (
@@ -639,9 +628,6 @@ def analyze_all_seats(request):
         )
     )
 
-    # 날짜 필터링
-    if selected_date:
-        seats_with_date = seats_with_date.filter(date=selected_date)
     # 공연 필터링
     if selected_concert:
         seats_with_date = seats_with_date.filter(concert__name=selected_concert)
@@ -662,7 +648,6 @@ def analyze_all_seats(request):
 
     return render(request, 'review/all_seats.html', {
         'seat_data': seat_data,
-        'selected_date': selected_date,
         'selected_concert': selected_concert,
         'all_concerts': all_concerts,
         'unique_rounds': unique_rounds,

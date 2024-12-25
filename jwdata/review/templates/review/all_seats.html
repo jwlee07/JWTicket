@@ -22,12 +22,6 @@
                     </select>
                 </div>
 
-                <!-- 날짜 선택 -->
-                <div class="col-lg-3 col-md-6 col-sm-12">
-                    <label for="date" class="form-label">날짜 선택</label>
-                    <input type="date" id="date" name="date" class="form-control" value="{{ selected_date }}">
-                </div>
-
                 <!-- 조회 버튼 -->
                 <div class="col-lg-3 col-md-6 col-sm-12 d-grid">
                     <label class="form-label invisible">조회 버튼</label>
@@ -36,62 +30,24 @@
             </form>
         </div>
 
-        <!-- 조건 분기: 공연과 날짜가 모두 선택되어야 seat_data 표시 -->
-        {% if selected_concert and selected_date %}
+        <!-- 조건 분기: 공연이 선택되었을 때 seat_data 표시 -->
+        {% if selected_concert %}
             {% if seat_data %}
-            <!-- 데이터를 보여줄 섹션 (그래프 + 테이블) -->
-            <div class="card p-4 shadow-sm mb-5">
-                <div class="d-flex flex-wrap justify-content-between align-items-center">
-                    <h2 class="mb-3 mb-lg-0">좌석 현황 그래프</h2>
-                    <div style="width: 300px;">
-                        <label for="roundFilter" class="form-label">회차 선택</label>
-                        <select id="roundFilter" class="form-control">
-                            <option value="">-- 모든 회차 --</option>
-                            {% for round in unique_rounds %}
-                            <option value="{{ round }}">{{ round }}</option>
-                            {% endfor %}
-                        </select>
+                <!-- 좌석 현황 섹션 -->
+                <div class="card p-4 shadow-sm mb-5">
+                    <h2 class="mb-3">잔여 좌석 현황</h2>
+                    <!-- 그래프들을 담을 그리드 컨테이너 -->
+                    <div class="row g-4" id="chartsContainer">
+                        <!-- JavaScript에서 생성 -->
                     </div>
                 </div>
-                <canvas id="seatChart" class="mt-4"></canvas>
-            </div>
-
-            <div class="card p-4 shadow-sm">
-                <h2 class="mb-3">좌석 현황 상세 테이블</h2>
-                <table class="table table-bordered table-hover mt-3">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>공연명</th>
-                            <th>날짜</th>
-                            <th>요일</th>
-                            <th>회차</th>
-                            <th>좌석 등급</th>
-                            <th>데이터 수집 시각</th>
-                            <th>좌석 수</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in seat_data %}
-                        <tr>
-                            <td>{{ item.concert__name }}</td>
-                            <td>{{ item.date }}</td>
-                            <td>{{ item.day_str }}</td>
-                            <td>{{ item.round_name }}</td>
-                            <td>{{ item.seat_class }}</td>
-                            <td>{{ item.created_at|date:"Y년 m월 d일 H시" }}</td>
-                            <td>{{ item.seat_count }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
             {% else %}
-            <!-- 공연과 날짜는 선택되었지만 seat_data가 비었을 때 -->
-            <p class="text-center text-muted mt-5">조건에 맞는 좌석 데이터가 없습니다.</p>
+                <!-- 공연은 선택되었지만 seat_data가 비었을 때 -->
+                <p class="text-center text-muted mt-5">조건에 맞는 좌석 데이터가 없습니다.</p>
             {% endif %}
         {% else %}
-        <!-- 공연 또는 날짜를 선택하지 않았을 때 -->
-        <p class="text-center text-muted mt-5">공연과 날짜를 선택해주세요.</p>
+            <!-- 공연을 선택하지 않았을 때 -->
+            <p class="text-center text-muted mt-5">공연을 선택해주세요.</p>
         {% endif %}
     </div>
 </div>
@@ -99,6 +55,21 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // 그래프 개수를 설정하는 변수
+    const chartsPerRow = 2; // 한 행에 배치할 그래프 개수
+
+    // 부트스트랩 컬럼 클래스를 반환하는 함수
+    function getBootstrapColumnClasses(perRow) {
+        const columns = {
+            1: 'col-lg-12 col-md-12 col-sm-12',
+            2: 'col-lg-6 col-md-6 col-sm-12',
+            3: 'col-lg-4 col-md-6 col-sm-12',
+            4: 'col-lg-3 col-md-4 col-sm-6',
+            // 필요에 따라 더 추가 가능
+        };
+        return columns[perRow] || 'col-lg-6 col-md-6 col-sm-12'; // 기본값: 2개
+    }
+
     // seat_data를 기반으로 차트를 렌더링하기 위한 준비
     const seatData = [
         {% for item in seat_data %}
@@ -106,7 +77,9 @@
             seatClass: "{{ item.seat_class }}",
             seatCount: {{ item.seat_count }},
             createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}",
-            roundName: "{{ item.round_name }}"
+            roundName: "{{ item.round_name }}",
+            date: "{{ item.date }}",
+            dayStr: "{{ item.day_str }}"
         },
         {% endfor %}
     ];
@@ -120,22 +93,44 @@
         "B석": "#9966FF"
     };
 
-    const roundFilter = document.getElementById('roundFilter');
-    const seatChartEl = document.getElementById('seatChart');
-    let chartInstance = null;
+    // 그래프들을 생성할 그리드 컨테이너
+    const chartsContainer = document.getElementById('chartsContainer');
 
-    // 회차별 데이터 필터링
-    function filterDataByRound(selectedRound) {
-        const filteredData = seatData.filter(item => !selectedRound || item.roundName === selectedRound);
+    // 데이터 그룹화: 날짜별로
+    const dataGroupedByDate = {};
+    seatData.forEach(item => {
+        if (!dataGroupedByDate[item.date]) {
+            dataGroupedByDate[item.date] = [];
+        }
+        dataGroupedByDate[item.date].push(item);
+    });
 
-        const groupedData = {};
-        filteredData.forEach(item => {
+    // 함수: 회차별 데이터 필터링
+    function filterDataByRound(data, selectedRound) {
+        if (!selectedRound) {
+            return data;
+        }
+        return data.filter(item => item.roundName === selectedRound);
+    }
+
+    // 함수: 회차별, 좌석등급별 데이터 집계
+    function aggregateData(data) {
+        const grouped = {};
+        data.forEach(item => {
             const key = `${item.roundName} - ${item.createdAt}`;
-            if (!groupedData[key]) groupedData[key] = {};
-            if (!groupedData[key][item.seatClass]) groupedData[key][item.seatClass] = 0;
-            groupedData[key][item.seatClass] += item.seatCount;
+            if (!grouped[key]) {
+                grouped[key] = {};
+            }
+            if (!grouped[key][item.seatClass]) {
+                grouped[key][item.seatClass] = 0;
+            }
+            grouped[key][item.seatClass] += item.seatCount;
         });
+        return grouped;
+    }
 
+    // 함수: 그래프 생성
+    function createChart(date, groupedData, canvasId) {
         const labels = Object.keys(groupedData);
         const datasets = Object.keys(colors).map(seatClass => ({
             label: seatClass,
@@ -143,29 +138,23 @@
             backgroundColor: colors[seatClass]
         }));
 
-        return { labels, datasets };
-    }
-
-    function updateChart(selectedRound) {
-        if (!seatChartEl) return;
-        const ctx = seatChartEl.getContext('2d');
-        const { labels, datasets } = filterDataByRound(selectedRound);
-
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
-
-        chartInstance = new Chart(ctx, {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        const chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels,
-                datasets
+                labels: labels,
+                datasets: datasets
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     x: { 
-                        title: { display: true, text: '회차 - 수집 시간' }
+                        title: { display: true, text: '회차 - 수집 시간' },
+                        ticks: {
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
                     },
                     y: { 
                         title: { display: true, text: '좌석 수' }, 
@@ -173,19 +162,139 @@
                     }
                 },
                 plugins: { 
-                    legend: { display: true, position: 'top' } 
+                    legend: { display: true, position: 'top' },
+                    title: {
+                        display: true,
+                        text: `${date} 좌석 현황`
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
                 }
             }
         });
+
+        return chart;
     }
 
-    // 초기 차트 표시 - seatData가 있을 때만
-    if (seatData.length > 0 && seatChartEl) {
-        updateChart('');
+    // 저장된 차트 인스턴스
+    const chartInstances = {};
+
+    // 함수: 차트 업데이트
+    function updateChart(event) {
+        const filter = event.target;
+        const date = filter.getAttribute('data-date');
+        const selectedRound = filter.value;
+        const filteredData = filterDataByRound(dataGroupedByDate[date], selectedRound);
+        const groupedData = aggregateData(filteredData);
+        const canvasId = `seatChart_${date}`;
+
+        // 해당 날짜의 차트 인스턴스 찾기
+        const chart = chartInstances[canvasId];
+        if (chart) {
+            // 라벨과 데이터 업데이트
+            chart.data.labels = Object.keys(groupedData);
+            chart.data.datasets.forEach(dataset => {
+                dataset.data = chart.data.labels.map(label => groupedData[label][dataset.label] || 0);
+            });
+            chart.options.plugins.title.text = `${date} 좌석 현황`;
+            chart.update();
+        }
     }
 
-    if (roundFilter) {
-        roundFilter.addEventListener('change', () => updateChart(roundFilter.value));
+    // 함수: 초기 그래프 생성
+    function initializeCharts() {
+        for (const date in dataGroupedByDate) {
+            const dateData = dataGroupedByDate[date];
+            const firstItem = dateData[0];
+
+            // 부트스트랩 컬럼 클래스 결정
+            const columnClasses = getBootstrapColumnClasses(chartsPerRow);
+
+            // 컬럼 생성
+            const colDiv = document.createElement('div');
+            colDiv.className = columnClasses;
+
+            // 카드 생성
+            const cardDiv = document.createElement('div');
+            cardDiv.classList.add('card', 'h-100', 'shadow-sm');
+
+            // 카드 헤더: 제목과 회차 선택 필터
+            const cardHeader = document.createElement('div');
+            cardHeader.classList.add('card-header', 'd-flex', 'justify-content-between', 'align-items-center');
+
+            // 제목
+            const title = document.createElement('h5');
+            title.classList.add('mb-0');
+            title.textContent = `${firstItem.date} (${firstItem.dayStr})`;
+            cardHeader.appendChild(title);
+
+            // 회차 선택 필터
+            const filterDiv = document.createElement('div');
+            filterDiv.classList.add('form-group', 'mb-0');
+
+            const select = document.createElement('select');
+            select.classList.add('form-select', 'round-filter');
+            select.setAttribute('data-date', date);
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '-- 모든 회차 --';
+            select.appendChild(defaultOption);
+
+            // 해당 날짜의 유니크한 회차만 추가
+            const uniqueRounds = [...new Set(dateData.map(item => item.roundName))].sort();
+            uniqueRounds.forEach(round => {
+                const option = document.createElement('option');
+                option.value = round;
+                option.textContent = round;
+                select.appendChild(option);
+            });
+
+            filterDiv.appendChild(select);
+            cardHeader.appendChild(filterDiv);
+
+            cardDiv.appendChild(cardHeader);
+
+            // 카드 바디: 그래프 캔버스
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body', 'p-3');
+
+            const canvas = document.createElement('canvas');
+            canvas.id = `seatChart_${date}`;
+            canvas.style.height = '300px'; // 고정 높이 설정
+
+            cardBody.appendChild(canvas);
+            cardDiv.appendChild(cardBody);
+
+            // 카드를 컬럼에 추가
+            colDiv.appendChild(cardDiv);
+            chartsContainer.appendChild(colDiv);
+
+            // 초기 그래프 생성
+            const groupedData = aggregateData(dateData);
+            chartInstances[`seatChart_${date}`] = createChart(date, groupedData, `seatChart_${date}`);
+        }
     }
+
+    // 함수: 이벤트 리스너 추가
+    function addEventListeners() {
+        const filters = document.querySelectorAll('.round-filter');
+        filters.forEach(filter => {
+            filter.addEventListener('change', updateChart);
+        });
+    }
+
+    // DOM Content Loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        addEventListeners();
+    });
 </script>
 {% endblock scripts %}
