@@ -93,7 +93,8 @@
                 createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}",
                 roundName: "{{ item.round_name }}",
                 date: "{{ item.date }}",
-                dayStr: "{{ item.day_str }}"
+                dayStr: "{{ item.day_str }}",
+                actors: "{{ item.actors }}",
             },
             {% endfor %}
         ];
@@ -175,7 +176,7 @@
 
             const ctx = document.getElementById(canvasId).getContext('2d');
             const chart = new Chart(ctx, {
-                type: 'line', // 그래프 타입을 'line'으로 변경
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: datasets
@@ -222,7 +223,7 @@
         function updateChart(event) {
             const filter = event.target;
             const date = filter.getAttribute('data-date');
-            const selectedRound = filter.value || '1회'; // 기본값을 '1회'로 설정
+            const selectedRound = filter.value || '1회';
             const filteredData = filterDataByRound(dataGroupedByDate[date], selectedRound);
             const groupedData = aggregateData(filteredData);
             const canvasId = `seatChart_${date}`;
@@ -367,7 +368,7 @@
 
                 const canvas = document.createElement('canvas');
                 canvas.id = `seatChart_${date}`;
-                canvas.style.height = `${graphHeight}px`; // 사용자 설정 그래프 높이
+                canvas.style.height = `${graphHeight}px`;
 
                 cardBody.appendChild(canvas);
                 cardDiv.appendChild(cardBody);
