@@ -693,7 +693,9 @@ def analyze_all_pattern(request):
                 else:
                     date_str = 'Unknown'
                 concert_dates.append({'concert': concert, 'date': date_str})
-            common_nicknames[nn] = concert_dates
+            # 오름차순으로 날짜 정렬
+            concert_dates_sorted = sorted(concert_dates, key=lambda x: x['date'])
+            common_nicknames[nn] = concert_dates_sorted
     
     # 닉네임 별 관람 공연 수를 기준으로 정렬 (내림차순)
     sorted_common_nicknames = dict(sorted(common_nicknames.items(), key=lambda item: len(item[1]), reverse=True))
