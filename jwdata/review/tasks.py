@@ -34,7 +34,7 @@ def log(message):
 
 def crawl_all_concerts_reviews():
     """
-    매일 새벽 3시에 실행:
+    매일 저녁 8시에 실행:
     DB에 있는 모든 공연(Concert)을 대상으로 리뷰 크롤링을 수행.
     """
     log("[crawl_all_concerts_reviews] 시작")
