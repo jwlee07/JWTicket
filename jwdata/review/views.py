@@ -611,8 +611,8 @@ def analyze_all_reviews(request):
 def analyze_all_seats(request):
     """
     모든 공연에 대한 좌석 데이터 종합 분석 뷰.
-    - 날짜, 공연 이름으로 필터링 가능
-    - 해당 좌석 정보를 표 형태로 'review/all_seats.html'에 렌더링
+    - 공연명으로 필터링 가능
+    - 해당 좌석 정보를 'review/all_seats.html'에 렌더링
     """
     # GET 요청에서 필터 값 가져오기
     selected_concert = request.GET.get('concert')
@@ -632,10 +632,19 @@ def analyze_all_seats(request):
     if selected_concert:
         seats_with_date = seats_with_date.filter(concert__name=selected_concert)
 
-    # 데이터 정렬
+    # 데이터 정렬 및 필요한 필드 선택
     seat_data = (
         seats_with_date.order_by('concert__name', 'date', 'day_str', 'round_name', 'seat_class', 'created_at')
-        .values('concert__name', 'date', 'day_str', 'round_name', 'seat_class', 'created_at', 'seat_count')
+        .values(
+            'concert__name',
+            'date',
+            'day_str',
+            'round_name',
+            'seat_class',
+            'created_at',
+            'seat_count',
+            'actors'
+        )
     )
 
     # 모든 공연 이름 리스트
