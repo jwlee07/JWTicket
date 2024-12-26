@@ -10,6 +10,9 @@ urlpatterns = [
 
     # 모든 리뷰 보기
     path('all/reviews', views.analyze_all_reviews, name='analyze_all_reviews'),
+
+    # 관람 패턴
+    path('all/pattern', views.analyze_all_pattern, name='analyze_all_pattern'),
     
     # 잔여 좌석 분석
     path('all/seats', views.analyze_all_seats, name='analyze_all_seats'),

@@ -661,3 +661,59 @@ def analyze_all_seats(request):
         'all_concerts': all_concerts,
         'unique_rounds': unique_rounds,
     })
+
+def analyze_all_pattern(request):
+    """
+    모든 공연에 대한 관람 패턴 분석 뷰.
+    
+    - 공연 조합별 관객 분포 (관람 공연 수가 높은 순)
+    - 닉네임 별 관람 패턴 (관람 공연 수가 많은 순)
+    
+    최종적으로 'review/all_pattern.html' 템플릿에 렌더링.
+    """
+    # 모든 리뷰 데이터 가져오기
+    reviews = Review.objects.all().select_related('concert')
+    
+    # 닉네임별 관람 공연 정보 수집
+    nicknames = reviews.values('nickname', 'concert__name').annotate(first_date=Min('date')).distinct()
+    nickname_to_concerts = defaultdict(set)
+    for n in nicknames:
+        nickname_to_concerts[n['nickname']].add(n['concert__name'])
+    
+    # 닉네임 별 관람 패턴 (두 개 이상의 공연을 관람한 경우)
+    common_nicknames = {}
+    for nn, cs in nickname_to_concerts.items():
+        if len(cs) > 1:
+            sorted_concs = sorted(cs)
+            concert_dates = []
+            for concert in sorted_concs:
+                first_review = reviews.filter(nickname=nn, concert__name=concert).order_by('date').first()
+                if first_review:
+                    date_str = first_review.date.strftime("%Y-%m-%d")
+                else:
+                    date_str = 'Unknown'
+                concert_dates.append({'concert': concert, 'date': date_str})
+            common_nicknames[nn] = concert_dates
+    
+    # 닉네임 별 관람 공연 수를 기준으로 정렬 (내림차순)
+    sorted_common_nicknames = dict(sorted(common_nicknames.items(), key=lambda item: len(item[1]), reverse=True))
+    
+    # 공연 조합별 관객 분포 계산
+    combination_counts = defaultdict(int)
+    
+    for concerts in nickname_to_concerts.values():
+        for r in range(1, len(concerts) + 1):
+            for combo in combinations(sorted(concerts), r):
+                combination_key = ", ".join(combo)
+                combination_counts[combination_key] += 1
+    
+    # 관람 공연 수가 높은 순으로 정렬 (내림차순)
+    sorted_combinations = sorted(combination_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    # 상위 10개 조합만 선택 (필요에 따라 조정 가능)
+    top_combination_counts = dict(sorted_combinations[:10])
+    
+    return render(request, 'review/all_pattern.html', {
+        'common_nicknames': sorted_common_nicknames,
+        'combination_counts': top_combination_counts,
+    })
