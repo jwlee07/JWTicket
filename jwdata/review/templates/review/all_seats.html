@@ -42,7 +42,7 @@
                 <!-- 그래프 높이 설정 -->
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <label for="graph_height" class="form-label">그래프 높이 (px)</label>
-                    <input type="number" id="graph_height" name="graph_height" class="form-control" value="300" min="100" max="1000">
+                    <input type="number" id="graph_height" name="graph_height" class="form-control" value="350" min="100" max="1000">
                 </div>
             </form>
         </div>
@@ -90,8 +90,7 @@
             {
                 seatClass: "{{ item.seat_class }}",
                 seatCount: {{ item.seat_count }},
-                createdAt: "{{ item.created_at|date:"m월 d일 H시" }}",
-                {% comment %} createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}", {% endcomment %}
+                createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}",
                 roundName: "{{ item.round_name }}",
                 date: "{{ item.date }}",
                 dayStr: "{{ item.day_str }}"
@@ -125,7 +124,7 @@
 
         // 사용자 설정 변수
         let chartsPerRow = parseInt(document.getElementById('charts_per_row').value) || 2;
-        let graphHeight = parseInt(document.getElementById('graph_height').value) || 300;
+        let graphHeight = parseInt(document.getElementById('graph_height').value) || 350;
 
         // 함수: 회차별 데이터 필터링
         function filterDataByRound(data, selectedRound) {
@@ -139,8 +138,7 @@
         function aggregateData(data) {
             const grouped = {};
             data.forEach(item => {
-                const key = `${item.createdAt}`;
-                {% comment %} const key = `${item.roundName} - ${item.createdAt}`; {% endcomment %}
+                const key = `${item.roundName} - ${item.createdAt}`;
                 if (!grouped[key]) {
                     grouped[key] = {};
                 }
@@ -291,7 +289,7 @@
             updateColumnClasses(chartsPerRow);
 
             // 그래프 높이 설정
-            graphHeight = parseInt(document.getElementById('graph_height').value, 10) || 300;
+            graphHeight = parseInt(document.getElementById('graph_height').value, 10) || 350;
             updateGraphHeights(graphHeight);
         }
 
