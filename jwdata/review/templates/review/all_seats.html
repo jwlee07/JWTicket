@@ -120,6 +120,9 @@
             dataGroupedByDate[item.date].push(item);
         });
 
+        // 날짜 키를 오름차순으로 정렬
+        const sortedDates = Object.keys(dataGroupedByDate).sort((a, b) => new Date(a) - new Date(b));
+
         // 저장된 차트 인스턴스
         const chartInstances = {};
 
@@ -294,58 +297,58 @@
             updateGraphHeights(graphHeight);
         }
 
-        // 함수: 초기 그래프 생성
+        // 초기 그래프 생성
         function initializeCharts() {
-            for (const date in dataGroupedByDate) {
+            sortedDates.forEach(date => {
                 const dateData = dataGroupedByDate[date];
-
+            
                 // '1회' 데이터만 필터링
                 const filteredData = filterDataByRound(dateData, '1회');
                 const groupedData = aggregateData(filteredData);
-
+            
                 if (Object.keys(groupedData).length === 0) {
                     // '1회' 데이터가 없는 경우 그래프 생성하지 않음
-                    continue;
+                    return;
                 }
-
+            
                 const firstItem = dateData.find(item => item.roundName === '1회') || dateData[0];
-
+            
                 // 부트스트랩 컬럼 클래스 결정
                 const columnClasses = getBootstrapColumnClasses(chartsPerRow);
-
+            
                 // 컬럼 생성
                 const colDiv = document.createElement('div');
                 colDiv.className = columnClasses;
-
+            
                 // 카드 생성
                 const cardDiv = document.createElement('div');
                 cardDiv.classList.add('card', 'h-100', 'shadow-sm');
-
+            
                 // 카드 헤더: 제목과 회차 선택 필터
                 const cardHeader = document.createElement('div');
                 cardHeader.classList.add('card-header', 'd-flex', 'justify-content-between', 'align-items-center');
-
+            
                 // 제목
                 const title = document.createElement('h5');
                 title.classList.add('mb-0');
                 title.textContent = `${firstItem.date} (${firstItem.dayStr})`;
                 cardHeader.appendChild(title);
-
+            
                 // 회차 선택 필터
                 const filterDiv = document.createElement('div');
                 filterDiv.classList.add('form-group', 'mb-0');
-
+            
                 const select = document.createElement('select');
                 select.classList.add('form-select', 'round-filter');
                 select.setAttribute('data-date', date);
-
+            
                 // '1회'를 기본 선택으로 설정
                 const option1 = document.createElement('option');
                 option1.value = '1회';
                 option1.textContent = '1회';
                 option1.selected = true;
                 select.appendChild(option1);
-
+            
                 // 해당 날짜의 유니크한 회차만 추가 (1회를 제외한 나머지)
                 const uniqueRounds = [...new Set(dateData.map(item => item.roundName))].sort();
                 uniqueRounds.forEach(round => {
@@ -356,33 +359,33 @@
                         select.appendChild(option);
                     }
                 });
-
+            
                 filterDiv.appendChild(select);
                 cardHeader.appendChild(filterDiv);
-
+            
                 cardDiv.appendChild(cardHeader);
-
+            
                 // 카드 바디: 그래프 캔버스
                 const cardBody = document.createElement('div');
                 cardBody.classList.add('card-body', 'p-3');
-
+            
                 const canvas = document.createElement('canvas');
                 canvas.id = `seatChart_${date}`;
                 canvas.style.height = `${graphHeight}px`;
-
+            
                 cardBody.appendChild(canvas);
                 cardDiv.appendChild(cardBody);
-
+            
                 // 카드를 컬럼에 추가
                 colDiv.appendChild(cardDiv);
                 chartsContainer.appendChild(colDiv);
-
+            
                 // 그래프 생성
                 const chart = createChart(firstItem.date, groupedData, `seatChart_${date}`);
                 if (chart) {
                     chartInstances[`seatChart_${date}`] = chart;
                 }
-            }
+            });
         }
 
         // 함수: 이벤트 리스너 추가
