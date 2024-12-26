@@ -90,7 +90,8 @@
             {
                 seatClass: "{{ item.seat_class }}",
                 seatCount: {{ item.seat_count }},
-                createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}",
+                createdAt: "{{ item.created_at|date:"m월 d일 H시" }}",
+                {% comment %} createdAt: "{{ item.created_at|date:"Y년 m월 d일 H시" }}", {% endcomment %}
                 roundName: "{{ item.round_name }}",
                 date: "{{ item.date }}",
                 dayStr: "{{ item.day_str }}"
@@ -138,7 +139,8 @@
         function aggregateData(data) {
             const grouped = {};
             data.forEach(item => {
-                const key = `${item.roundName} - ${item.createdAt}`;
+                const key = `${item.createdAt}`;
+                {% comment %} const key = `${item.roundName} - ${item.createdAt}`; {% endcomment %}
                 if (!grouped[key]) {
                     grouped[key] = {};
                 }
@@ -196,7 +198,7 @@
                             beginAtZero: true 
                         }
                     },
-                    plugins: { 
+                    {% comment %} plugins: { 
                         legend: { display: true, position: 'top' },
                         title: {
                             display: true,
@@ -206,7 +208,7 @@
                             mode: 'index',
                             intersect: false
                         }
-                    },
+                    }, {% endcomment %}
                     interaction: {
                         mode: 'nearest',
                         axis: 'x',
@@ -248,7 +250,7 @@
                     fill: false,
                     tension: 0.1
                 }));
-                chart.options.plugins.title.text = `${date} 좌석 현황`;
+                {% comment %} chart.options.plugins.title.text = `${date} 좌석 현황`; {% endcomment %}
                 chart.update();
             }
         }
