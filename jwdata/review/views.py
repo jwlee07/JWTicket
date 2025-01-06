@@ -57,10 +57,22 @@ def crawl_concert_info(driver):
     date_text = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[2]/div/p').text
     duration_text = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[3]/div/p').text.replace('분', '').strip()
 
-    # 날짜 처리 (YYYY.MM.DD ~ YYYY.MM.DD 형태를 YYYY-MM-DD로 변환)
-    start_str, end_str = date_text.split('~')
-    start_date = datetime.strptime(start_str.strip(), "%Y.%m.%d").strftime("%Y-%m-%d")
-    end_date = datetime.strptime(end_str.strip(), "%Y.%m.%d").strftime("%Y-%m-%d")
+    print(f"[공연 정보] 공연명: {name}, 장소: {place}, 기간: {date_text}, 시간: {duration_text}")
+
+    # 날짜 처리
+    try:
+        if '~' in date_text:
+            start_str, end_str = date_text.split('~')
+            start_date = datetime.strptime(start_str.strip(), "%Y.%m.%d").strftime("%Y-%m-%d")
+            end_date = datetime.strptime(end_str.strip(), "%Y.%m.%d").strftime("%Y-%m-%d")
+        else:
+            start_date = datetime.strptime(date_text.strip(), "%Y.%m.%d").strftime("%Y-%m-%d")
+            end_date = start_date
+    except ValueError:
+        start_date = None
+        end_date = None
+
+    print(f"[날짜 처리] 시작일: {start_date}, 종료일: {end_date}")
 
     # DB 저장 (없는 경우 새로 생성)
     concert, created = Concert.objects.get_or_create(
@@ -72,6 +84,9 @@ def crawl_concert_info(driver):
             'duration_minutes': int(duration_text) if duration_text.isdigit() else None
         },
     )
+
+    print(f"[DB 저장] 공연명: {concert}, 생성 여부: {created}")
+
     return concert
 
 def crawl_concert_reviews(driver, concert):
@@ -184,9 +199,11 @@ def crawl_concert_seats(driver, concert):
     while True:
         # 현재 달 정보 추출 (YYYY.MM)
         current_month = driver.find_element(By.XPATH, '//li[@data-view="month current"]').text
+        print(f"현재 달: {current_month}")
 
         # 현재 달의 유효한 날짜 요소들 추출 (비활성화되지 않은 날짜)
         days = driver.find_elements(By.XPATH, '//ul[@data-view="days"]/li[not(contains(@class, "disabled")) and not(contains(@class, "muted"))]')
+        print(f"날짜 수: {len(days)}")
 
         for day in days:
             day_num = day.text
@@ -195,6 +212,7 @@ def crawl_concert_seats(driver, concert):
             try:
                 WebDriverWait(driver, 10).until(EC.element_to_be_clickable(day))
                 driver.execute_script("arguments[0].click();", day)
+                print(f"[날짜 클릭 성공] 공연: {concert}, 날짜: {current_month}-{day_num}")
             except Exception as e:
                 print(f"날짜 클릭 실패: {e}")
                 continue
@@ -358,12 +376,17 @@ def search_and_crawl(request):
 
                 # 공연 정보 크롤링
                 concert = crawl_concert_info(driver)
+                print(f"[공연 정보 크롤링 완료] 공연명: {concert.name}")
 
                 # 검색 타입에 따른 크롤링 로직 분기
                 if search_type == 'review':
+                    print(f"[리뷰 크롤링 시작] 공연명: {concert.name}")
                     crawl_concert_reviews(driver, concert)
+                    print(f"[리뷰 크롤링 완료] 공연명: {concert.name}")
                 elif search_type == 'seat':
+                    print(f"[좌석 크롤링 시작] 공연명: {concert.name}")
                     crawl_concert_seats(driver, concert)
+                    print(f"[좌석 크롤링 완료] 공연명: {concert.name}")
 
             finally:
                 driver.quit()
