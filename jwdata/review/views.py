@@ -485,13 +485,13 @@ def analyze_all_pattern(request):
                 combination_counts[combination_key] += 1
 
     sorted_combinations = sorted(combination_counts.items(), key=lambda x: x[1], reverse=True)
-    top_combination_counts = dict(sorted_combinations[:10])
+    combination_counts_dict = dict(sorted_combinations)
     
     sync_patterns_to_sheet(sorted_common_nicknames)
 
     return render(request, 'review/all_pattern.html', {
         'common_nicknames': sorted_common_nicknames,
-        'combination_counts': top_combination_counts,
+        'combination_counts': combination_counts_dict,
     })
 
 def sync_all_db_to_sheet(request):
