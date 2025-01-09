@@ -206,8 +206,8 @@ def crawl_concert_reviews(driver, concert):
 def crawl_concert_seats(driver, concert):
     """
     1) 좌석 정보 크롤링
-    2) DB에 없는 Seat만 저장
-    3) 시트에 없는 Seat만 저장
+    2) DB에 저장
+    3) 시트에 저장
     4) 마지막에 시트 전체 → DB 동기화
     """
     while True:
@@ -290,7 +290,7 @@ def crawl_concert_seats(driver, concert):
                     )
                     print(f"[좌석][DB 저장] {new_seat}")
 
-                    # 시트에 없으면 저장
+                    # 시트에 저장
                     create_or_update_seat_in_sheet(new_seat)
                     print(f"[좌석][시트 저장] {new_seat}")
 
