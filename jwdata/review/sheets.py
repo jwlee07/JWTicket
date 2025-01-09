@@ -14,7 +14,7 @@ def get_gspread_client():
         'https://www.googleapis.com/auth/drive',
     ]
     creds = ServiceAccountCredentials.from_json_keyfile_name(
-        'ts-ticket-data-599d02f2629e.json',  # 실제 키 파일 경로
+        'ts-ticket-data-599d02f2629e.json',
         scope
     )
     return gspread.authorize(creds)

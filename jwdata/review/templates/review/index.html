@@ -191,8 +191,7 @@
         fetch("{% url 'sync_db_to_sheet' %}")
             .then(response => response.text())
             .then(data => {
-                // 여기서 data가 "로그 문자열"
-                alert(data);  // 또는 alert("DB → Google Sheet 동기화가 완료되었습니다!\n" + data)
+                alert(data);
                 console.log(data);
             })
             .catch(error => {

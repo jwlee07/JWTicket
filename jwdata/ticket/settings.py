@@ -133,6 +133,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Login
+LOGIN_URL = '/review/login/'
+
 # CRONTAB List
 CRONJOBS = [
     # 매일 저녁 8시에 모든 콘서트 리뷰 크롤링 (변경)

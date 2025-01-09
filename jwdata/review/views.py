@@ -1,3 +1,7 @@
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -26,6 +30,8 @@ from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.cluster import KMeans
 
+from django.contrib.auth.decorators import login_required
+
 from .crawls import (
     crawl_concert_info, 
     crawl_concert_reviews, 
@@ -42,25 +48,28 @@ from .sheets import (
     sync_seats_sheet_to_db,
 )
 
-# ==================================================================
-# 텍스트 전처리 함수
-# ==================================================================
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-def clean_text(text):
-    """
-    리뷰 텍스트를 정제하는 함수.
-    - 한글, 영문, 숫자만 남기고 나머지 제거
-    - 다중 공백을 하나의 공백으로 치환
-    - 앞뒤 공백 제거
-    """
-    cleaned = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text)
-    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
-    return cleaned
+        user = authenticate(request, username=username, password=password)  
 
-# ==================================================================
-# 뷰 함수들
-# ==================================================================
+        if user is not None:
+            login(request, user)
+            # messages.success(request, f"{username} 님, 반가워요!")
+            return redirect('search_and_crawl')  
+        else:
+            messages.error(request, "티켓스퀘어 PM 이진욱님에게 문의하세요:)")
+            return render(request, 'review/login.html')
+    else:
+        return render(request, 'review/login.html')
 
+def user_logout(request):
+    logout(request)
+    return render(request, 'review/login.html')
+
+@login_required(login_url='/review/login/')
 def search_and_crawl(request):
     """
     사용자가 입력한 검색어로 인터파크에서 공연 정보를 검색 후,
@@ -543,3 +552,18 @@ def sync_all_sheet_to_db(request):
 
     response_text = "\n".join(logs)
     return HttpResponse(response_text, content_type="text/plain")
+
+# ==================================================================
+# 텍스트 전처리 함수
+# ==================================================================
+
+def clean_text(text):
+    """
+    리뷰 텍스트를 정제하는 함수.
+    - 한글, 영문, 숫자만 남기고 나머지 제거
+    - 다중 공백을 하나의 공백으로 치환
+    - 앞뒤 공백 제거
+    """
+    cleaned = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text)
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    return cleaned
