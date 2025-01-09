@@ -43,8 +43,12 @@
                 DB → Google Sheet
             </button>
             <!-- Google Sheet -> DB 버튼 -->
-            <button class="btn btn-dark" id="syncSheetToDbBtn">
+            <button class="btn btn-dark me-2" id="syncSheetToDbBtn">
                 Google Sheet → DB
+            </button>
+            <!-- 로그아웃 버튼 -->
+            <button class="btn btn-danger" id="logoutBtn" type="button">
+                로그아웃
             </button>
         </div>
 
@@ -214,6 +218,21 @@
             })
             .catch(error => {
                 alert("동기화 중 오류가 발생했습니다.");
+                console.error(error);
+            });
+    });
+    // ------------------------
+    // 로그아웃
+    // ------------------------
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn.addEventListener('click', () => {
+        fetch("{% url 'user_logout' %}")
+            .then(response => response.text())
+            .then(data => {
+                location.href = "{% url 'user_login' %}";
+            })
+            .catch(error => {
+                alert("로그아웃 중 오류가 발생했습니다.");
                 console.error(error);
             });
     });

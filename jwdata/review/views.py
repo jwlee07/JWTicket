@@ -67,6 +67,7 @@ def user_login(request):
 
 def user_logout(request):
     logout(request)
+    print("로그아웃 되었습니다.")
     return render(request, 'review/login.html')
 
 @login_required(login_url='/review/login/')
