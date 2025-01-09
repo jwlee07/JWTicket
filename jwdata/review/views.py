@@ -66,11 +66,16 @@ def user_login(request):
         return render(request, 'review/login.html')
 
 def user_logout(request):
-    logout(request)
-    print("로그아웃 되었습니다.")
-    return render(request, 'review/login.html')
+    response = render(request, 'review/login.html')
 
-@login_required(login_url='/review/login/')
+    logout(request)
+    request.session.flush()
+    for cookie in request.COOKIES:
+        response.delete_cookie(cookie)
+    
+    return response
+
+@login_required
 def search_and_crawl(request):
     """
     사용자가 입력한 검색어로 인터파크에서 공연 정보를 검색 후,
@@ -157,6 +162,7 @@ def search_and_crawl(request):
 
     return render(request, 'review/index.html', { 'concerts': concerts, 'active_concert_id': active_concert_id, })
 
+@login_required
 def analyze_reviews(request, concert_id, analysis_type):
     """
     특정 공연(concert_id)의 리뷰를 다양한 관점에서 분석하는 뷰.
@@ -289,6 +295,7 @@ def analyze_reviews(request, concert_id, analysis_type):
 
     return render(request, 'review/analysis.html', {'data': data, 'analysis_type': analysis_type})
 
+@login_required
 def analyze_all_reviews(request):
     """
     모든 공연에 대한 리뷰 종합 분석 뷰.
@@ -395,6 +402,7 @@ def analyze_all_reviews(request):
         'reviews': review_data,
     })
 
+@login_required
 def analyze_all_seats(request):
     """
     모든 공연에 대한 좌석 데이터 종합 분석 뷰.
@@ -449,6 +457,7 @@ def analyze_all_seats(request):
         'unique_rounds': unique_rounds,
     })
 
+@login_required
 def analyze_all_pattern(request):
     """
     모든 공연에 대한 관람 패턴 분석 뷰.
@@ -504,6 +513,7 @@ def analyze_all_pattern(request):
         'combination_counts': combination_counts_dict,
     })
 
+@login_required
 def sync_all_db_to_sheet(request):
     """
     1) DB에 있는 Concert / Review / Seat 데이터를 스프레드시트 각 시트에 없는 pk만 추가한다.
@@ -530,6 +540,7 @@ def sync_all_db_to_sheet(request):
     response_text = "\n".join(logs)
     return HttpResponse(response_text, content_type="text/plain")
 
+@login_required
 def sync_all_sheet_to_db(request):
     """
     1) 구글 스프레드시트 concerts / reviews / seats 시트를 모두 읽어온 뒤
@@ -558,6 +569,7 @@ def sync_all_sheet_to_db(request):
 # 텍스트 전처리 함수
 # ==================================================================
 
+@login_required
 def clean_text(text):
     """
     리뷰 텍스트를 정제하는 함수.
