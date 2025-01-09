@@ -1,15 +1,9 @@
 from django.shortcuts import render
-from django.db.models import F, Count, Max, Min, Avg
+from django.db.models import F, Count, Min, Avg
 from django.db.models.functions import Length
-from django.db.models.functions import TruncHour
 from django.db.models import Value
 from django.db.models.functions import Concat, Cast
 from django.db.models import CharField
-from .models import Concert, Review, Seat
-
-from datetime import datetime
-import time
-import pytz
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -17,6 +11,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
+
+from .models import Concert, Review, Seat
+
+import time
 
 import re
 import pandas as pd
@@ -26,9 +24,16 @@ from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.cluster import KMeans
 
+from .crawls import (
+    crawl_concert_info, 
+    crawl_concert_reviews, 
+    crawl_concert_seats
+)
+
 # ==================================================================
 # 텍스트 전처리 함수
 # ==================================================================
+
 def clean_text(text):
     """
     리뷰 텍스트를 정제하는 함수.
@@ -39,399 +44,11 @@ def clean_text(text):
     cleaned = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text)
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
     return cleaned
-# ==================================================================
-# DB 보조 함수
-# ==================================================================
-from .sheets import (
-    create_or_update_concert_in_sheet,
-    create_review_in_sheet,
-    create_seat_in_sheet,
-    read_all_concerts_from_sheet,
-    read_all_reviews_from_sheet,
-    read_all_seats_from_sheet,
-)
-
-def sync_concert_sheet_to_db():
-    """
-    (예시) 시트에서 모든 Concert를 읽어, DB에 없는 레코드만 저장.
-    """
-    rows = read_all_concerts_from_sheet()
-    for row in rows:
-        pk = row.get("id")
-
-        if not pk:
-            continue
-
-        if Concert.objects.filter(pk=pk).exists():
-            continue
-
-        Concert.objects.create(
-            pk=pk,
-            name=row.get("name") or "",
-            place=row.get("place") or "",
-            start_date=row.get("start_date") or None,
-            end_date=row.get("end_date") or None,
-            duration_minutes=row.get("duration_minutes") or None,
-        )
-
-def sync_reviews_sheet_to_db():
-    """
-    시트에서 모든 리뷰를 읽어, DB에 없는 레코드만 저장.
-    """
-    rows = read_all_reviews_from_sheet()
-    for row in rows:
-
-        pk = row.get("id")
-
-        if not pk:
-            continue
-
-        if Review.objects.filter(pk=pk).exists():
-            continue
-
-        concert_id = row.get("concert_id")
-
-        if not concert_id:
-            continue
-
-        Review.objects.create(
-            pk=pk,
-            concert_id=concert_id,
-            nickname=row.get("nickname") or "",
-            date=row.get("date") or None,
-            view_count=row.get("view_count") or 0,
-            like_count=row.get("like_count") or 0,
-            title=row.get("title") or "",
-            description=row.get("description") or "",
-            star_rating=row.get("star_rating") or None,
-        )
-
-def sync_seats_sheet_to_db():
-    """
-    시트에서 모든 Seat를 읽어, DB에 없는 레코드만 저장.
-    """
-    rows = read_all_seats_from_sheet()
-    for row in rows:
-
-        pk = row.get("id")
-        if not pk:
-            continue
-
-        if Seat.objects.filter(pk=pk).exists():
-            continue
-
-        concert_id = row.get("concert_id")
-
-        if not concert_id:
-            continue
-
-        from datetime import time
-        round_time_str = row.get("round_time") or ""
-
-        try:
-            hh, mm, ss = round_time_str.split(':')
-            round_time_obj = time(int(hh), int(mm), int(ss))
-        except:
-            round_time_obj = None
-
-        Seat.objects.create(
-            pk=pk,
-            concert_id=concert_id,
-            year=row.get("year") or 0,
-            month=row.get("month") or 0,
-            day_num=row.get("day_num") or 0,
-            day_str=row.get("day_str") or "",
-            round_name=row.get("round_name") or "",
-            round_time=round_time_obj,
-            seat_class=row.get("seat_class") or "",
-            seat_count=row.get("seat_count") or 0,
-            actors=row.get("actors") or "",
-            created_at=row.get("created_at") or None,
-        )
-
-# ==================================================================
-# 크롤링 보조 함수
-# ==================================================================
-def crawl_concert_info(driver):
-    """
-    공연 정보를 크롤링한 뒤,
-    1) DB에 (name, place, start_date) 중복 확인하여 없으면 생성
-    2) 시트에 해당 id가 있으면 업데이트, 없으면 새로 append
-    (즉, 같은 id로 중복 행이 추가되지 않도록 수정)
-    """
-    # 공연 정보 파싱
-    name = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[1]/h2').text
-    place = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[1]/div/div/a').text
-    date_text = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[2]/div/p').text
-    duration_text = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[3]/div/p').text.replace('분', '').strip()
-
-    print(f"[공연 정보] 공연명: {name}, 장소: {place}, 기간: {date_text}, 시간: {duration_text}")
-
-    # 날짜 처리
-    try:
-        if '~' in date_text:
-            start_str, end_str = date_text.split('~')
-            start_date = datetime.strptime(start_str.strip(), "%Y.%m.%d").date()
-            end_date = datetime.strptime(end_str.strip(), "%Y.%m.%d").date()
-        else:
-            start_date = datetime.strptime(date_text.strip(), "%Y.%m.%d").date()
-            end_date = start_date
-    except ValueError:
-        start_date = None
-        end_date = None
-
-    print(f"[날짜 처리] 시작일: {start_date}, 종료일: {end_date}")
-
-    # DB 저장 (중복 체크)
-    concert_qs = Concert.objects.filter(name=name, place=place, start_date=start_date)
-
-    if concert_qs.exists():
-        concert = concert_qs.first()
-        print(f"[DB] 이미 존재하는 Concert: {concert}")
-    else:
-        concert = Concert.objects.create(
-            name=name,
-            place=place,
-            start_date=start_date,
-            end_date=end_date,
-            duration_minutes=int(duration_text) if duration_text.isdigit() else None
-        )
-        print(f"[DB 저장] 새 Concert: {concert}")
-
-    # 구글 시트에 반영
-    create_or_update_concert_in_sheet(concert)
-    print(f"[시트 동기화] Concert(pk={concert.pk}, name={concert.name}) 완료")
-
-    return concert
-
-def crawl_concert_reviews(driver, concert):
-    """
-    1) 리뷰 목록 크롤링
-    2) DB에 없는 리뷰만 저장
-    3) 시트에 없는 리뷰만 저장
-    4) 시트 전체 → DB 역동기화
-    """
-
-    # 관람후기 탭 버튼 클릭
-    review_button = driver.find_element(By.XPATH, '//*[@id="productMainBody"]/nav/ul/li[4]/a')
-    driver.execute_script("arguments[0].click();", review_button)
-    time.sleep(2)
-
-    # 관람후기 총 개수 파악
-    review_total_count = 0
-    try:
-        review_total_count_element = driver.find_element(By.XPATH, '//*[@id="prdReview"]/div/div[3]/div[1]/div[1]/div[1]/strong/span')
-        review_total_count = int(review_total_count_element.text)
-    except NoSuchElementException:
-        try:
-            review_total_count_element = driver.find_element(By.XPATH, '//*[@id="prdReview"]/div/div[4]/div[1]/div[1]/div[1]/strong/span')
-            review_total_count = int(review_total_count_element.text)
-        except NoSuchElementException:
-            print("[리뷰] 총 개수를 찾을 수 없습니다.")
-
-    review_num_pages = (review_total_count + 14) // 15
-
-    for page in range(1, review_num_pages + 1):
-        print(f"[리뷰] {page}/{review_num_pages} 페이지 처리 중")
-
-        review_elements = driver.find_elements(By.XPATH, '//ul[@class="bbsList reviewList"]/li[@class="bbsItem"]')
-
-        for rev_el in review_elements:
-            try:
-                nickname = rev_el.find_element(By.CLASS_NAME, 'name').text.strip()
-                date_raw = rev_el.find_element(By.XPATH, './/li[@class="bbsItemInfoList"][2]').text.strip()
-                view_count = int(''.join(filter(str.isdigit, rev_el.find_element(By.XPATH, './/li[@class="bbsItemInfoList"][3]').text)))
-                like_count = int(''.join(filter(str.isdigit, rev_el.find_element(By.XPATH, './/li[@class="bbsItemInfoList"][4]').text)))
-                title = rev_el.find_element(By.CLASS_NAME, 'bbsTitleText').text.strip()
-                description = rev_el.find_element(By.CLASS_NAME, 'bbsText').text.strip()
-                star_rating = float(rev_el.find_element(By.CLASS_NAME, 'prdStarIcon').get_attribute('data-star'))
-                date = datetime.strptime(date_raw, "%Y.%m.%d").strftime("%Y-%m-%d")
-
-                # DB 중복 체크 (concert, nickname, date, title 기준)
-                existed = Review.objects.filter(
-                    concert=concert,
-                    nickname=nickname,
-                    date=date,
-                    title=title
-                ).exists()
-                
-                if not existed:
-                    # DB 저장
-                    new_review = Review.objects.create(
-                        concert=concert,
-                        nickname=nickname,
-                        date=date,
-                        view_count=view_count,
-                        like_count=like_count,
-                        title=title,
-                        description=description,
-                        star_rating=star_rating
-                    )
-                    print(f"[리뷰][DB 저장] Review: {new_review}")
-
-                    # 시트에도 없으면 저장
-                    create_review_in_sheet(new_review)
-                    print(f"[리뷰][시트 저장] Review: {new_review}")
-
-            except Exception as e:
-                print(f"[리뷰] 처리 중 오류 발생: {e}")
-
-        # 페이지 이동
-        if page < review_num_pages:
-            try:
-                if page % 10 == 0:
-                    group_index = page // 10
-                    if group_index > 2:
-                        group_index = 2
-                    next_group_button = None
-                    try:
-                        next_group_button = driver.find_element(By.XPATH, f'//*[@id="prdReview"]/div/div[3]/div[2]/a[{group_index}]')
-                    except NoSuchElementException:
-                        try:
-                            next_group_button = driver.find_element(By.XPATH, f'//*[@id="prdReview"]/div/div[4]/div[2]/a[{group_index}]')
-                        except NoSuchElementException:
-                            print("[리뷰] 다음 그룹 버튼 찾을 수 없음")
-                            break
-                    if next_group_button:
-                        driver.execute_script("arguments[0].click();", next_group_button)
-                        time.sleep(2)
-                else:
-                    next_page_text = str(page + 1)
-                    next_page_button = WebDriverWait(driver, 5).until(
-                        EC.element_to_be_clickable((By.LINK_TEXT, next_page_text))
-                    )
-                    driver.execute_script("arguments[0].click();", next_page_button)
-                    time.sleep(2)
-            except Exception as e:
-                print(f"[리뷰] 페이지 이동 오류: {e}")
-                break
-
-    sync_reviews_sheet_to_db()
-    print("[리뷰] 시트 전체 → DB 동기화 완료")
-
-def crawl_concert_seats(driver, concert):
-    """
-    1) 좌석 정보 크롤링
-    2) DB에 없는 Seat만 저장
-    3) 시트에 없는 Seat만 저장
-    4) 마지막에 시트 전체 → DB 동기화
-    """
-
-    while True:
-        current_month = driver.find_element(By.XPATH, '//li[@data-view="month current"]').text
-        print(f"[좌석] 현재 달: {current_month}")
-
-        days = driver.find_elements(By.XPATH, '//ul[@data-view="days"]/li[not(contains(@class, "disabled")) and not(contains(@class, "muted"))]')
-        print(f"[좌석] 활성화된 날짜 수: {len(days)}")
-
-        for day in days:
-            day_num = day.text
-
-            try:
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable(day))
-                driver.execute_script("arguments[0].click();", day)
-                print(f"[좌석] 날짜 클릭: {current_month}-{day_num}")
-            except Exception as e:
-                print(f"[좌석] 날짜 클릭 실패: {e}")
-                continue
-
-            time.sleep(2)
-
-            # 회차별
-            rounds = driver.find_elements(By.CLASS_NAME, 'timeTableLabel')
-            for round_element in rounds:
-                round_text = round_element.get_attribute('data-text').split()
-                round_name = round_text[0]
-                round_time_str = round_text[1] if len(round_text) > 1 else ""
-
-                try:
-                    driver.execute_script("arguments[0].click();", round_element)
-                except Exception as e:
-                    print(f"[좌석] 회차 클릭 실패: {e}")
-                    continue
-                time.sleep(2)
-
-                seats = driver.find_elements(By.CLASS_NAME, 'seatTableItem')
-                for seat_el in seats:
-                    seat_class = seat_el.find_element(By.CLASS_NAME, 'seatTableName').text
-                    count_text = seat_el.find_element(By.CLASS_NAME, 'seatTableStatus').text
-                    try:
-                        seat_count = int(''.join(filter(str.isdigit, count_text)))
-                    except ValueError:
-                        seat_count = 0
-
-                    # 배우 정보
-                    try:
-                        actors_element = driver.find_element(By.XPATH, '//*[@id="productSide"]/div/div[1]/div[3]/div[2]/div/p')
-                        actors = actors_element.text
-                    except NoSuchElementException:
-                        actors = ""
-
-                    # 날짜 정보 처리
-                    date_parts = current_month.split('.')  # 예: ["2025","01"]
-                    year = int(date_parts[0])
-                    month = int(date_parts[1])
-                    day_num_int = int(day_num)
-
-                    # 요일 계산
-                    KOREAN_DAYS = ['월', '화', '수', '목', '금', '토', '일']
-                    def get_korean_day_of_week(y, m, d):
-                        try:
-                            dt_obj = datetime(y, m, d)
-                            return KOREAN_DAYS[dt_obj.weekday()]
-                        except:
-                            return ''
-                    day_str = get_korean_day_of_week(year, month, day_num_int)
-
-                    # DB 중복 체크
-                    seat_existed = Seat.objects.filter(
-                        concert=concert,
-                        year=year,
-                        month=month,
-                        day_num=day_num_int,
-                        round_name=round_name,
-                        seat_class=seat_class
-                    ).exists()
-
-                    if not seat_existed:
-                        new_seat = Seat.objects.create(
-                            concert=concert,
-                            year=year,
-                            month=month,
-                            day_num=day_num_int,
-                            day_str=day_str,
-                            round_name=round_name,
-                            round_time=round_time_str,
-                            seat_class=seat_class,
-                            seat_count=seat_count,
-                            actors=actors
-                        )
-                        print(f"[좌석][DB 저장] {new_seat}")
-
-                        # 시트에 없으면 저장
-                        create_seat_in_sheet(new_seat)
-                        print(f"[좌석][시트 저장] {new_seat}")
-
-            # 날짜 처리 후 뒤로가기
-            driver.back()
-            time.sleep(2)
-
-        # 다음 달 버튼
-        try:
-            next_month_btn = driver.find_element(By.XPATH, '//li[@data-view="month next" and not(contains(@class, "disabled"))]')
-            driver.execute_script("arguments[0].click();", next_month_btn)
-            time.sleep(2)
-        except NoSuchElementException:
-            print("[좌석] 더 이상 다음 달 없음 -> 종료")
-            break
-
-    # 마지막에 시트 전체 → DB 동기화
-    sync_seats_sheet_to_db()
-    print("[좌석] 시트 전체 → DB 동기화 완료")
 
 # ==================================================================
 # 뷰 함수들
 # ==================================================================
+
 def search_and_crawl(request):
     """
     사용자가 입력한 검색어로 인터파크에서 공연 정보를 검색 후,
