@@ -569,7 +569,6 @@ def sync_all_sheet_to_db(request):
 # 텍스트 전처리 함수
 # ==================================================================
 
-@login_required
 def clean_text(text):
     """
     리뷰 텍스트를 정제하는 함수.
