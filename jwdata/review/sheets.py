@@ -455,3 +455,100 @@ def sync_db_seats_to_sheet():
         print(f"[Seat] {len(batch_data)}개 레코드를 시트에 일괄 추가 완료")
     else:
         print("[Seat] 시트에 추가할 항목이 없습니다.")
+
+def sync_patterns_to_sheet(pattern_data):
+    """
+    patterns 시트에서 nickname 행을 찾아,
+      * 없으면 -> 배치 append
+      * 있으면 -> view_count 비교(새로운 게 더 크면 배치 update, 작거나 같으면 skip)
+    한 번의 update( batch_update )와 한 번의 append( append_rows )로 처리
+    """
+
+    ws = get_worksheet("patterns")
+
+    # 시트 전체 읽기
+    all_values = ws.get_all_values()
+    if not all_values:
+        print("[patterns 시트] 데이터 없음(헤더도 없음)")
+        return
+
+    header = all_values[0]
+    data_rows = all_values[1:]
+
+    # nickname -> (row_index, old_view_count) 매핑
+    nickname_dict = {}
+    for idx, row in enumerate(data_rows, start=2):
+        if not row or len(row) < 3:
+            continue
+        old_nickname = row[0]
+        try:
+            old_view_count = int(row[2])
+        except ValueError:
+            old_view_count = 0
+
+        nickname_dict[old_nickname] = {
+            "row_index": idx,
+            "view_count": old_view_count
+        }
+
+    # 업데이트할 행들 (이미 닉네임이 존재 & new_view_count > old_view_count)
+    update_requests = []
+    # 새로 append할 행들 (nickname이 시트에 없음)
+    append_data = []
+
+    for nickname, concerts in pattern_data.items():
+        new_view_count = len(concerts)
+        patterns_list = [f"{c['concert']}({c['date']})" for c in concerts]
+        new_view_patterns = ", ".join(patterns_list)
+
+        if nickname in nickname_dict:
+            # 이미 시트에 있음 -> view_count 비교
+            old_info = nickname_dict[nickname]
+            old_count = old_info["view_count"]
+            row_index = old_info["row_index"]
+
+            if new_view_count > old_count:
+                # 더 클 때만 update
+                row_data = [
+                    nickname,
+                    new_view_patterns,
+                    str(new_view_count)
+                ]
+                range_str = f"A{row_index}:C{row_index}"  # nickname, view_patterns, view_count
+
+                # batch_update용 요청 형식
+                update_requests.append({
+                    "range": range_str,
+                    "values": [row_data]
+                })
+            else:
+                # 작거나 같으면 skip
+                print(f"[patterns] nickname={nickname} (old={old_count} >= new={new_view_count}), skip")
+
+        else:
+            # nickname이 시트에 없음 -> append
+            row_data = [
+                nickname,
+                new_view_patterns,
+                str(new_view_count)
+            ]
+            append_data.append(row_data)
+
+    # 수정할 행들
+    if update_requests:
+        sh = ws.spreadsheet
+        body = {
+            "valueInputOption": "RAW",
+            "data": update_requests
+        }
+        sh.batch_update(body)
+        print(f"[patterns] {len(update_requests)}개 닉네임 행 batch_update 완료")
+    else:
+        print("[patterns] update 대상 없음")
+
+    # 새 닉네임
+    if append_data:
+        ws.append_rows(append_data, value_input_option="RAW")
+        print(f"[patterns] {len(append_data)}개 닉네임 append_rows 완료")
+    else:
+        print("[patterns] append 대상 없음")
