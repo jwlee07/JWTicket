@@ -103,9 +103,9 @@ def crawl_concert_reviews(driver, concert):
         review_button = driver.find_element(By.XPATH, review_button_xpath)
         driver.execute_script("arguments[0].click();", review_button)
         time.sleep(2)
-        print(f"[리뷰] 관람후기 탭 클릭 성공: {review_button_xpath}")
+        print(f"[리뷰] 관람후기 탭 클릭 성공: {concert_type}")
     except NoSuchElementException:
-        print(f"[리뷰] 관람후기 탭 버튼 찾을 수 없음: {review_button_xpath}")
+        print(f"[리뷰] 관람후기 탭 버튼 찾을 수 없음: {concert_type}")
         return
     except Exception as e:
         print(f"[리뷰] 관람후기 탭 클릭 중 오류 발생: {e}")
@@ -210,7 +210,6 @@ def crawl_concert_seats(driver, concert):
     3) 시트에 없는 Seat만 저장
     4) 마지막에 시트 전체 → DB 동기화
     """
-
     while True:
         current_month = driver.find_element(By.XPATH, '//li[@data-view="month current"]').text
         print(f"[좌석] 현재 달: {current_month}")
@@ -277,34 +276,23 @@ def crawl_concert_seats(driver, concert):
                             return ''
                     day_str = get_korean_day_of_week(year, month, day_num_int)
 
-                    # DB 중복 체크
-                    seat_existed = Seat.objects.filter(
+                    new_seat = Seat.objects.create(
                         concert=concert,
                         year=year,
                         month=month,
                         day_num=day_num_int,
+                        day_str=day_str,
                         round_name=round_name,
-                        seat_class=seat_class
-                    ).exists()
+                        round_time=round_time_str,
+                        seat_class=seat_class,
+                        seat_count=seat_count,
+                        actors=actors
+                    )
+                    print(f"[좌석][DB 저장] {new_seat}")
 
-                    if not seat_existed:
-                        new_seat = Seat.objects.create(
-                            concert=concert,
-                            year=year,
-                            month=month,
-                            day_num=day_num_int,
-                            day_str=day_str,
-                            round_name=round_name,
-                            round_time=round_time_str,
-                            seat_class=seat_class,
-                            seat_count=seat_count,
-                            actors=actors
-                        )
-                        print(f"[좌석][DB 저장] {new_seat}")
-
-                        # 시트에 없으면 저장
-                        create_or_update_seat_in_sheet(new_seat)
-                        print(f"[좌석][시트 저장] {new_seat}")
+                    # 시트에 없으면 저장
+                    create_or_update_seat_in_sheet(new_seat)
+                    print(f"[좌석][시트 저장] {new_seat}")
 
             # 날짜 처리 후 뒤로가기
             driver.back()
