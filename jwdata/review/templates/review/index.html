@@ -4,35 +4,20 @@
 {% block content %}
 <div class="d-flex" style="min-height: 100vh;">
     <!-- 사이드바 -->
-    <!-- 
-        사이드바: 메인 내비게이션 영역
-        - 토글 버튼으로 사이드바 너비를 축소/확장할 수 있습니다.
-        - 공연 목록, 통합 메뉴 등의 버튼 포함
-    -->
     <nav id="sidebar" class="bg-dark text-white p-3" style="min-width:250px; transition: all 0.3s; overflow-x:hidden;">
-        <!-- 사이드바 상단 영역: 제목 및 토글 버튼 -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">공연 대시보드</h4>
             <button class="btn btn-sm btn-outline-light" id="toggleSidebarBtn" title="사이드바 접기/펼치기">◀</button>
         </div>
 
         {% if concerts %}
-        <!-- 통합 메뉴 섹션 -->
         <h5 class="mt-4">통합</h5>
         <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="통합 바로가기">
-            <!-- 공통 분석 페이지 링크 -->
-            <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-light text-start">
-                공연 리뷰
-            </a>
-            <a href="{% url 'analyze_all_pattern' %}" class="btn btn-outline-light text-start">
-                관람 패턴
-            </a>
-            <a href="{% url 'analyze_all_seats' %}" class="btn btn-outline-light text-start">
-                잔여 좌석
-            </a>
+            <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-light text-start">공연 리뷰</a>
+            <a href="{% url 'analyze_all_pattern' %}" class="btn btn-outline-light text-start">관람 패턴</a>
+            <a href="{% url 'analyze_all_seats' %}" class="btn btn-outline-light text-start">잔여 좌석</a>
         </div>
 
-        <!-- 공연 목록 섹션 -->
         <h5 class="mt-4">공연 목록</h5>
         <div id="concert-buttons" class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
             {% for concert in concerts %}
@@ -45,24 +30,29 @@
             {% endfor %}
         </div>
         {% else %}
-        <!-- 등록된 공연 없을 때 표시 -->
         <p class="mt-5 text-muted">현재 등록된 공연 정보가 없습니다.</p>
         {% endif %}
     </nav>
 
     <!-- 메인 컨텐츠 영역 -->
-    <!-- 
-        검색 폼 및 공연별 상세 정보, 리뷰 목록 영역
-        사이드바에서 특정 공연 선택 시 해당 공연 정보 표시
-    -->
     <div class="flex-grow-1 p-4">
+        <!-- 상단 오른쪽 동기화 버튼 -->
+        <div class="mb-4 d-flex justify-content-end">
+            <!-- DB -> Google Sheet 버튼 -->
+            <button class="btn btn-dark me-2" id="syncDbToSheetBtn">
+                DB → Google Sheet
+            </button>
+            <!-- Google Sheet -> DB 버튼 -->
+            <button class="btn btn-dark" id="syncSheetToDbBtn">
+                Google Sheet → DB
+            </button>
+        </div>
+
         <!-- 공연 검색 폼 -->
-        <!-- 사용자가 공연명을 입력하여 리뷰/좌석 검색 가능 -->
         <div class="card p-3 mb-4">
             <h2 class="text-center mb-4">공연 검색</h2>
             <form method="POST">
                 {% csrf_token %}
-                <!-- 검색 타입 선택 라디오 버튼 -->
                 <div class="mb-3">
                     <span class="form-label d-block mb-2">검색 타입</span>
                     <div class="form-check form-check-inline">
@@ -79,7 +69,6 @@
                     </div>
                 </div>
 
-                <!-- 검색어 입력 및 검색 버튼 영역 -->
                 <div class="row g-3 align-items-end">
                     <div class="col-md-9">
                         <label for="query" class="form-label">검색어</label>
@@ -95,10 +84,6 @@
         </div>
 
         <!-- 공연 상세 정보 영역 -->
-        <!-- 
-            사이드바에서 공연 클릭 시 해당 공연 정보와 리뷰 목록 노출
-            active_concert_id로 현재 표시할 공연 판단
-        -->
         {% if concerts %}
             {% for concert in concerts %}
             <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="{% if concert.id|stringformat:"s" != active_concert_id %}display: none;{% endif %}">
@@ -108,7 +93,6 @@
                 <div class="mb-3"><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</div>
                 <div class="mb-3"><strong>리뷰 수:</strong> {{ concert.reviews.count }}</div>
 
-                <!-- 리뷰 분석 바로가기 버튼들 -->
                 <h4 class="mt-5 mb-3">리뷰 분석</h4>
                 <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
                     <div class="col"><a href="{% url 'analyze_reviews' concert.id 'long_reviews' %}" class="btn btn-secondary w-100">길게 남긴 리뷰</a></div>
@@ -121,10 +105,6 @@
                     <div class="col"><a href="{% url 'analyze_reviews' concert.id 'low_star_rating_reviews' %}" class="btn btn-secondary w-100">평점 3점 이하 리뷰</a></div>
                 </div>
 
-                <!-- 리뷰 목록 테이블 -->
-                <!-- 
-                    해당 공연 리뷰 목록을 테이블로 표시 (최신 날짜 순).
-                -->
                 <h4 class="mb-3">리뷰 목록</h4>
                 {% if concert.reviews.exists %}
                 <div class="table-responsive">
@@ -165,43 +145,35 @@
 <script>
     // 공연 선택 시 해당 공연 정보 영역 노출
     function showConcert(concertId) {
-        // 모든 공연 섹션 숨기기
         document.querySelectorAll('.concert-section').forEach(section => {
             section.style.display = 'none';
         });
-        // 선택한 공연 섹션 표시
         document.getElementById(`concert-${concertId}`).style.display = 'block';
 
-        // 사이드바 버튼 활성 상태 갱신
         document.querySelectorAll('#concert-buttons button').forEach(button => {
             button.classList.remove('active');
         });
         document.querySelector(`[data-concert-id="${concertId}"]`).classList.add('active');
 
-        // URL에 active_concert_id 파라미터 업데이트
         const url = new URL(window.location.href);
         url.searchParams.set('active_concert_id', concertId);
         history.pushState({}, '', url);
     }
 
-    // 사이드바 토글 기능
+    // 사이드바 토글
     const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
     const sidebar = document.getElementById('sidebar');
 
     toggleSidebarBtn.addEventListener('click', () => {
-        // 사이드바 폭 기준 접기/펼치기 로직
         if (sidebar.style.minWidth === '250px') {
-            // 사이드바 접기
             sidebar.style.minWidth = '70px';
             toggleSidebarBtn.textContent = '▶';
-            // 사이드바 내 텍스트 숨기기
             sidebar.querySelectorAll('h4, h5, p, a.btn, button[data-concert-id]').forEach(el => {
                 if (el !== toggleSidebarBtn) {
                     el.classList.add('text-hide');
                 }
             });
         } else {
-            // 사이드바 펼치기
             sidebar.style.minWidth = '250px';
             toggleSidebarBtn.textContent = '◀';
             sidebar.querySelectorAll('.text-hide').forEach(el => {
@@ -209,7 +181,45 @@
             });
         }
     });
+
+    // ------------------------
+    // DB -> Google Sheet 동기화
+    // ------------------------
+    const syncDbToSheetBtn = document.getElementById('syncDbToSheetBtn');
+    syncDbToSheetBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        fetch("{% url 'sync_db_to_sheet' %}")
+            .then(response => response.text())
+            .then(data => {
+                // 여기서 data가 "로그 문자열"
+                alert(data);  // 또는 alert("DB → Google Sheet 동기화가 완료되었습니다!\n" + data)
+                console.log(data);
+            })
+            .catch(error => {
+                alert("동기화 중 오류가 발생했습니다.");
+                console.error(error);
+            });
+    });
+
+    // ------------------------
+    // Google Sheet -> DB 동기화
+    // ------------------------
+    const syncSheetToDbBtn = document.getElementById('syncSheetToDbBtn');
+    syncSheetToDbBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        fetch("{% url 'sync_sheet_to_db' %}")
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                console.log(data);
+            })
+            .catch(error => {
+                alert("동기화 중 오류가 발생했습니다.");
+                console.error(error);
+            });
+    });
 </script>
+
 <style>
     .text-hide {
         display: none !important;

@@ -1,4 +1,6 @@
+from django.http import HttpResponse
 from django.shortcuts import render
+
 from django.db.models import F, Count, Min, Avg
 from django.db.models.functions import Length
 from django.db.models import Value
@@ -28,6 +30,15 @@ from .crawls import (
     crawl_concert_info, 
     crawl_concert_reviews, 
     crawl_concert_seats
+)
+
+from .sheets import (
+    sync_db_concerts_to_sheet,
+    sync_db_reviews_to_sheet,
+    sync_db_seats_to_sheet,
+    sync_concert_sheet_to_db,
+    sync_reviews_sheet_to_db,
+    sync_seats_sheet_to_db,
 )
 
 # ==================================================================
@@ -484,3 +495,53 @@ def analyze_all_pattern(request):
         'common_nicknames': sorted_common_nicknames,
         'combination_counts': top_combination_counts,
     })
+
+def sync_all_db_to_sheet(request):
+    """
+    1) DB에 있는 Concert / Review / Seat 데이터를 스프레드시트 각 시트에 없는 pk만 추가한다.
+    2) 이미 스프레드시트에 pk가 있으면 아무 작업도 안 함.
+    3) 수행 결과를 문자열 형태로 누적하여 반환
+    """
+    logs = []
+
+    # 1) Concert 동기화
+    sync_db_concerts_to_sheet()
+    logs.append("[DB -> Sheet] Concert 동기화 완료")
+    print("[DB -> Sheet] Concert 동기화 완료")
+
+    # 2) Review 동기화
+    sync_db_reviews_to_sheet()
+    logs.append("[DB -> Sheet] Review 동기화 완료")
+    print("[DB -> Sheet] Review 동기화 완료")
+
+    # 3) Seat 동기화
+    sync_db_seats_to_sheet()
+    logs.append("[DB -> Sheet] Seat 동기화 완료")
+    print("[DB -> Sheet] Seat 동기화 완료")
+
+    response_text = "\n".join(logs)
+    return HttpResponse(response_text, content_type="text/plain")
+
+def sync_all_sheet_to_db(request):
+    """
+    1) 구글 스프레드시트 concerts / reviews / seats 시트를 모두 읽어온 뒤
+    2) DB에 없는 pk만 새로 insert한다.
+    3) 이미 DB에 pk가 존재하면 스킵.
+    4) 수행 결과를 문자열 형태로 누적하여 반환
+    """
+    logs = []
+
+    sync_concert_sheet_to_db()
+    logs.append("[Sheet -> DB] Concert 동기화 완료")
+    print("[Sheet -> DB] Concert 동기화 완료")
+
+    sync_reviews_sheet_to_db()
+    logs.append("[Sheet -> DB] Review 동기화 완료")
+    print("[Sheet -> DB] Review 동기화 완료")
+
+    sync_seats_sheet_to_db()
+    logs.append("[Sheet -> DB] Seat 동기화 완료")
+    print("[Sheet -> DB] Seat 동기화 완료")
+
+    response_text = "\n".join(logs)
+    return HttpResponse(response_text, content_type="text/plain")

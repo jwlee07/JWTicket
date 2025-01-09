@@ -1,4 +1,3 @@
-from django.http import HttpResponse
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -10,17 +9,14 @@ def get_gspread_client():
     """
     구글 스프레드시트 클라이언트 객체를 생성해 반환하는 헬퍼 함수.
     """
-
     scope = [
         'https://spreadsheets.google.com/feeds',
         'https://www.googleapis.com/auth/drive',
     ]
-
     creds = ServiceAccountCredentials.from_json_keyfile_name(
-        'ts-ticket-data-599d02f2629e.json',
+        'ts-ticket-data-599d02f2629e.json',  # 실제 키 파일 경로
         scope
     )
-
     return gspread.authorize(creds)
 
 def open_ts_ticket_sheet():
@@ -40,12 +36,19 @@ def get_worksheet(sheet_name):
     print(f"[구글 스프레드시트] {sheet_name} 시트 열기")
     return ss.worksheet(sheet_name)
 
+# ------------------------------------------------------------------------------
+# Concert 
+# ------------------------------------------------------------------------------
+
 def read_all_concerts_from_sheet():
     """
     concerts 시트에서 모든 행을 읽어 파이썬 dict 리스트로 반환.
     """
     ws = get_worksheet("concerts")
     all_values = ws.get_all_values()
+    if not all_values:
+        print("[concerts 시트] 데이터 없음")
+        return []
 
     header = all_values[0]
     data_rows = all_values[1:]
@@ -136,6 +139,41 @@ def sync_concert_sheet_to_db():
         )
         print(f"[DB] Concert pk={pk} 새로 저장")
 
+def sync_db_concerts_to_sheet():
+    """
+    DB의 Concert 전부 조회 후, 시트에 없는 pk만 batch로 추가
+    """
+    concerts = Concert.objects.all()
+    ws = get_worksheet("concerts")
+
+    # 시트에서 이미 존재하는 id 추출
+    all_rows = ws.get_all_records()
+    existing_ids = set(str(r.get("id")) for r in all_rows if r.get("id"))
+
+    batch_data = []
+    for concert in concerts:
+        if str(concert.pk) not in existing_ids:
+            row_data = [
+                str(concert.pk),
+                concert.name or "",
+                concert.place or "",
+                str(concert.start_date) if concert.start_date else "",
+                str(concert.end_date) if concert.end_date else "",
+                str(concert.duration_minutes) if concert.duration_minutes else "",
+            ]
+            batch_data.append(row_data)
+
+    if batch_data:
+        ws.append_rows(batch_data, value_input_option="RAW")
+        print(f"[Concert] {len(batch_data)}개 레코드를 시트에 일괄 추가 완료")
+    else:
+        print("[Concert] 시트에 추가할 항목이 없습니다.")
+
+
+# ------------------------------------------------------------------------------
+# Review 관련 로직
+# ------------------------------------------------------------------------------
+
 def read_all_reviews_from_sheet():
     """
     reviews 시트에서 모든 행을 읽어 파이썬 dict 리스트로 반환.
@@ -176,7 +214,6 @@ def find_review_row_by_id(pk_value: int):
     for idx, row in enumerate(all_values[1:], start=2):
         if row and row[0] == str(pk_value):
             return (idx, row)
-        
     return None
 
 def create_or_update_review_in_sheet(review: Review):
@@ -191,7 +228,6 @@ def create_or_update_review_in_sheet(review: Review):
         print(f"[DB] Review pk 없어서 새로 저장: {review.pk}")
 
     found = find_review_row_by_id(review.pk)
-
     row_data = [
         str(review.pk),
         str(review.concert_id),  # or review.concert.pk
@@ -240,6 +276,43 @@ def sync_reviews_sheet_to_db():
         )
         print(f"[DB] Review pk={pk} 새로 저장")
 
+def sync_db_reviews_to_sheet():
+    """
+    DB의 Review 전부 조회 후,
+    스프레드시트 reviews 시트에 pk가 없으면 batch로 추가
+    """
+    reviews = Review.objects.all()
+    ws = get_worksheet("reviews")
+
+    all_rows = ws.get_all_records()
+    existing_ids = set(str(r.get("id")) for r in all_rows if r.get("id"))
+
+    batch_data = []
+    for r in reviews:
+        if str(r.pk) not in existing_ids:
+            row_data = [
+                str(r.pk),
+                str(r.concert_id),
+                r.nickname or "",
+                str(r.date) if r.date else "",
+                str(r.view_count),
+                str(r.like_count),
+                r.title or "",
+                r.description or "",
+                str(r.star_rating) if r.star_rating is not None else "",
+            ]
+            batch_data.append(row_data)
+
+    if batch_data:
+        ws.append_rows(batch_data, value_input_option="RAW")
+        print(f"[Review] {len(batch_data)}개 레코드를 시트에 일괄 추가 완료")
+    else:
+        print("[Review] 시트에 추가할 항목 없음")
+
+# ------------------------------------------------------------------------------
+# Seat 관련 로직
+# ------------------------------------------------------------------------------
+
 def read_all_seats_from_sheet():
     """
     seats 시트에서 모든 행을 읽어 파이썬 dict 리스트로 반환.
@@ -263,11 +336,14 @@ def read_all_seats_from_sheet():
             row_dict[col_name] = row[i] if i < len(row) else ""
         seats_data.append(row_dict)
 
+    print(f"[seats 시트] {len(seats_data)}개 행 읽음")
     return seats_data
 
 def find_seat_row_by_id(pk_value: int):
     """
-    seats 시트에서 'id' 열이 pk_value인 행 찾기
+    seats 시트에서 'id' 열이 pk_value인 행을 찾아
+    - 찾으면 (row_index, row_data) 반환
+    - 없으면 None
     """
     ws = get_worksheet("seats")
     all_values = ws.get_all_values()
@@ -279,7 +355,6 @@ def find_seat_row_by_id(pk_value: int):
     for idx, row in enumerate(all_values[1:], start=2):
         if row and row[0] == str(pk_value):
             return (idx, row)
-        
     return None
 
 def create_or_update_seat_in_sheet(seat: Seat):
@@ -296,7 +371,7 @@ def create_or_update_seat_in_sheet(seat: Seat):
     found = find_seat_row_by_id(seat.pk)
     row_data = [
         str(seat.pk),
-        str(seat.concert_id),  # or seat.concert.pk
+        str(seat.concert_id),
         str(seat.year),
         str(seat.month),
         str(seat.day_num),
@@ -345,3 +420,38 @@ def sync_seats_sheet_to_db():
             created_at=row.get("created_at") or None,
         )
         print(f"[DB] Seat pk={pk} 새로 저장")
+
+def sync_db_seats_to_sheet():
+    """
+    DB의 Seat 전부 조회 후, 시트에 없는 pk만 batch로 추가
+    """
+    seats = Seat.objects.all()
+    ws = get_worksheet("seats")
+
+    all_rows = ws.get_all_records()
+    existing_ids = set(str(r.get("id")) for r in all_rows if r.get("id"))
+
+    batch_data = []
+    for st in seats:
+        if str(st.pk) not in existing_ids:
+            row_data = [
+                str(st.pk),
+                str(st.concert_id),
+                str(st.year),
+                str(st.month),
+                str(st.day_num),
+                st.day_str or "",
+                st.round_name or "",
+                str(st.round_time) if st.round_time else "",
+                st.seat_class or "",
+                str(st.seat_count),
+                st.actors or "",
+                str(st.created_at) if st.created_at else "",
+            ]
+            batch_data.append(row_data)
+
+    if batch_data:
+        ws.append_rows(batch_data, value_input_option="RAW")
+        print(f"[Seat] {len(batch_data)}개 레코드를 시트에 일괄 추가 완료")
+    else:
+        print("[Seat] 시트에 추가할 항목이 없습니다.")

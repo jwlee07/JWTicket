@@ -16,4 +16,10 @@ urlpatterns = [
     
     # 잔여 좌석 분석
     path('all/seats', views.analyze_all_seats, name='analyze_all_seats'),
+
+    # DB -> Google Sheet 동기화
+    path('sync-db-to-sheet/', views.sync_all_db_to_sheet, name='sync_db_to_sheet'),
+
+    # Google Sheet -> DB 동기화
+    path('sync-sheet-to-db/', views.sync_all_sheet_to_db, name='sync_sheet_to_db'),
 ]
