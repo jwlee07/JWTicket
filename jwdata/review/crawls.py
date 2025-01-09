@@ -81,8 +81,35 @@ def crawl_concert_reviews(driver, concert):
     """
 
     # 관람후기 탭 버튼 클릭
-    review_button = driver.find_element(By.XPATH, '//*[@id="productMainBody"]/nav/ul/li[4]/a')
-    driver.execute_script("arguments[0].click();", review_button)
+    concert_type = None
+
+    if '뮤지컬' in concert.name:
+        concert_type = '뮤지컬'
+        review_button_xpath = '//*[@id="productMainBody"]/nav/ul/li[4]/a'
+    elif '연극' in concert.name:
+        concert_type = '연극'
+        review_button_xpath = '//*[@id="productMainBody"]/nav/ul/li[4]/a'
+    elif '콘서트' in concert.name:
+        concert_type = '콘서트'
+        review_button_xpath = '//*[@id="productMainBody"]/nav/ul/li[3]/a'
+    else:
+        concert_type = '기타'
+        review_button_xpath = '//*[@id="productMainBody"]/nav/ul/li[4]/a'
+
+    print(f"[리뷰] 공연 타입: {concert_type}")
+
+    # 관람후기 탭 버튼 클릭
+    try:
+        review_button = driver.find_element(By.XPATH, review_button_xpath)
+        driver.execute_script("arguments[0].click();", review_button)
+        time.sleep(2)
+        print(f"[리뷰] 관람후기 탭 클릭 성공: {review_button_xpath}")
+    except NoSuchElementException:
+        print(f"[리뷰] 관람후기 탭 버튼 찾을 수 없음: {review_button_xpath}")
+        return
+    except Exception as e:
+        print(f"[리뷰] 관람후기 탭 클릭 중 오류 발생: {e}")
+        return
     time.sleep(2)
 
     # 관람후기 총 개수 파악
