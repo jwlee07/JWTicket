@@ -38,7 +38,7 @@
                         <td>
                             {% for c in concerts %}
                                 {{ c.concert }}({{ c.date }})
-                                {% if not forloop.last %}, {% endif %}
+                                {% if not forloop.last %} → {% endif %}
                             {% endfor %}
                         </td>
                         <td>{{ concerts|length }}</td>

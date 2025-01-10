@@ -499,7 +499,7 @@ def sync_patterns_to_sheet(pattern_data):
     for nickname, concerts in pattern_data.items():
         new_view_count = len(concerts)
         patterns_list = [f"{c['concert']}({c['date']})" for c in concerts]
-        new_view_patterns = ", ".join(patterns_list)
+        new_view_patterns = " → ".join(patterns_list)
 
         if nickname in nickname_dict:
             # 이미 시트에 있음 -> view_count 비교
