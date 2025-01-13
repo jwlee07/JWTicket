@@ -13,9 +13,11 @@
         <div class="mt-5">
             <h2>닉네임 기반 관람 패턴 샌키 다이어그램</h2>
             <div class="card p-3">
-                <div id="sankeyChart" style="width: 100%; height: 600px;"></div>
+                <div id="sankeyChart" class="sankey-chart" style="width: 100%; height: 600px;"></div>
             </div>
         </div>
+        {% else %}
+        <p class="text-muted mt-5">데이터가 없습니다.</p>
         {% endif %}
 
         <!-- 각 공연별 첫 공연 샌키 다이어그램 -->
@@ -24,7 +26,7 @@
         <div class="mt-5">
             <h2>{{ concert_name }}를 첫 공연으로 한 관람 패턴</h2>
             <div class="card p-3">
-                <div id="sankeyChart_{{ forloop.counter }}" style="width: 100%; height: 600px;"></div>
+                <div id="sankeyChart_{{ forloop.counter }}" class="sankey-chart" style="width: 100%; height: 600px;"></div>
             </div>
         </div>
         {% endfor %}
@@ -86,18 +88,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const concertColors = {
+        {% for concert_name in all_concerts %}
+        '{{ concert_name }}': 'hsl({{ forloop.counter|add:15 }}, 70%, 60%)',
+        {% endfor %}
+    };
+
+    function createSankeyData(data, colors) {
+        const nodeColors = data.node.label.map(label => colors[label] || '#cccccc');
+        data.node.color = nodeColors;
+        return data;
+    }
+
     // 모든 공연 샌키 다이어그램
     {% if common_nicknames %}
-    const sankeyData = {
+    const sankeyData = createSankeyData({
         type: 'sankey',
         orientation: 'h',
         node: {
             pad: 15,
             thickness: 20,
-            line: {
-                color: 'black',
-                width: 0.5
-            },
+            line: { color: 'black', width: 0.5 },
             label: [
                 {% for nickname, concerts in common_nicknames.items %}
                     {% for concert in concerts %}
@@ -106,15 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 {% endfor %}
             ],
         },
-        link: {
-            source: [],
-            target: [],
-            value: []
-        }
-    };
+        link: { source: [], target: [], value: [] },
+    }, concertColors);
 
     const nodeIndex = {};
     let index = 0;
+    
     for (const [nickname, concerts] of Object.entries({{ common_nicknames|safe }})) {
         for (let i = 0; i < concerts.length - 1; i++) {
             const source = concerts[i].concert;
@@ -129,16 +137,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    Plotly.newPlot('sankeyChart', [sankeyData]);
+    Plotly.react('sankeyChart', [sankeyData]);
+
+    window.addEventListener('resize', function () {
+        Plotly.Plots.resize('sankeyChart');
+    });
     {% endif %}
 
     // 공연별 샌키 다이어그램
     {% if filtered_common_nicknames %}
     {% for concert_name, sankey_data in filtered_common_nicknames.items %}
-    // {{ concert_name }}를 첫 공연으로 한 샌키 다이어그램 데이터
-    const sankeyData_{{ forloop.counter }} = {{ sankey_data|safe }};
+    const sankeyData_{{ forloop.counter }} = createSankeyData({{ sankey_data|safe }}, concertColors);
     
-    Plotly.newPlot('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
+    Plotly.react('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
+
+    window.addEventListener('resize', function () {
+        Plotly.Plots.resize('sankeyChart_{{ forloop.counter }}');
+    });
     {% endfor %}
     {% endif %}
 
