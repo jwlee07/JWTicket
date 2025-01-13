@@ -127,7 +127,7 @@
         const chartInstances = {};
 
         // 사용자 설정 변수
-        let chartsPerRow = parseInt(document.getElementById('charts_per_row').value) || 2;
+        let chartsPerRow = parseInt(document.getElementById('charts_per_row').value) || 1;
         let graphHeight = parseInt(document.getElementById('graph_height').value) || 350;
 
         // 함수: 회차별 데이터 필터링
@@ -192,7 +192,8 @@
                             title: { display: true, text: '회차 - 수집 시간' },
                             ticks: {
                                 maxRotation: 90,
-                                minRotation: 45
+                                minRotation: 45,
+                                autoSkip: true,
                             }
                         },
                         y: { 
@@ -289,7 +290,7 @@
         // 함수: 그래프 레이아웃 및 높이 업데이트
         function applyUserSettings() {
             // 그래프 개수 설정
-            chartsPerRow = parseInt(document.getElementById('charts_per_row').value, 10) || 2;
+            chartsPerRow = parseInt(document.getElementById('charts_per_row').value, 10) || 1;
             updateColumnClasses(chartsPerRow);
 
             // 그래프 높이 설정
