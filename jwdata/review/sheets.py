@@ -471,9 +471,11 @@ def sync_patterns_to_sheet(pattern_data):
     if not all_values:
         print("[patterns 시트] 데이터 없음(헤더도 없음)")
         return
-
+    print(f"[patterns 시트] {len(all_values)}개 행 읽음")
+    
     header = all_values[0]
     data_rows = all_values[1:]
+    print(f"[patterns] {len(pattern_data)}개 닉네임 패턴 데이터")
 
     # nickname -> (row_index, old_view_count) 매핑
     nickname_dict = {}
@@ -490,6 +492,7 @@ def sync_patterns_to_sheet(pattern_data):
             "row_index": idx,
             "view_count": old_view_count
         }
+    print(f"[patterns] {len(nickname_dict)}개 닉네임 행 읽음")
 
     # 업데이트할 행들 (이미 닉네임이 존재 & new_view_count > old_view_count)
     update_requests = []
@@ -533,6 +536,7 @@ def sync_patterns_to_sheet(pattern_data):
                 str(new_view_count)
             ]
             append_data.append(row_data)
+    print(f"[patterns] update_requests={len(update_requests)}, append_data={len(append_data)}")
 
     # 수정할 행들
     if update_requests:
@@ -541,8 +545,8 @@ def sync_patterns_to_sheet(pattern_data):
             "valueInputOption": "RAW",
             "data": update_requests
         }
-        sh.batch_update(body)
-        print(f"[patterns] {len(update_requests)}개 닉네임 행 batch_update 완료")
+        sh.values_batch_update(body)
+        print(f"[patterns] {len(update_requests)}개 닉네임 행 values_batch_update 완료")
     else:
         print("[patterns] update 대상 없음")
 
