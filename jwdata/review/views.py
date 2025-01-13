@@ -507,8 +507,8 @@ def analyze_all_pattern(request):
     combination_counts_dict = dict(sorted_combinations)
     print("[패턴 정보 계산 완료]")
     
-    sync_patterns_to_sheet(sorted_common_nicknames)
-    print("[패턴 정보 업로드 완료]")
+    # sync_patterns_to_sheet(sorted_common_nicknames)
+    # print("[패턴 정보 업로드 완료]")
 
     return render(request, 'review/all_pattern.html', {
         'common_nicknames': sorted_common_nicknames,
