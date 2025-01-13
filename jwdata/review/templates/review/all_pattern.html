@@ -8,28 +8,28 @@
         <!-- 페이지 제목 -->
         <h1 class="text-center mb-5">공연 관람 패턴 분석</h1>
 
-        <!-- 샌키 다이어그램 -->
-        {% if common_nicknames %}
-        <div class="mt-5">
-            <h2>닉네임 기반 관람 패턴 샌키 다이어그램</h2>
-            <div class="card p-3">
-                <div id="sankeyChart" class="sankey-chart" style="width: 100%; height: 600px;"></div>
-            </div>
-        </div>
-        {% else %}
-        <p class="text-muted mt-5">데이터가 없습니다.</p>
-        {% endif %}
-
         <!-- 각 공연별 첫 공연 샌키 다이어그램 -->
         {% if all_concerts and filtered_common_nicknames %}
         {% for concert_name, sankey_data in filtered_common_nicknames.items %}
         <div class="mt-5">
-            <h2>{{ concert_name }}를 첫 공연으로 한 관람 패턴</h2>
+            <h2>{{ concert_name }}을 첫 공연으로 한 관람 패턴</h2>
             <div class="card p-3">
                 <div id="sankeyChart_{{ forloop.counter }}" class="sankey-chart" style="width: 100%; height: 600px;"></div>
             </div>
         </div>
         {% endfor %}
+        {% else %}
+        <p class="text-muted mt-5">데이터가 없습니다.</p>
+        {% endif %}
+
+        <!-- 샌키 다이어그램 -->
+        {% if common_nicknames %}
+        <div class="mt-5">
+            <h2>모든 공연의 관람 패턴</h2>
+            <div class="card p-3">
+                <div id="sankeyChart" class="sankey-chart" style="width: 100%; height: 600px;"></div>
+            </div>
+        </div>
         {% else %}
         <p class="text-muted mt-5">데이터가 없습니다.</p>
         {% endif %}
@@ -88,17 +88,37 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const concertColors = {
+    // 공연 이름별 동적 색상 생성
+    const allConcertNames = [
         {% for concert_name in all_concerts %}
-        '{{ concert_name }}': 'hsl({{ forloop.counter|add:15 }}, 70%, 60%)',
+        '{{ concert_name }}',
         {% endfor %}
-    };
+    ];
+
+    const concertColors = {};
+    allConcertNames.forEach((concert, index) => {
+        const hue = (index * 137.508) % 360; // 황금각의 색상 분포
+        concertColors[concert] = `hsl(${hue}, 60%, 80%)`;
+    });
 
     function createSankeyData(data, colors) {
         const nodeColors = data.node.label.map(label => colors[label] || '#cccccc');
         data.node.color = nodeColors;
         return data;
     }
+
+    // 공연별 샌키 다이어그램
+    {% if filtered_common_nicknames %}
+    {% for concert_name, sankey_data in filtered_common_nicknames.items %}
+    const sankeyData_{{ forloop.counter }} = createSankeyData({{ sankey_data|safe }}, concertColors);
+    
+    Plotly.react('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
+
+    window.addEventListener('resize', function () {
+        Plotly.Plots.resize('sankeyChart_{{ forloop.counter }}');
+    });
+    {% endfor %}
+    {% endif %}
 
     // 모든 공연 샌키 다이어그램
     {% if common_nicknames %}
@@ -122,7 +142,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const nodeIndex = {};
     let index = 0;
-    
     for (const [nickname, concerts] of Object.entries({{ common_nicknames|safe }})) {
         for (let i = 0; i < concerts.length - 1; i++) {
             const source = concerts[i].concert;
@@ -142,19 +161,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('resize', function () {
         Plotly.Plots.resize('sankeyChart');
     });
-    {% endif %}
-
-    // 공연별 샌키 다이어그램
-    {% if filtered_common_nicknames %}
-    {% for concert_name, sankey_data in filtered_common_nicknames.items %}
-    const sankeyData_{{ forloop.counter }} = createSankeyData({{ sankey_data|safe }}, concertColors);
-    
-    Plotly.react('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
-
-    window.addEventListener('resize', function () {
-        Plotly.Plots.resize('sankeyChart_{{ forloop.counter }}');
-    });
-    {% endfor %}
     {% endif %}
 
     {% if combination_counts %}
