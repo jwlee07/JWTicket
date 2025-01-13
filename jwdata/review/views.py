@@ -473,6 +473,64 @@ def analyze_all_pattern(request):
     for n in nicknames:
         nickname_to_concerts[n['nickname']].add(n['concert__name'])
     
+    # 공연 리스트 생성
+    all_concerts = list(set(reviews.values_list('concert__name', flat=True)))
+    filtered_common_nicknames = {}
+
+    for first_concert in all_concerts:
+        common_nicknames = {}
+        for nn, cs in nickname_to_concerts.items():
+            if first_concert in cs and len(cs) > 1:
+                sorted_concs = sorted(cs)
+                concert_dates = []
+                for concert in sorted_concs:
+                    first_review = reviews.filter(nickname=nn, concert__name=concert).order_by('date').first()
+                    if first_review:
+                        date_str = first_review.date.strftime("%Y-%m-%d")
+                    else:
+                        date_str = 'Unknown'
+                    concert_dates.append({'concert': concert, 'date': date_str})
+                # 날짜 기준 정렬
+                concert_dates_sorted = sorted(concert_dates, key=lambda x: x['date'])
+                if concert_dates_sorted[0]['concert'] == first_concert:
+                    common_nicknames[nn] = concert_dates_sorted
+
+        # 샌키 다이어그램 데이터 생성
+        sankey_data = {
+            "type": "sankey",
+            "orientation": "h",
+            "node": {
+                "pad": 15,
+                "thickness": 20,
+                "line": {"color": "black", "width": 0.5},
+                "label": [],
+            },
+            "link": {"source": [], "target": [], "value": []},
+        }
+        node_index = {}
+        idx = 0
+
+        for nn, concerts in common_nicknames.items():
+            for i in range(len(concerts) - 1):
+                source = concerts[i]['concert']
+                target = concerts[i + 1]['concert']
+
+                if source not in node_index:
+                    node_index[source] = idx
+                    sankey_data['node']['label'].append(source)
+                    idx += 1
+                if target not in node_index:
+                    node_index[target] = idx
+                    sankey_data['node']['label'].append(target)
+                    idx += 1
+
+                sankey_data['link']['source'].append(node_index[source])
+                sankey_data['link']['target'].append(node_index[target])
+                sankey_data['link']['value'].append(1)
+
+        if sankey_data['node']['label']:
+            filtered_common_nicknames[first_concert] = sankey_data
+    
     # 닉네임 별 관람 패턴 (두 개 이상의 공연 관람한 경우만 수집)
     common_nicknames = {}
     for nn, cs in nickname_to_concerts.items():
@@ -511,6 +569,8 @@ def analyze_all_pattern(request):
     # print("[패턴 정보 업로드 완료]")
 
     return render(request, 'review/all_pattern.html', {
+        'filtered_common_nicknames': filtered_common_nicknames,
+        'all_concerts': all_concerts,
         'common_nicknames': sorted_common_nicknames,
         'combination_counts': combination_counts_dict,
     })

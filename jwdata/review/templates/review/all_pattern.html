@@ -8,14 +8,18 @@
         <!-- 페이지 제목 -->
         <h1 class="text-center mb-5">공연 관람 패턴 분석</h1>
 
-        <!-- 샌키 다이어그램 -->
-        {% if common_nicknames %}
+        <!-- 각 공연별 첫 공연 샌키 다이어그램 -->
+        {% if all_concerts and filtered_common_nicknames %}
+        {% for concert_name, sankey_data in filtered_common_nicknames.items %}
         <div class="mt-5">
-            <h2>닉네임 기반 관람 패턴 샌키 다이어그램</h2>
+            <h2>{{ concert_name }}를 첫 공연으로 한 관람 패턴</h2>
             <div class="card p-3">
-                <div id="sankeyChart" style="width: 100%; height: 600px;"></div>
+                <div id="sankeyChart_{{ forloop.counter }}" style="width: 100%; height: 600px;"></div>
             </div>
         </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted mt-5">데이터가 없습니다.</p>
         {% endif %}
 
         {% if combination_counts %}
@@ -72,50 +76,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    {% if common_nicknames %}
-    // 샌키 다이어그램 데이터 준비
-    const sankeyData = {
-        type: 'sankey',
-        orientation: 'h',
-        node: {
-            pad: 15,
-            thickness: 20,
-            line: {
-                color: 'black',
-                width: 0.5
-            },
-            label: [
-                {% for nickname, concerts in common_nicknames.items %}
-                    {% for concert in concerts %}
-                        '{{ concert.concert }}',
-                    {% endfor %}
-                {% endfor %}
-            ],
-        },
-        link: {
-            source: [],
-            target: [],
-            value: []
-        }
-    };
-
-    const nodeIndex = {};
-    let index = 0;
-    for (const [nickname, concerts] of Object.entries({{ common_nicknames|safe }})) {
-        for (let i = 0; i < concerts.length - 1; i++) {
-            const source = concerts[i].concert;
-            const target = concerts[i + 1].concert;
-
-            if (!(source in nodeIndex)) nodeIndex[source] = index++;
-            if (!(target in nodeIndex)) nodeIndex[target] = index++;
-
-            sankeyData.link.source.push(nodeIndex[source]);
-            sankeyData.link.target.push(nodeIndex[target]);
-            sankeyData.link.value.push(1);
-        }
-    }
-
-    Plotly.newPlot('sankeyChart', [sankeyData]);
+    // 샌키 다이어그램
+    {% if filtered_common_nicknames %}
+    {% for concert_name, sankey_data in filtered_common_nicknames.items %}
+    // {{ concert_name }}를 첫 공연으로 한 샌키 다이어그램 데이터
+    const sankeyData_{{ forloop.counter }} = {{ sankey_data|safe }};
+    
+    Plotly.newPlot('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
+    {% endfor %}
     {% endif %}
 
     {% if combination_counts %}
