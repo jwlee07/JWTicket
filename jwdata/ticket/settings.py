@@ -143,7 +143,7 @@ CRONJOBS = [
     # 매일 00시, 06시, 12시, 18시에 잔여 좌석 크롤링
     ('0 0,6,12,18 * * *', 'review.tasks.crawl_all_concerts_seats'),
     
-    # 테스트 10분마다
-    # ('*/10 * * * *', 'review.tasks.crawl_all_concerts_reviews'),
+    # 테스트 5분마다
+    # ('*/5 * * * *', 'review.tasks.crawl_all_concerts_reviews'),
     # ('*/10 * * * *', 'review.tasks.crawl_all_concerts_seats'),
 ]

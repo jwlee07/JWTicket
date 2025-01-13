@@ -65,10 +65,10 @@ def crawl_concert_info(driver):
         print(f"[공연 정보][DB 저장] 새 Concert: {concert}")
 
     # 시트에 없으면 append / 있으면 update
-    create_or_update_concert_in_sheet(concert)
+    # create_or_update_concert_in_sheet(concert)
 
     # 시트 전체→DB (pk 기준으로 없는 것만 insert)
-    sync_concert_sheet_to_db()
+    # sync_concert_sheet_to_db()
 
     return concert
 
@@ -164,8 +164,8 @@ def crawl_concert_reviews(driver, concert):
                     )
                     print(f"[리뷰][DB 저장] Review: {new_review}")
 
-                    create_or_update_review_in_sheet(new_review)
-                    print(f"[리뷰][시트 저장] Review: {new_review}")
+                    # create_or_update_review_in_sheet(new_review)
+                    # print(f"[리뷰][시트 저장] Review: {new_review}")
 
             except Exception as e:
                 print(f"[리뷰] 처리 중 오류 발생: {e}")
@@ -200,8 +200,8 @@ def crawl_concert_reviews(driver, concert):
                 print(f"[리뷰] 페이지 이동 오류: {e}")
                 break
 
-    sync_reviews_sheet_to_db()
-    print("[리뷰] 시트 전체 → DB 동기화 완료")
+    # sync_reviews_sheet_to_db()
+    # print("[리뷰] 시트 전체 → DB 동기화 완료")
 
 def crawl_concert_seats(driver, concert):
     """
@@ -291,8 +291,8 @@ def crawl_concert_seats(driver, concert):
                     print(f"[좌석][DB 저장] {new_seat}")
 
                     # 시트에 저장
-                    create_or_update_seat_in_sheet(new_seat)
-                    print(f"[좌석][시트 저장] {new_seat}")
+                    # create_or_update_seat_in_sheet(new_seat)
+                    # print(f"[좌석][시트 저장] {new_seat}")
 
             # 날짜 처리 후 뒤로가기
             driver.back()
@@ -308,5 +308,5 @@ def crawl_concert_seats(driver, concert):
             break
 
     # 마지막에 시트 전체 → DB 동기화
-    sync_seats_sheet_to_db()
-    print("[좌석] 시트 전체 → DB 동기화 완료")
+    # sync_seats_sheet_to_db()
+    # print("[좌석] 시트 전체 → DB 동기화 완료")
