@@ -8,6 +8,18 @@
         <!-- 페이지 제목 -->
         <h1 class="text-center mb-5">공연 관람 패턴 분석</h1>
 
+        {% if combination_counts %}
+        <div class="mt-5">
+            <h2>공연 조합별 관객 분포</h2>
+            <div class="card p-3">
+                <!-- 파이 차트를 표시할 캔버스 -->
+                <canvas id="combinationChart" style="max-width: 100%; max-height: 500px;"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted mt-5">공연 조합별 관객 데이터가 없습니다.</p>
+        {% endif %}
+
         <!-- 각 공연별 첫 공연 샌키 다이어그램 -->
         {% if all_concerts and filtered_common_nicknames %}
         {% for concert_name, sankey_data in filtered_common_nicknames.items %}
@@ -32,18 +44,6 @@
         </div>
         {% else %}
         <p class="text-muted mt-5">데이터가 없습니다.</p>
-        {% endif %}
-
-        {% if combination_counts %}
-        <div class="mt-5">
-            <h2>공연 조합별 관객 분포</h2>
-            <div class="card p-3">
-                <!-- 파이 차트를 표시할 캔버스 -->
-                <canvas id="combinationChart" style="max-width: 100%; max-height: 500px;"></canvas>
-            </div>
-        </div>
-        {% else %}
-        <p class="text-muted mt-5">공연 조합별 관객 데이터가 없습니다.</p>
         {% endif %}
 
         {% if common_nicknames %}
