@@ -24,7 +24,7 @@
         {% if all_concerts and filtered_common_nicknames %}
         {% for concert_name, sankey_data in filtered_common_nicknames.items %}
         <div class="mt-5">
-            <h2>{{ concert_name }}을 첫 공연으로 한 관람 패턴</h2>
+            <h2>{{ concert_name }}을 첫 공연으로 한 유저들의 관람 패턴</h2>
             <div class="card p-3">
                 <div id="sankeyChart_{{ forloop.counter }}" class="sankey-chart" style="width: 100%; height: 600px;"></div>
             </div>
