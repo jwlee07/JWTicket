@@ -87,152 +87,149 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // 공연 이름별 동적 색상 생성
-    const allConcertNames = [
-        {% for concert_name in all_concerts %}
-        '{{ concert_name }}',
-        {% endfor %}
-    ];
-
-    const concertColors = {};
-    allConcertNames.forEach((concert, index) => {
-        const hue = (index * 137.508) % 360;
-        concertColors[concert] = `hsl(${hue}, 60%, 80%)`;
-    });
-
-    function createSankeyData(data, colors) {
-        const nodeColors = data.node.label.map(label => colors[label] || '#cccccc');
-        data.node.color = nodeColors;
-        return data;
-    }
-
-    function applyLinkColors(sankeyData) {
-        const linkColors = sankeyData.link.source.map(sourceIndex => sankeyData.node.color[sourceIndex]);
-        sankeyData.link.color = linkColors;
-        return sankeyData;
-    }
-
-    // 공연별 샌키 다이어그램
-    {% if filtered_common_nicknames %}
-    {% for concert_name, sankey_data in filtered_common_nicknames.items %}
-    const sankeyData_{{ forloop.counter }} = applyLinkColors(createSankeyData({{ sankey_data|safe }}, concertColors));
+    document.addEventListener('DOMContentLoaded', function () {
+        // 공연 이름별 고유 색상 생성
+        const allConcertNames = [
+            {% for concert_name in all_concerts %}
+            '{{ concert_name }}',
+            {% endfor %}
+        ];
     
-    Plotly.react('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
-
-    window.addEventListener('resize', function () {
-        Plotly.Plots.resize('sankeyChart_{{ forloop.counter }}');
-    });
-    {% endfor %}
-    {% endif %}
-
-    // 모든 공연 샌키 다이어그램
-    {% if common_nicknames %}
-    const sankeyData = createSankeyData({
-        type: 'sankey',
-        orientation: 'h',
-        node: {
-            pad: 15,
-            thickness: 20,
-            line: { color: 'black', width: 0.5 },
-            label: [
-                {% for nickname, concerts in common_nicknames.items %}
-                    {% for concert in concerts %}
-                        '{{ concert.concert }}',
-                    {% endfor %}
-                {% endfor %}
-            ],
-        },
-        link: { source: [], target: [], value: [] },
-    }, concertColors);
-
-    const nodeIndex = {};
-    let index = 0;
-    for (const [nickname, concerts] of Object.entries({{ common_nicknames|safe }})) {
-        for (let i = 0; i < concerts.length - 1; i++) {
-            const source = concerts[i].concert;
-            const target = concerts[i + 1].concert;
-
-            if (!(source in nodeIndex)) nodeIndex[source] = index++;
-            if (!(target in nodeIndex)) nodeIndex[target] = index++;
-
-            sankeyData.link.source.push(nodeIndex[source]);
-            sankeyData.link.target.push(nodeIndex[target]);
-            sankeyData.link.value.push(1);
+        // 고유 색상을 모든 차트에서 공유
+        const concertColors = {};
+        const backgroundColors = []; // 파이 차트를 위한 색상
+        const borderColors = []; // 파이 차트의 테두리 색상
+    
+        allConcertNames.forEach((concert, index) => {
+            const hue = (index * 137.508) % 360; // 황금각 기반 색상 분산
+            const bgColor = `hsl(${hue}, 50%, 90%)`;
+            const bdColor = `hsl(${hue}, 50%, 70%)`;
+            concertColors[concert] = bgColor; // 샌키 다이어그램에서 사용할 색상
+            backgroundColors.push(bgColor); // 파이 차트의 배경색
+            borderColors.push(bdColor); // 파이 차트의 테두리 색상
+        });
+    
+        function createSankeyData(data, colors) {
+            const nodeColors = data.node.label.map(label => colors[label] || '#cccccc');
+            data.node.color = nodeColors;
+            return data;
         }
-    }
-
-    Plotly.react('sankeyChart', [sankeyData]);
-
-    window.addEventListener('resize', function () {
-        Plotly.Plots.resize('sankeyChart');
-    });
-    {% endif %}
-
-    {% if combination_counts %}
-    // 공연 조합별 관객 분포 차트
-    const ctxCombination = document.getElementById('combinationChart').getContext('2d');
     
-    const combinationLabels = [
-        {% for combo in combination_counts.keys %}
-            '{{ combo }}',
+        function applyLinkColors(sankeyData) {
+            const linkColors = sankeyData.link.source.map(sourceIndex => sankeyData.node.color[sourceIndex]);
+            sankeyData.link.color = linkColors;
+            return sankeyData;
+        }
+    
+        // 공연별 샌키 다이어그램
+        {% if filtered_common_nicknames %}
+        {% for concert_name, sankey_data in filtered_common_nicknames.items %}
+        const sankeyData_{{ forloop.counter }} = applyLinkColors(createSankeyData({{ sankey_data|safe }}, concertColors));
+        
+        Plotly.react('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
+    
+        window.addEventListener('resize', function () {
+            Plotly.Plots.resize('sankeyChart_{{ forloop.counter }}');
+        });
         {% endfor %}
-    ];
-    const combinationData = [
-        {% for count in combination_counts.values %}
-            {{ count }},
-        {% endfor %}
-    ];
-
-    const backgroundColors = [];
-    const borderColors = [];
-
-    for (let i = 0; i < combinationLabels.length; i++) {
-        const hue = (i * 137.508) % 360;
-        const bgColor = `hsl(${hue}, 50%, 90%)`;  
-        const bdColor = `hsl(${hue}, 50%, 70%)`;
-        backgroundColors.push(bgColor);
-        borderColors.push(bdColor);
-    }
-
-    const dataCombinationChart = {
-        labels: combinationLabels,
-        datasets: [{
-            data: combinationData,
-            backgroundColor: backgroundColors,
-            borderColor: borderColors,
-            borderWidth: 1
-        }]
-    };
-
-    const optionsCombinationChart = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top',
+        {% endif %}
+    
+        // 모든 공연 샌키 다이어그램
+        {% if common_nicknames %}
+        const sankeyData = createSankeyData({
+            type: 'sankey',
+            orientation: 'h',
+            node: {
+                pad: 15,
+                thickness: 20,
+                line: { color: 'black', width: 0.5 },
+                label: [
+                    {% for nickname, concerts in common_nicknames.items %}
+                        {% for concert in concerts %}
+                            '{{ concert.concert }}',
+                        {% endfor %}
+                    {% endfor %}
+                ],
             },
-            title: {
-                display: true,
-                text: '공연 조합별 관객 분포'
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const label = context.label || '';
-                        const value = context.raw || 0;
-                        return `${label}: ${value}명`;
+            link: { source: [], target: [], value: [] },
+        }, concertColors);
+    
+        const nodeIndex = {};
+        let index = 0;
+        for (const [nickname, concerts] of Object.entries({{ common_nicknames|safe }})) {
+            for (let i = 0; i < concerts.length - 1; i++) {
+                const source = concerts[i].concert;
+                const target = concerts[i + 1].concert;
+    
+                if (!(source in nodeIndex)) nodeIndex[source] = index++;
+                if (!(target in nodeIndex)) nodeIndex[target] = index++;
+    
+                sankeyData.link.source.push(nodeIndex[source]);
+                sankeyData.link.target.push(nodeIndex[target]);
+                sankeyData.link.value.push(1);
+            }
+        }
+    
+        Plotly.react('sankeyChart', [sankeyData]);
+    
+        window.addEventListener('resize', function () {
+            Plotly.Plots.resize('sankeyChart');
+        });
+        {% endif %}
+    
+        {% if combination_counts %}
+        // 공연 조합별 관객 분포 차트
+        const ctxCombination = document.getElementById('combinationChart').getContext('2d');
+    
+        const combinationLabels = [
+            {% for combo in combination_counts.keys %}
+                '{{ combo }}',
+            {% endfor %}
+        ];
+        const combinationData = [
+            {% for count in combination_counts.values %}
+                {{ count }},
+            {% endfor %}
+        ];
+    
+        const dataCombinationChart = {
+            labels: combinationLabels,
+            datasets: [{
+                data: combinationData,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        };
+    
+        const optionsCombinationChart = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: '공연 조합별 관객 분포'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            return `${label}: ${value}명`;
+                        }
                     }
                 }
             }
-        }
-    };
-
-    new Chart(ctxCombination, {
-        type: 'pie',
-        data: dataCombinationChart,
-        options: optionsCombinationChart
-    });
-    {% endif %}
-});
+        };
+    
+        new Chart(ctxCombination, {
+            type: 'pie',
+            data: dataCombinationChart,
+            options: optionsCombinationChart
+        });
+        {% endif %}
+    });    
 </script>
 {% endblock scripts %}
