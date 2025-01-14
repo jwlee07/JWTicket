@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const concertColors = {};
     allConcertNames.forEach((concert, index) => {
-        const hue = (index * 137.508) % 360; // 황금각의 색상 분포
+        const hue = (index * 137.508) % 360;
         concertColors[concert] = `hsl(${hue}, 60%, 80%)`;
     });
 
@@ -107,10 +107,16 @@ document.addEventListener('DOMContentLoaded', function () {
         return data;
     }
 
+    function applyLinkColors(sankeyData) {
+        const linkColors = sankeyData.link.source.map(sourceIndex => sankeyData.node.color[sourceIndex]);
+        sankeyData.link.color = linkColors;
+        return sankeyData;
+    }
+
     // 공연별 샌키 다이어그램
     {% if filtered_common_nicknames %}
     {% for concert_name, sankey_data in filtered_common_nicknames.items %}
-    const sankeyData_{{ forloop.counter }} = createSankeyData({{ sankey_data|safe }}, concertColors);
+    const sankeyData_{{ forloop.counter }} = applyLinkColors(createSankeyData({{ sankey_data|safe }}, concertColors));
     
     Plotly.react('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
 
