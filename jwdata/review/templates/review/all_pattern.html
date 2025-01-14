@@ -125,6 +125,10 @@
         {% if filtered_common_nicknames %}
         {% for concert_name, sankey_data in filtered_common_nicknames.items %}
         const sankeyData_{{ forloop.counter }} = applyLinkColors(createSankeyData({{ sankey_data|safe }}, concertColors));
+
+        // 노드와 링크에 호버 텍스트 설정
+        sankeyData_{{ forloop.counter }}.node.hovertemplate = '%{label}<br>총 연결 수: %{value}<extra></extra>';
+        sankeyData_{{ forloop.counter }}.link.hovertemplate = '출발: %{source.label}<br>도착: %{target.label}<extra></extra>';
         
         Plotly.react('sankeyChart_{{ forloop.counter }}', [sankeyData_{{ forloop.counter }}]);
     
@@ -169,6 +173,10 @@
                 sankeyData.link.value.push(1);
             }
         }
+
+        // 노드와 링크에 호버 텍스트 설정
+        sankeyData.node.hovertemplate = '%{label}<br>총 연결 수: %{value}<extra></extra>';
+        sankeyData.link.hovertemplate = '출발: %{source.label}<br>도착: %{target.label}<extra></extra>';
     
         Plotly.react('sankeyChart', [sankeyData]);
     
