@@ -443,7 +443,7 @@ def analyze_all_seats(request):
     )
 
     # 모든 공연 이름 리스트
-    all_concerts = Concert.objects.values_list('name', flat=True).distinct()
+    all_concerts = Concert.objects.values_list('name', flat=True).distinct().order_by('name')
 
     # 모든 회차 정보에서 중복 제거한 회차 목록
     unique_rounds = list(

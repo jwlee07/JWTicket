@@ -20,7 +20,7 @@
 
         <h5 class="mt-4">공연 목록</h5>
         <div id="concert-buttons" class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
-            {% for concert in concerts %}
+            {% for concert in concerts|dictsort:"name" %}
             <button 
                 class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
                 data-concert-id="{{ concert.id }}" 
@@ -89,11 +89,11 @@
 
         <!-- 공연 상세 정보 영역 -->
         {% if concerts %}
-            {% for concert in concerts %}
+            {% for concert in concerts|dictsort:"name" %}
             <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="{% if concert.id|stringformat:"s" != active_concert_id %}display: none;{% endif %}">
                 <h3 class="mb-4">{{ concert.name }}</h3>
                 <div class="mb-3"><strong>장소:</strong> {{ concert.place }}</div>
-                <div class="mb-3"><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</div>
+                {% comment %} <div class="mb-3"><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</div> {% endcomment %}
                 <div class="mb-3"><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</div>
                 <div class="mb-3"><strong>리뷰 수:</strong> {{ concert.reviews.count }}</div>
 

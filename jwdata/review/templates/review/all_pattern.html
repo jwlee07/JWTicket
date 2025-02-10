@@ -149,7 +149,7 @@
                 line: { color: 'black', width: 0.5 },
                 label: [
                     {% for nickname, concerts in common_nicknames.items %}
-                        {% for concert in concerts %}
+                        {% for concert in concerts|dictsort:"name" %}
                             '{{ concert.concert }}',
                         {% endfor %}
                     {% endfor %}

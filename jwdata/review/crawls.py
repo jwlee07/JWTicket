@@ -49,7 +49,8 @@ def crawl_concert_info(driver):
     print(f"[공연 정보][날짜 처리] 시작일: {start_date}, 종료일: {end_date}")
 
     # DB 저장 (중복 체크)
-    concert_qs = Concert.objects.filter(name=name, place=place, start_date=start_date)
+    # concert_qs = Concert.objects.filter(name=name, place=place, start_date=start_date)
+    concert_qs = Concert.objects.filter(name=name, place=place) # 시작날짜 체크 제거
 
     if concert_qs.exists():
         concert = concert_qs.first()
