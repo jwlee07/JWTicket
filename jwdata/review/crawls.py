@@ -50,7 +50,7 @@ def crawl_concert_info(driver):
 
     # DB 저장 (중복 체크)
     # concert_qs = Concert.objects.filter(name=name, place=place, start_date=start_date)
-    concert_qs = Concert.objects.filter(name=name, place=place) # 시작날짜 체크 제거
+    concert_qs = Concert.objects.filter(name=name)
 
     if concert_qs.exists():
         concert = concert_qs.first()
