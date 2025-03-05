@@ -11,7 +11,6 @@ import time
 from .models import Concert, Review, Seat
 
 def crawl_concert_info(driver):
-    # 공연 정보 파싱
     name = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[1]/h2').text
     place = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[1]/div/div/a').text
     date_text = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[2]/div/p').text
@@ -25,10 +24,10 @@ def crawl_concert_info(driver):
     if concert_qs.exists():
         concert = concert_qs.first()
         print(f"[공연 정보][DB 저장] 기존 Concert: {concert}")
+        return concert
     else:
-        print(f"[공연 정보] 기존 정보 없음")
-
-    return concert
+        print("[공연 정보] 해당 공연명으로 DB에 정보가 없어 None 반환")
+        return None
 
 def crawl_concert_reviews(driver, concert):
     # 관람후기 탭 버튼 클릭

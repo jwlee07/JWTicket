@@ -48,135 +48,8 @@ from .sheets import (
     sync_seats_sheet_to_db,
 )
 
-def user_login(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)  
-
-        if user is not None:
-            login(request, user)
-            # messages.success(request, f"{username} 님, 반가워요!")
-            return redirect('search_and_crawl')  
-        else:
-            messages.error(request, "티켓스퀘어 PM 이진욱님에게 문의하세요:)")
-            return render(request, 'review/login.html')
-    else:
-        return render(request, 'review/login.html')
-
-def user_logout(request):
-    response = render(request, 'review/login.html')
-
-    logout(request)
-    request.session.flush()
-    for cookie in request.COOKIES:
-        response.delete_cookie(cookie)
-    
-    return response
-
-@login_required
-def search_and_crawl(request):
-    """
-    사용자가 입력한 검색어로 인터파크에서 공연 정보를 검색 후,
-    공연 정보/리뷰/좌석 데이터를 크롤링하는 뷰.
-    
-    GET 파라미터:
-    - active_concert_id: 현재 선택된 공연 ID (optional)
-    
-    POST 파라미터:
-    - query: 검색어
-    - search_type: 'review' 또는 'seat' (기본 'review')
-      * 'review' 선택 시 공연 정보 + 리뷰 크롤링
-      * 'seat' 선택 시 공연 정보 + 좌석 정보 크롤링
-    
-    최종적으로 'review/index.html' 템플릿 렌더링
-    """
-    concerts = Concert.objects.all()
-    active_concert_id = request.GET.get('active_concert_id')
-
-    if request.method == 'POST':
-        query = request.POST.get('query', '')
-        search_type = request.POST.get('search_type', 'review')
-
-        if query:
-            # 크롬 드라이버 실행
-            driver = webdriver.Chrome()
-            try:
-                # 인터파크 메인 페이지 진입
-                driver.get("https://tickets.interpark.com/")
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div'))
-                )
-                time.sleep(2)
-
-                # 검색창 클릭
-                search_box = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div')
-                search_box.click()
-                time.sleep(2)
-
-                # 검색어 입력 후 엔터
-                active_input = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div/input')
-                active_input.send_keys(query)
-                time.sleep(2)
-                active_input.send_keys(Keys.RETURN)
-
-                # 첫 번째 검색 결과 클릭 (음악/콘서트 검색 결과 영역 중 하나)
-                element = WebDriverWait(driver, 10).until(
-                    EC.any_of(
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[1]/div[2]/a[1]/ul')),
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[2]/div[2]/a[1]/ul'))
-                    )
-                )
-                element.click()
-                time.sleep(2)
-
-                # 새 창으로 전환(인터파크 상세 페이지)
-                driver.switch_to.window(driver.window_handles[1])
-                time.sleep(2)
-
-                # 예매 안내 팝업 닫기
-                try:
-                    popup_close_button = driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/button')
-                    driver.execute_script("arguments[0].click();", popup_close_button)
-                    time.sleep(2)
-                except NoSuchElementException:
-                    print("팝업 닫기 버튼 없음, 무시")
-
-                # 공연 정보 크롤링
-                concert = crawl_concert_info(driver)
-                print(f"[공연 정보 크롤링 완료] 공연명: {concert.name}")
-
-                # 검색 타입에 따른 크롤링 로직 분기
-                if search_type == 'review':
-                    print(f"[리뷰 크롤링 시작] 공연명: {concert.name}")
-                    crawl_concert_reviews(driver, concert)
-                    print(f"[리뷰 크롤링 완료] 공연명: {concert.name}")
-                elif search_type == 'seat':
-                    print(f"[좌석 크롤링 시작] 공연명: {concert.name}")
-                    crawl_concert_seats(driver, concert)
-                    print(f"[좌석 크롤링 완료] 공연명: {concert.name}")
-
-            finally:
-                driver.quit()
-
-    return render(request, 'review/index.html', { 'concerts': concerts, 'active_concert_id': active_concert_id, })
-
 @login_required
 def analyze_reviews(request, concert_id, analysis_type):
-    """
-    특정 공연(concert_id)의 리뷰를 다양한 관점에서 분석하는 뷰.
-    
-    analysis_type에 따라 다른 분석 로직 수행:
-    - long_reviews: 길이가 긴 리뷰
-    - frequent_reviewers: 여러 번 리뷰를 남긴 리뷰어
-    - frequent_words: 단일 단어 빈도 분석
-    - frequent_words_mix: 단어 조합 빈도 분석
-    - frequent_words_important: TF-IDF 기반 중요도 높은 단어/단어 조합
-    - similar_reviews: KMeans 클러스터링으로 유사한 리뷰 그룹 분석
-    - top_view_count_reviews: 조회수가 높은 리뷰
-    - low_star_rating_reviews: 별점 3점 이하 리뷰
-    """
     # 길게 남긴 리뷰 (공연 ID 필터링 및 내용 길이 기준 정렬)
     if analysis_type == 'long_reviews':
         data = (Review.objects.filter(concert_id=concert_id)
@@ -297,17 +170,6 @@ def analyze_reviews(request, concert_id, analysis_type):
 
 @login_required
 def analyze_all_reviews(request):
-    """
-    모든 공연에 대한 리뷰 종합 분석 뷰.
-    
-    - 기간 필터링(start_date, end_date)
-    - 공연별 요약 정보(평균 평점, 리뷰 수)
-    - 날짜별 리뷰 수, 날짜별 평균 평점
-    - 닉네임별 관람 패턴(여러 공연 관람한 닉네임 등)
-    - 리뷰 상세 데이터
-    
-    최종적으로 'review/all_reviews.html' 템플릿에 렌더링.
-    """
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
@@ -404,11 +266,6 @@ def analyze_all_reviews(request):
 
 @login_required
 def analyze_all_seats(request):
-    """
-    모든 공연에 대한 좌석 데이터 종합 분석 뷰.
-    - 공연명으로 필터링 가능
-    - 해당 좌석 정보를 'review/all_seats.html'에 렌더링
-    """
     # GET 요청에서 필터 값 가져오기
     selected_concert = request.GET.get('concert')
 
@@ -459,12 +316,6 @@ def analyze_all_seats(request):
 
 @login_required
 def analyze_all_pattern(request):
-    """
-    모든 공연에 대한 관람 패턴 분석 뷰.
-    - 공연 조합별 관객 분포
-    - 닉네임 별 관람 패턴
-    - 패턴 정보 'patterns' 시트에도 저장 (optional)
-    """
     reviews = Review.objects.all().select_related('concert')
     
     # 닉네임별 (공연__name) 정보 수집
@@ -574,14 +425,13 @@ def analyze_all_pattern(request):
         'common_nicknames': sorted_common_nicknames,
         'combination_counts': combination_counts_dict,
     })
+    
+# ==================================================================
+# DB <-> Google Sheet 데이터 동기화
+# ==================================================================
 
 @login_required
 def sync_all_db_to_sheet(request):
-    """
-    1) DB에 있는 Concert / Review / Seat 데이터를 스프레드시트 각 시트에 없는 pk만 추가한다.
-    2) 이미 스프레드시트에 pk가 있으면 아무 작업도 안 함.
-    3) 수행 결과를 문자열 형태로 누적하여 반환
-    """
     logs = []
 
     # 1) Concert 동기화
@@ -604,12 +454,6 @@ def sync_all_db_to_sheet(request):
 
 @login_required
 def sync_all_sheet_to_db(request):
-    """
-    1) 구글 스프레드시트 concerts / reviews / seats 시트를 모두 읽어온 뒤
-    2) DB에 없는 pk만 새로 insert한다.
-    3) 이미 DB에 pk가 존재하면 스킵.
-    4) 수행 결과를 문자열 형태로 누적하여 반환
-    """
     logs = []
 
     sync_concert_sheet_to_db()
@@ -628,16 +472,127 @@ def sync_all_sheet_to_db(request):
     return HttpResponse(response_text, content_type="text/plain")
 
 # ==================================================================
+# 크롤링
+# ==================================================================
+
+@login_required
+def search_and_crawl(request):
+    concerts = Concert.objects.all()
+    active_concert_id = request.GET.get('active_concert_id')
+
+    if request.method == 'POST':
+        query = request.POST.get('query', '')
+        search_type = request.POST.get('search_type', 'review')
+
+        if query:
+            # 크롬 드라이버 실행
+            driver = webdriver.Chrome()
+            try:
+                # 인터파크 메인 페이지 진입
+                driver.get("https://tickets.interpark.com/")
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div'))
+                )
+                time.sleep(2)
+
+                # 검색창 클릭
+                search_box = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div')
+                search_box.click()
+                time.sleep(2)
+
+                # 검색어 입력 후 엔터
+                active_input = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div/input')
+                active_input.send_keys(query)
+                time.sleep(2)
+                active_input.send_keys(Keys.RETURN)
+
+                # 첫 번째 검색 결과 클릭
+                element = WebDriverWait(driver, 10).until(
+                    EC.any_of(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[1]/div[2]/a[1]/ul')),
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[2]/div[2]/a[1]/ul'))
+                    )
+                )
+                element.click()
+                time.sleep(2)
+
+                # 새 창으로 전환(인터파크 상세 페이지)
+                driver.switch_to.window(driver.window_handles[1])
+                time.sleep(2)
+
+                # 예매 안내 팝업 닫기
+                try:
+                    popup_close_button = driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/button')
+                    driver.execute_script("arguments[0].click();", popup_close_button)
+                    time.sleep(2)
+                except NoSuchElementException:
+                    print("팝업 닫기 버튼 없음, 무시")
+
+                # 공연 정보 크롤링
+                concert = crawl_concert_info(driver)
+                if not concert:
+                    print(f"[WARN] '{query}' 검색 결과와 매칭되는 DB 공연 정보가 없어 크롤링 스킵")
+                    return render(request, 'review/index.html', {
+                        'concerts': concerts,
+                        'active_concert_id': active_concert_id,
+                    })
+
+                print(f"[공연 정보 크롤링 완료] 공연명: {concert.name}")
+
+                # 검색 타입에 따른 크롤링 로직 분기
+                if search_type == 'review':
+                    print(f"[리뷰 크롤링 시작] 공연명: {concert.name}")
+                    crawl_concert_reviews(driver, concert)
+                    print(f"[리뷰 크롤링 완료] 공연명: {concert.name}")
+                elif search_type == 'seat':
+                    print(f"[좌석 크롤링 시작] 공연명: {concert.name}")
+                    crawl_concert_seats(driver, concert)
+                    print(f"[좌석 크롤링 완료] 공연명: {concert.name}")
+
+            finally:
+                driver.quit()
+
+    return render(request, 'review/index.html', {
+        'concerts': concerts,
+        'active_concert_id': active_concert_id,
+    })
+
+# ==================================================================
+# 로그인
+# ==================================================================
+
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)  
+
+        if user is not None:
+            login(request, user)
+            # messages.success(request, f"{username} 님, 반가워요!")
+            return redirect('search_and_crawl')  
+        else:
+            messages.error(request, "티켓스퀘어 PM 이진욱님에게 문의하세요:)")
+            return render(request, 'review/login.html')
+    else:
+        return render(request, 'review/login.html')
+
+def user_logout(request):
+    response = render(request, 'review/login.html')
+
+    logout(request)
+    request.session.flush()
+    for cookie in request.COOKIES:
+        response.delete_cookie(cookie)
+    
+    return response
+
+# ==================================================================
 # 텍스트 전처리 함수
 # ==================================================================
 
 def clean_text(text):
-    """
-    리뷰 텍스트를 정제하는 함수.
-    - 한글, 영문, 숫자만 남기고 나머지 제거
-    - 다중 공백을 하나의 공백으로 치환
-    - 앞뒤 공백 제거
-    """
     cleaned = re.sub(r'[^가-힣a-zA-Z0-9\s]', '', text)
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
     return cleaned

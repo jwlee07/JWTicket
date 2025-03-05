@@ -108,6 +108,15 @@ def crawl_all_concerts_reviews():
             crawled_concert = crawl_concert_info(driver)
             log(f"[INFO] 공연 정보 크롤링 완료: {crawled_concert}")
 
+            # crawled_concert가 None인 경우 이후 리뷰 크롤링 스킵
+            if not crawled_concert:
+                log(f"[WARN] '{concert_name}' 공연 정보가 없으므로 리뷰 크롤링 스킵")
+                # 상세 페이지 닫고 다음 공연으로 이동
+                driver.close()
+                driver.switch_to.window(driver.window_handles[0])
+                time.sleep(2)
+                continue
+
             # 리뷰 크롤링
             crawl_concert_reviews(driver, crawled_concert)
             log("[INFO] 리뷰 크롤링 완료")
@@ -121,7 +130,6 @@ def crawl_all_concerts_reviews():
     finally:
         driver.quit()
         log("[crawl_all_concerts_reviews] 종료")
-
 
 def crawl_all_concerts_seats():
     """
@@ -192,6 +200,15 @@ def crawl_all_concerts_seats():
             # 공연 정보 크롤링
             crawled_concert = crawl_concert_info(driver)
             log(f"[INFO] 공연 정보 크롤링 완료: {crawled_concert}")
+
+            # crawled_concert가 None인 경우 이후 좌석 크롤링 스킵
+            if not crawled_concert:
+                log(f"[WARN] '{concert_name}' 공연 정보가 없으므로 좌석 크롤링 스킵")
+                # 상세 페이지 닫고 다음 공연으로 이동
+                driver.close()
+                driver.switch_to.window(driver.window_handles[0])
+                time.sleep(2)
+                continue
 
             # 좌석 크롤링
             crawl_concert_seats(driver, crawled_concert)
