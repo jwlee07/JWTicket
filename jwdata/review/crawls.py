@@ -10,21 +10,7 @@ import time
 
 from .models import Concert, Review, Seat
 
-from .sheets import (
-    create_or_update_concert_in_sheet,
-    create_or_update_review_in_sheet,
-    create_or_update_seat_in_sheet,
-    sync_concert_sheet_to_db,
-    sync_reviews_sheet_to_db,
-    sync_seats_sheet_to_db
-)
-
 def crawl_concert_info(driver):
-    """
-    1) DB에 (name, place, start_date) 없으면 Concert 생성
-    2) create_or_update_concert_in_sheet(concert)로 시트에 반영
-    3) 마지막에 sync_concert_sheet_to_db()로 시트→DB
-    """
     # 공연 정보 파싱
     name = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[1]/h2').text
     place = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[1]/div/div/a').text
@@ -33,54 +19,18 @@ def crawl_concert_info(driver):
 
     print(f"[공연 정보] 공연명: {name}, 장소: {place}, 기간: {date_text}, 시간: {duration_text}")
 
-    # 날짜 처리
-    try:
-        if '~' in date_text:
-            start_str, end_str = date_text.split('~')
-            start_date = datetime.strptime(start_str.strip(), "%Y.%m.%d").date()
-            end_date = datetime.strptime(end_str.strip(), "%Y.%m.%d").date()
-        else:
-            start_date = datetime.strptime(date_text.strip(), "%Y.%m.%d").date()
-            end_date = start_date
-    except ValueError:
-        start_date = None
-        end_date = None
-
-    print(f"[공연 정보][날짜 처리] 시작일: {start_date}, 종료일: {end_date}")
-
     # DB 저장 (중복 체크)
-    # concert_qs = Concert.objects.filter(name=name, place=place, start_date=start_date)
     concert_qs = Concert.objects.filter(name=name)
 
     if concert_qs.exists():
         concert = concert_qs.first()
         print(f"[공연 정보][DB 저장] 기존 Concert: {concert}")
     else:
-        concert = Concert.objects.create(
-            name=name,
-            place=place,
-            start_date=start_date,
-            end_date=end_date,
-            duration_minutes=int(duration_text) if duration_text.isdigit() else None
-        )
-        print(f"[공연 정보][DB 저장] 새 Concert: {concert}")
-
-    # 시트에 없으면 append / 있으면 update
-    # create_or_update_concert_in_sheet(concert)
-
-    # 시트 전체→DB (pk 기준으로 없는 것만 insert)
-    # sync_concert_sheet_to_db()
+        print(f"[공연 정보] 기존 정보 없음")
 
     return concert
 
 def crawl_concert_reviews(driver, concert):
-    """
-    1) 리뷰 크롤링
-    2) DB에 중복 없으면 저장
-    3) 시트에 없으면 append / 있으면 update
-    4) 끝나면 sync_reviews_sheet_to_db()로 시트→DB 동기화
-    """
-
     # 관람후기 탭 버튼 클릭
     concert_type = None
 
@@ -165,9 +115,6 @@ def crawl_concert_reviews(driver, concert):
                     )
                     print(f"[리뷰][DB 저장] Review: {new_review}")
 
-                    # create_or_update_review_in_sheet(new_review)
-                    # print(f"[리뷰][시트 저장] Review: {new_review}")
-
             except Exception as e:
                 print(f"[리뷰] 처리 중 오류 발생: {e}")
 
@@ -201,16 +148,7 @@ def crawl_concert_reviews(driver, concert):
                 print(f"[리뷰] 페이지 이동 오류: {e}")
                 break
 
-    # sync_reviews_sheet_to_db()
-    # print("[리뷰] 시트 전체 → DB 동기화 완료")
-
 def crawl_concert_seats(driver, concert):
-    """
-    1) 좌석 정보 크롤링
-    2) DB에 저장
-    3) 시트에 저장
-    4) 마지막에 시트 전체 → DB 동기화
-    """
     while True:
         current_month = driver.find_element(By.XPATH, '//li[@data-view="month current"]').text
         print(f"[좌석] 현재 달: {current_month}")
@@ -291,10 +229,6 @@ def crawl_concert_seats(driver, concert):
                     )
                     print(f"[좌석][DB 저장] {new_seat}")
 
-                    # 시트에 저장
-                    # create_or_update_seat_in_sheet(new_seat)
-                    # print(f"[좌석][시트 저장] {new_seat}")
-
             # 날짜 처리 후 뒤로가기
             driver.back()
             time.sleep(2)
@@ -307,7 +241,3 @@ def crawl_concert_seats(driver, concert):
         except NoSuchElementException:
             print("[좌석] 더 이상 다음 달 없음 -> 종료")
             break
-
-    # 마지막에 시트 전체 → DB 동기화
-    # sync_seats_sheet_to_db()
-    # print("[좌석] 시트 전체 → DB 동기화 완료")
