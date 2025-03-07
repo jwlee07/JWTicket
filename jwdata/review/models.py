@@ -8,6 +8,7 @@ class Concert(models.Model):
     start_date = models.DateField(verbose_name="공연 시작일")
     end_date = models.DateField(verbose_name="공연 종료일")
     duration_minutes = models.IntegerField(verbose_name="공연 시간(분)", null=True, blank=True)
+    genre = models.CharField(max_length=100, verbose_name="공연 장르", null=True, blank=True)
 
     class Meta:
         verbose_name = "공연 정보"

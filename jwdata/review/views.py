@@ -49,6 +49,12 @@ from .sheets import (
 )
 
 @login_required
+def review_home(request):
+    concert = Concert.objects.all()
+    reviews = Review.objects.all()
+    return render(request, 'review/review_home.html', {'concert': concert, 'reviews': reviews})
+
+@login_required
 def analyze_reviews(request, concert_id, analysis_type):
     # 길게 남긴 리뷰 (공연 ID 필터링 및 내용 길이 기준 정렬)
     if analysis_type == 'long_reviews':

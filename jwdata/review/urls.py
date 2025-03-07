@@ -5,11 +5,14 @@ urlpatterns = [
     # 로그인
     path('login/', views.user_login, name='user_login'),
 
-    # 검색 및 크롤링
-    path('', views.search_and_crawl, name='search_and_crawl'),
-
     # 로그아웃
     path('', views.user_logout, name='user_logout'),
+
+    # 메인 화면
+    path('', views.search_and_crawl, name='search_and_crawl'),
+
+    # 홈 화면 -> 완성 후 ''로 변경
+    path('home', views.review_home, name='review_home'),
 
     # 특정 공연에 대한 리뷰 분석
     path('analyze/<int:concert_id>/<str:analysis_type>/', views.analyze_reviews, name='analyze_reviews'),
