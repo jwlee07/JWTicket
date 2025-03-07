@@ -101,6 +101,7 @@ def create_or_update_concert_in_sheet(concert: Concert):
         str(concert.start_date) if concert.start_date else "",
         str(concert.end_date) if concert.end_date else "",
         str(concert.duration_minutes) if concert.duration_minutes else "",
+        str(concert.genre) if concert.genre else "",
     ]
     print(f"[concerts 시트] id={concert.pk} 찾기 결과: {found}")
 
@@ -135,7 +136,8 @@ def sync_concert_sheet_to_db():
             place=row.get("place") or "",
             start_date=row.get("start_date") or None,
             end_date=row.get("end_date") or None,
-            duration_minutes=row.get("duration_minutes") or None
+            duration_minutes=row.get("duration_minutes") or None,
+            genre=row.get("genre") or None,
         )
         print(f"[DB] Concert pk={pk} 새로 저장")
 
@@ -160,6 +162,7 @@ def sync_db_concerts_to_sheet():
                 str(concert.start_date) if concert.start_date else "",
                 str(concert.end_date) if concert.end_date else "",
                 str(concert.duration_minutes) if concert.duration_minutes else "",
+                str(concert.genre) if concert.genre else "",
             ]
             batch_data.append(row_data)
 

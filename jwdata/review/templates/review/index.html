@@ -95,6 +95,7 @@
                 <div class="mb-3"><strong>장소:</strong> {{ concert.place }}</div>
                 {% comment %} <div class="mb-3"><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</div> {% endcomment %}
                 <div class="mb-3"><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</div>
+                <div class="mb-3"><strong>장르:</strong> {{ concert.genre}}</div>
                 <div class="mb-3"><strong>리뷰 수:</strong> {{ concert.reviews.count }}</div>
 
                 <h4 class="mt-5 mb-3">리뷰 분석</h4>
