@@ -10,21 +10,7 @@ import time
 
 from .models import Concert, Review, Seat
 
-from .sheets import (
-    create_or_update_concert_in_sheet,
-    create_or_update_review_in_sheet,
-    create_or_update_seat_in_sheet,
-    sync_concert_sheet_to_db,
-    sync_reviews_sheet_to_db,
-    sync_seats_sheet_to_db
-)
-
 def crawl_concert_info(driver):
-    """
-    1) DB에 (name, place, start_date) 없으면 Concert 생성
-    2) create_or_update_concert_in_sheet(concert)로 시트에 반영
-    3) 마지막에 sync_concert_sheet_to_db()로 시트→DB
-    """
     # 공연 정보 파싱
     name = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[1]/h2').text
     place = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[1]/div/div/a').text
@@ -49,27 +35,14 @@ def crawl_concert_info(driver):
     print(f"[공연 정보][날짜 처리] 시작일: {start_date}, 종료일: {end_date}")
 
     # DB 저장 (중복 체크)
-    # concert_qs = Concert.objects.filter(name=name, place=place, start_date=start_date)
     concert_qs = Concert.objects.filter(name=name)
 
     if concert_qs.exists():
         concert = concert_qs.first()
         print(f"[공연 정보][DB 저장] 기존 Concert: {concert}")
     else:
-        concert = Concert.objects.create(
-            name=name,
-            place=place,
-            start_date=start_date,
-            end_date=end_date,
-            duration_minutes=int(duration_text) if duration_text.isdigit() else None
-        )
-        print(f"[공연 정보][DB 저장] 새 Concert: {concert}")
-
-    # 시트에 없으면 append / 있으면 update
-    # create_or_update_concert_in_sheet(concert)
-
-    # 시트 전체→DB (pk 기준으로 없는 것만 insert)
-    # sync_concert_sheet_to_db()
+        print(f"[공연 정보][DB 저장] 해당 공연이 존재하지 않아 Concert를 생성하지 않고 None을 반환합니다.")
+        return None
 
     return concert
 
