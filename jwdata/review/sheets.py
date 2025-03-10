@@ -241,6 +241,7 @@ def create_or_update_review_in_sheet(review: Review):
         review.title or "",
         review.description or "",
         str(review.star_rating) if review.star_rating is not None else "",
+        review.emotion or "",
     ]
 
     if found is None:
@@ -275,7 +276,7 @@ def sync_reviews_sheet_to_db():
             like_count=row.get("like_count") or 0,
             title=row.get("title") or "",
             description=row.get("description") or "",
-            star_rating=row.get("star_rating") or None
+            star_rating=row.get("star_rating") or None,
         )
         print(f"[DB] Review pk={pk} 새로 저장")
 
@@ -303,6 +304,7 @@ def sync_db_reviews_to_sheet():
                 r.title or "",
                 r.description or "",
                 str(r.star_rating) if r.star_rating is not None else "",
+                r.emotion or "",
             ]
             batch_data.append(row_data)
 

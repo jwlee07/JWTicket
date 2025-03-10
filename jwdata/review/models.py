@@ -28,6 +28,7 @@ class Review(models.Model):
     title = models.CharField(max_length=255, verbose_name="리뷰 제목")
     description = models.TextField(verbose_name="리뷰 내용", null=True, blank=True)
     star_rating = models.FloatField(verbose_name="리뷰 별점", null=True, blank=True)
+    emotion = models.CharField(max_length=100, verbose_name="리뷰 감정", null=True, blank=True)
 
     class Meta:
         verbose_name = "리뷰"
