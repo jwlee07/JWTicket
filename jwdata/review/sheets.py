@@ -1,9 +1,8 @@
 import gspread
+from django.conf import settings
 from oauth2client.service_account import ServiceAccountCredentials
 
 from .models import Concert, Review, Seat
-
-GOOGLE_SHEET_KEY = "1eEZ6wB2UyeJXbDjH0g2FlIXFUazP0QztjmBGyTs_NTs"  # 스프레드시트 키
 
 def get_gspread_client():
     """
@@ -24,7 +23,7 @@ def open_ts_ticket_sheet():
     "티켓스퀘어" 관련 구글 스프레드시트(위 KEY) 열기
     """
     client = get_gspread_client()
-    spreadsheet = client.open_by_key(GOOGLE_SHEET_KEY)
+    spreadsheet = client.open_by_key(settings.GOOGLE_SHEET_KEY)
     print(f"[구글 스프레드시트] {spreadsheet.title} 열기")
     return spreadsheet
 
