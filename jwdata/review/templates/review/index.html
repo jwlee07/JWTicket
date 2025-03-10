@@ -22,7 +22,7 @@
         <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
             {% for concert in concerts|dictsort:"name" %}
                 {% if concert.genre == '연극' %}
-                    <button 
+                    <button
                         class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
                         data-concert-id="{{ concert.id }}" 
                         onclick="showConcert('{{ concert.id }}')">
@@ -36,7 +36,7 @@
         <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
             {% for concert in concerts|dictsort:"name" %}
                 {% if concert.genre == '뮤지컬' %}
-                    <button 
+                    <button
                         class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
                         data-concert-id="{{ concert.id }}" 
                         onclick="showConcert('{{ concert.id }}')">
@@ -50,7 +50,7 @@
         <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
             {% for concert in concerts|dictsort:"name" %}
                 {% if concert.genre == '콘서트' %}
-                    <button 
+                    <button
                         class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
                         data-concert-id="{{ concert.id }}" 
                         onclick="showConcert('{{ concert.id }}')">
@@ -64,32 +64,66 @@
         {% endif %}
     </nav>
 
-    <!-- 메인 컨텐츠 영역 -->
     <div class="flex-grow-1 p-3">
+        <div class="mt-4">
+            <h3>평균 평점과 총 리뷰 수</h3>
+            <table class="table table-bordered table-hover mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>장르</th>
+                        <th>평균 평점</th>
+                        <th>총 리뷰 수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>전체</td>
+                        <td>{{ avg_all|floatformat:1|default:"0.0" }}/10</td>
+                        <td>{{ count_all|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td>연극</td>
+                        <td>{{ avg_play|floatformat:1|default:"0.0" }}/10</td>
+                        <td>{{ count_play|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td>뮤지컬</td>
+                        <td>{{ avg_musical|floatformat:1|default:"0.0" }}/10</td>
+                        <td>{{ count_musical|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td>콘서트</td>
+                        <td>{{ avg_concert|floatformat:1|default:"0.0" }}/10</td>
+                        <td>{{ count_concert|default:"0" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>리뷰 요약</h3>
         <div class="row">
-            <!-- 전체 -->
-            <div class="col-md-4 mb-4">
+            <div class="col-md-6 mb-6">
                 {% if img_all %}
                     <h5>전체</h5>
                     <img src="data:image/png;base64,{{ img_all }}" 
                         alt="공연 전체 워드클라우드" 
                         class="img-fluid" 
-                        style="max-height: 400px;">
+                        style="max-height: 600px;">
                 {% else %}
                     <p>공연 전체 리뷰 데이터가 부족하거나 없습니다.</p>
                 {% endif %}
             </div>
         </div>
 
+        <!-- 워드클라우드 (연극) -->
         <div class="row">
-            <!-- 연극 -->
-            <div class="col-md-4 mb-4">
+            <div class="col-md-6 mb-6">
                 {% if img_play %}
                     <h5>연극</h5>
                     <img src="data:image/png;base64,{{ img_play }}" 
                         alt="연극 리뷰 워드클라우드" 
                         class="img-fluid" 
-                        style="max-height: 400px;">
+                        style="max-height: 600px;">
                 {% else %}
                     <p>연극 리뷰 데이터가 부족하거나 없습니다.</p>
                 {% endif %}
@@ -97,14 +131,13 @@
         </div>
 
         <div class="row">
-            <!-- 뮤지컬 -->
-            <div class="col-md-4 mb-4">
+            <div class="col-md-6 mb-6">
                 {% if img_musical %}
                     <h5>뮤지컬</h5>
                     <img src="data:image/png;base64,{{ img_musical }}" 
                         alt="뮤지컬 리뷰 워드클라우드" 
                         class="img-fluid" 
-                        style="max-height: 400px;">
+                        style="max-height: 600px;">
                 {% else %}
                     <p>뮤지컬 리뷰 데이터가 부족하거나 없습니다.</p>
                 {% endif %}
@@ -112,21 +145,20 @@
         </div>
 
         <div class="row">
-            <!-- 콘서트 -->
-            <div class="col-md-4 mb-4">
+            <div class="col-md-6 mb-6">
                 {% if img_concert %}
                     <h5>콘서트</h5>
                     <img src="data:image/png;base64,{{ img_concert }}" 
                         alt="콘서트 리뷰 워드클라우드" 
                         class="img-fluid" 
-                        style="max-height: 400px;">
+                        style="max-height: 600px;">
                 {% else %}
                     <p>콘서트 리뷰 데이터가 부족하거나 없습니다.</p>
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
+    </div>  
+</div>      
 {% endblock content %}
 
 {% block scripts %}

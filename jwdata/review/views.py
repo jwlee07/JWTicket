@@ -56,19 +56,16 @@ from .sheets import (
 # Analysis
 # ==================================================================
 
+from django.db.models import Avg, Count
 
 @login_required
 def home(request):
     concerts = Concert.objects.all()
     active_concert_id = request.GET.get("active_concert_id")
 
-    # 전체
     all_reviews = Review.objects.all().values_list("description", flat=True)
-    # 연극
     play_reviews = Review.objects.filter(concert__genre="연극").values_list("description", flat=True)
-    # 뮤지컬
     musical_reviews = Review.objects.filter(concert__genre="뮤지컬").values_list("description", flat=True)
-    # 콘서트
     concert_reviews = Review.objects.filter(concert__genre="콘서트").values_list("description", flat=True)
 
     text_all = preprocess_text(all_reviews)
@@ -76,40 +73,47 @@ def home(request):
     text_musical = preprocess_text(musical_reviews)
     text_concert = preprocess_text(concert_reviews)
 
-    img_all = generate_wordcloud_image(
-        text_all, 
-        wc_width=800, 
-        wc_height=800, 
-        fig_width=8, 
-        fig_height=8
+    img_all = generate_wordcloud_image(text_all, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    img_play = generate_wordcloud_image(text_play, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    img_musical = generate_wordcloud_image(text_musical, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    img_concert = generate_wordcloud_image(text_concert, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+
+    overall_stats = Review.objects.aggregate(
+        avg_rating=Avg('star_rating'),
+        total_reviews=Count('id')
     )
 
-    img_play = generate_wordcloud_image(
-        text_play, 
-        wc_width=800, 
-        wc_height=800, 
-        fig_width=8, 
-        fig_height=8
-    )
+    avg_all = overall_stats['avg_rating'] * 2
+    count_all = comma_format(overall_stats['total_reviews'])
 
-    img_musical = generate_wordcloud_image(
-        text_musical, 
-        wc_width=800, 
-        wc_height=800, 
-        fig_width=8, 
-        fig_height=8
+    # 연극
+    play_stats = Review.objects.filter(concert__genre='연극').aggregate(
+        avg_rating=Avg('star_rating'),
+        total_reviews=Count('id')
     )
+    avg_play = play_stats['avg_rating'] * 2
+    count_play = comma_format(play_stats['total_reviews'])
 
-    img_concert = generate_wordcloud_image(
-        text_concert, 
-        wc_width=800, 
-        wc_height=800, 
-        fig_width=8, 
-        fig_height=8
+    # 뮤지컬
+    musical_stats = Review.objects.filter(concert__genre='뮤지컬').aggregate(
+        avg_rating=Avg('star_rating'),
+        total_reviews=Count('id')
     )
+    avg_musical = musical_stats['avg_rating'] * 2
+    count_musical = comma_format(musical_stats['total_reviews'])
 
+    # 콘서트
+    concert_stats = Review.objects.filter(concert__genre='콘서트').aggregate(
+        avg_rating=Avg('star_rating'),
+        total_reviews=Count('id')
+    )
+    avg_concert = concert_stats['avg_rating'] * 2
+    count_concert = comma_format(concert_stats['total_reviews'])
+
+    # 4) 템플릿에 전달
     return render(
-        request, "review/index.html",
+        request,
+        "review/index.html",
         {
             "concerts": concerts,
             "active_concert_id": active_concert_id,
@@ -117,9 +121,16 @@ def home(request):
             "img_play": img_play,
             "img_musical": img_musical,
             "img_concert": img_concert,
+            "avg_all": avg_all,
+            "count_all": count_all,
+            "avg_play": avg_play,
+            "count_play": count_play,
+            "avg_musical": avg_musical,
+            "count_musical": count_musical,
+            "avg_concert": avg_concert,
+            "count_concert": count_concert,
         },
     )
-
 
 @login_required
 def analyze_reviews(request, concert_id, analysis_type):
@@ -863,3 +874,8 @@ def preprocess_text(texts):
     # 추출된 모든 명사를 공백으로 join
     final_text = " ".join(all_nouns)
     return final_text
+
+def comma_format(num):
+    if not num:
+        return "0"
+    return f"{num:,}"
