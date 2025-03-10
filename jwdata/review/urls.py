@@ -11,6 +11,9 @@ urlpatterns = [
     # 로그아웃
     path('', views.user_logout, name='user_logout'),
 
+    # 홈
+    path('review_home', views.review_home, name='review_home'),
+
     # 특정 공연에 대한 리뷰 분석
     path('analyze/<int:concert_id>/<str:analysis_type>/', views.analyze_reviews, name='analyze_reviews'),
 
