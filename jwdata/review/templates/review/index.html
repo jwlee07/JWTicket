@@ -19,7 +19,7 @@
         </div>
 
         <h5 class="mt-4">연극</h5>
-        <div id="concert-buttons" class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
+        <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
             {% for concert in concerts|dictsort:"name" %}
                 {% if concert.genre == '연극' %}
                     <button 
@@ -31,8 +31,9 @@
                 {% endif %}
             {% endfor %}
         </div>
+
         <h5 class="mt-4">뮤지컬</h5>
-        <div id="concert-buttons" class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
+        <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
             {% for concert in concerts|dictsort:"name" %}
                 {% if concert.genre == '뮤지컬' %}
                     <button 
@@ -44,8 +45,9 @@
                 {% endif %}
             {% endfor %}
         </div>
+
         <h5 class="mt-4">콘서트</h5>
-        <div id="concert-buttons" class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
+        <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
             {% for concert in concerts|dictsort:"name" %}
                 {% if concert.genre == '콘서트' %}
                     <button 
@@ -63,213 +65,69 @@
     </nav>
 
     <!-- 메인 컨텐츠 영역 -->
-    <div class="flex-grow-1 p-4">
-        <!-- 상단 오른쪽 동기화 버튼 -->
-        <div class="mb-4 d-flex justify-content-end">
-            <!-- DB -> Google Sheet 버튼 -->
-            <button class="btn btn-dark me-2" id="syncDbToSheetBtn">
-                DB → Google Sheet
-            </button>
-            <!-- Google Sheet -> DB 버튼 -->
-            <button class="btn btn-dark me-2" id="syncSheetToDbBtn">
-                Google Sheet → DB
-            </button>
-            <!-- 로그아웃 버튼 -->
-            {% comment %} <button class="btn btn-danger" id="logoutBtn" type="button">
-                로그아웃
-            </button> {% endcomment %}
-        </div>
-
-        <!-- 공연 검색 폼 -->
-        <div class="card p-3 mb-4">
-            <h2 class="text-center mb-4">공연 검색</h2>
-            <form method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <span class="form-label d-block mb-2">검색 타입</span>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="search_type" id="search_type_concert" value="concert" checked>
-                        <label class="form-check-label" for="search_type_concert">공연 검색</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="search_type" id="search_type_review" value="review">
-                        <label class="form-check-label" for="search_type_review">리뷰 검색</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="search_type" id="search_type_seat" value="seat">
-                        <label class="form-check-label" for="search_type_seat">잔여 좌석 검색</label>
-                    </div>
-                </div>
-
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-9">
-                        <label for="query" class="form-label">검색어</label>
-                        <input type="text" class="form-control" id="query" name="query" placeholder="공연명을 입력하세요">
-                    </div>
-                    <div class="col-md-3 d-grid">
-                        <button type="submit" class="btn btn-dark">
-                            검색
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- 공연 상세 정보 영역 -->
-        {% if concerts %}
-            {% for concert in concerts|dictsort:"name" %}
-            <div id="concert-{{ concert.id }}" class="mt-4 concert-section" style="{% if concert.id|stringformat:"s" != active_concert_id %}display: none;{% endif %}">
-                <h3 class="mb-4">{{ concert.name }}</h3>
-                <div class="mb-3"><strong>장소:</strong> {{ concert.place }}</div>
-                {% comment %} <div class="mb-3"><strong>기간:</strong> {{ concert.start_date }} ~ {{ concert.end_date }}</div> {% endcomment %}
-                <div class="mb-3"><strong>공연 시간:</strong> {{ concert.duration_minutes|default:"-" }}분</div>
-                <div class="mb-3"><strong>장르:</strong> {{ concert.genre}}</div>
-                <div class="mb-3"><strong>리뷰 수:</strong> {{ concert.reviews.count }}</div>
-
-                <h4 class="mt-5 mb-3">리뷰 분석</h4>
-                <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'long_reviews' %}" class="btn btn-secondary w-100">길게 남긴 리뷰</a></div>
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_reviewers' %}" class="btn btn-secondary w-100">여러 번 남긴 관객</a></div>
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_words' %}" class="btn btn-secondary w-100">가장 많이 나온 단어</a></div>
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_words_mix' %}" class="btn btn-secondary w-100">가장 많이 나온 단어 조합</a></div>
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'frequent_words_important' %}" class="btn btn-secondary w-100">상대적 중요 단어 조합</a></div>
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'similar_reviews' %}" class="btn btn-secondary w-100">비슷한 리뷰</a></div>
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'top_view_count_reviews' %}" class="btn btn-secondary w-100">조회수 높은 리뷰</a></div>
-                    <div class="col"><a href="{% url 'analyze_reviews' concert.id 'low_star_rating_reviews' %}" class="btn btn-secondary w-100">평점 3점 이하 리뷰</a></div>
-                </div>
-
-                <h4 class="mb-3">리뷰 목록</h4>
-                {% if concert.reviews.exists %}
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th style="white-space: nowrap;">작성자</th>
-                                <th style="white-space: nowrap;">작성일</th>
-                                <th style="white-space: nowrap;">별점</th>
-                                <th>제목</th>
-                                <th>내용</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for review in concert.reviews.all|dictsortreversed:"date" %}
-                            <tr>
-                                <td style="white-space: nowrap;">{{ review.nickname }}</td>
-                                <td style="white-space: nowrap;">{{ review.date }}</td>
-                                <td style="white-space: nowrap;">{{ review.star_rating }}/5</td>
-                                <td>{{ review.title }}</td>
-                                <td>{{ review.description }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+    <div class="flex-grow-1 p-3">
+        <div class="row">
+            <!-- 전체 -->
+            <div class="col-md-4 mb-4">
+                {% if img_all %}
+                    <h5>전체</h5>
+                    <img src="data:image/png;base64,{{ img_all }}" 
+                        alt="공연 전체 워드클라우드" 
+                        class="img-fluid" 
+                        style="max-height: 400px;">
                 {% else %}
-                <p class="text-muted">리뷰가 없습니다.</p>
+                    <p>공연 전체 리뷰 데이터가 부족하거나 없습니다.</p>
                 {% endif %}
             </div>
-            {% endfor %}
-        {% endif %}
+        </div>
+
+        <div class="row">
+            <!-- 연극 -->
+            <div class="col-md-4 mb-4">
+                {% if img_play %}
+                    <h5>연극</h5>
+                    <img src="data:image/png;base64,{{ img_play }}" 
+                        alt="연극 리뷰 워드클라우드" 
+                        class="img-fluid" 
+                        style="max-height: 400px;">
+                {% else %}
+                    <p>연극 리뷰 데이터가 부족하거나 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 뮤지컬 -->
+            <div class="col-md-4 mb-4">
+                {% if img_musical %}
+                    <h5>뮤지컬</h5>
+                    <img src="data:image/png;base64,{{ img_musical }}" 
+                        alt="뮤지컬 리뷰 워드클라우드" 
+                        class="img-fluid" 
+                        style="max-height: 400px;">
+                {% else %}
+                    <p>뮤지컬 리뷰 데이터가 부족하거나 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 콘서트 -->
+            <div class="col-md-4 mb-4">
+                {% if img_concert %}
+                    <h5>콘서트</h5>
+                    <img src="data:image/png;base64,{{ img_concert }}" 
+                        alt="콘서트 리뷰 워드클라우드" 
+                        class="img-fluid" 
+                        style="max-height: 400px;">
+                {% else %}
+                    <p>콘서트 리뷰 데이터가 부족하거나 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock content %}
 
 {% block scripts %}
-<script>
-    // 공연 선택 시 해당 공연 정보 영역 노출
-    function showConcert(concertId) {
-        document.querySelectorAll('.concert-section').forEach(section => {
-            section.style.display = 'none';
-        });
-        document.getElementById(`concert-${concertId}`).style.display = 'block';
-
-        document.querySelectorAll('#concert-buttons button').forEach(button => {
-            button.classList.remove('active');
-        });
-        document.querySelector(`[data-concert-id="${concertId}"]`).classList.add('active');
-
-        const url = new URL(window.location.href);
-        url.searchParams.set('active_concert_id', concertId);
-        history.pushState({}, '', url);
-    }
-
-    // 사이드바 토글
-    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
-    const sidebar = document.getElementById('sidebar');
-
-    toggleSidebarBtn.addEventListener('click', () => {
-        if (sidebar.style.minWidth === '250px') {
-            sidebar.style.minWidth = '70px';
-            toggleSidebarBtn.textContent = '▶';
-            sidebar.querySelectorAll('h4, h5, p, a.btn, button[data-concert-id]').forEach(el => {
-                if (el !== toggleSidebarBtn) {
-                    el.classList.add('text-hide');
-                }
-            });
-        } else {
-            sidebar.style.minWidth = '250px';
-            toggleSidebarBtn.textContent = '◀';
-            sidebar.querySelectorAll('.text-hide').forEach(el => {
-                el.classList.remove('text-hide');
-            });
-        }
-    });
-
-    // ------------------------
-    // DB -> Google Sheet 동기화
-    // ------------------------
-    const syncDbToSheetBtn = document.getElementById('syncDbToSheetBtn');
-    syncDbToSheetBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        fetch("{% url 'sync_db_to_sheet' %}")
-            .then(response => response.text())
-            .then(data => {
-                alert(data);
-                console.log(data);
-            })
-            .catch(error => {
-                alert("동기화 중 오류가 발생했습니다.");
-                console.error(error);
-            });
-    });
-
-    // ------------------------
-    // Google Sheet -> DB 동기화
-    // ------------------------
-    const syncSheetToDbBtn = document.getElementById('syncSheetToDbBtn');
-    syncSheetToDbBtn.addEventListener('click', (event) => {
-        event.preventDefault();
-        fetch("{% url 'sync_sheet_to_db' %}")
-            .then(response => response.text())
-            .then(data => {
-                alert(data);
-                console.log(data);
-            })
-            .catch(error => {
-                alert("동기화 중 오류가 발생했습니다.");
-                console.error(error);
-            });
-    });
-    // ------------------------
-    // 로그아웃
-    // ------------------------
-    const logoutBtn = document.getElementById('logoutBtn');
-    logoutBtn.addEventListener('click', () => {
-        fetch("{% url 'user_logout' %}")
-            .then(response => response.text())
-            .then(data => {
-                location.href = "{% url 'user_login' %}";
-            })
-            .catch(error => {
-                alert("로그아웃 중 오류가 발생했습니다.");
-                console.error(error);
-            });
-    });
-</script>
-
-<style>
-    .text-hide {
-        display: none !important;
-    }
-</style>
 {% endblock scripts %}
