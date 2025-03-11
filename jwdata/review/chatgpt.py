@@ -42,7 +42,7 @@ def analyze_sentiment(review_text):
 
 def update_reviews_with_sentiment(request):
     sleep_time = 2
-    max_updates = 30
+    max_updates = 100
 
     reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")[:max_updates]
 
