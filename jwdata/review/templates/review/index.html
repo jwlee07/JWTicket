@@ -8,8 +8,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">공연 대시보드</h4>
         </div>
-
-        <!-- 통합 -->
+        <!-- 통합 및 장르별 공연 목록 -->
         {% if concerts %}
             <div class="mb-4">
                 <h5>통합</h5>
@@ -19,7 +18,6 @@
                     <a href="{% url 'analyze_all_seats' %}" class="btn btn-outline-light text-start">잔여 좌석</a>
                 </div>
             </div>
-
             <!-- 장르별 공연 목록 -->
             <div class="mb-4">
                 <h5>연극</h5>
@@ -75,12 +73,12 @@
 
     <!-- 메인 컨텐츠 영역 -->
     <div class="flex-grow-1 p-3">
+        <!-- 우측 상단 버튼 (ChatGPT 감정 분석 업데이트) -->
         <div class="d-flex justify-content-end mb-3">
             <a href="{% url 'update_sentiment' %}" class="btn btn-dark">ChatGPT 리뷰 감정</a>
         </div>
 
         <h3 class="mb-3">리뷰 평점</h3>
-
         <!-- 평점 요약 카드 섹션 -->
         <div class="row g-3 mb-4">
             <div class="col-12 col-md-6 col-lg-3">
@@ -124,100 +122,280 @@
             </div>
         </div>
 
-        <!-- 리뷰 요약 (각 카테고리별 100% 가로폭) -->
+        <!-- 리뷰 요약 섹션 -->
         <div class="row">
             <h3 class="mb-3">리뷰 요약</h3>
-            
-            <!-- [전체] -->
+
+            <!-- [전체] 섹션 -->
             <div class="col-12 mb-3">
-                <div class="card shadow h-100">
-                    <div class="card-body">
+                <div class="card shadow">
+                    <div class="card-header">
                         <h5 class="card-title">[전체]</h5>
-                        <div class="row align-items-center">
-                            <div class="col-md-6 d-flex align-items-center justify-content-center">
-                                {% if img_all %}
-                                    <img src="data:image/png;base64,{{ img_all }}" 
-                                        alt="전체 워드클라우드" 
-                                        class="img-fluid" 
-                                        style="max-height: 300px;">
-                                {% else %}
-                                    <p class="text-muted">데이터가 부족합니다.</p>
-                                {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <!-- 행 1: 전체 리뷰 워드클라우드 / 감정분석 그래프 -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>모든 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_all %}
+                                            <img src="data:image/png;base64,{{ img_all }}" alt="전체 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">전체 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <canvas id="emotionChartAll" height="150"></canvas>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>감정분석 그래프</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="emotionChartAll" height="150"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>긍정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_all_positive %}
+                                            <img src="data:image/png;base64,{{ img_all_positive }}" alt="전체 긍정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">긍정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>부정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_all_negative %}
+                                            <img src="data:image/png;base64,{{ img_all_negative }}" alt="전체 부정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">부정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- [연극] -->
+            <!-- [연극] 섹션 -->
             <div class="col-12 mb-3">
-                <div class="card shadow h-100">
-                    <div class="card-body">
+                <div class="card shadow">
+                    <div class="card-header">
                         <h5 class="card-title">[연극]</h5>
-                        <div class="row align-items-center">
-                            <div class="col-md-6 d-flex align-items-center justify-content-center">
-                                {% if img_play %}
-                                    <img src="data:image/png;base64,{{ img_play }}" 
-                                        alt="연극 워드클라우드"
-                                        class="img-fluid"
-                                        style="max-height: 300px;">
-                                {% else %}
-                                    <p class="text-muted">연극 리뷰 데이터가 부족합니다.</p>
-                                {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <!-- 행 1: 전체 리뷰 워드클라우드 / 감정분석 그래프 -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>모든 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_play %}
+                                            <img src="data:image/png;base64,{{ img_play }}" alt="연극 전체 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">전체 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <canvas id="emotionChartPlay" height="150"></canvas>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>감정분석 그래프</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="emotionChartPlay" height="150"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>긍정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_play_positive %}
+                                            <img src="data:image/png;base64,{{ img_play_positive }}" alt="연극 긍정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">긍정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>부정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_play_negative %}
+                                            <img src="data:image/png;base64,{{ img_play_negative }}" alt="연극 부정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">부정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- [뮤지컬] -->
+            <!-- [뮤지컬] 섹션 -->
             <div class="col-12 mb-3">
-                <div class="card shadow h-100">
-                    <div class="card-body">
+                <div class="card shadow">
+                    <div class="card-header">
                         <h5 class="card-title">[뮤지컬]</h5>
-                        <div class="row align-items-center">
-                            <div class="col-md-6 d-flex align-items-center justify-content-center">
-                                {% if img_musical %}
-                                    <img src="data:image/png;base64,{{ img_musical }}" 
-                                        alt="뮤지컬 워드클라우드"
-                                        class="img-fluid"
-                                        style="max-height: 300px;">
-                                {% else %}
-                                    <p class="text-muted">뮤지컬 리뷰 데이터가 부족합니다.</p>
-                                {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <!-- 행 1: 전체 리뷰 워드클라우드 / 감정분석 그래프 -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>모든 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_musical %}
+                                            <img src="data:image/png;base64,{{ img_musical }}" alt="뮤지컬 전체 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">전체 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <canvas id="emotionChartMusical" height="150"></canvas>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>감정분석 그래프</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="emotionChartMusical" height="150"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>긍정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_musical_positive %}
+                                            <img src="data:image/png;base64,{{ img_musical_positive }}" alt="뮤지컬 긍정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">긍정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>부정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_musical_negative %}
+                                            <img src="data:image/png;base64,{{ img_musical_negative }}" alt="뮤지컬 부정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">부정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- [콘서트] -->
+            <!-- [콘서트] 섹션 -->
             <div class="col-12 mb-3">
-                <div class="card shadow h-100">
-                    <div class="card-body">
+                <div class="card shadow">
+                    <div class="card-header">
                         <h5 class="card-title">[콘서트]</h5>
-                        <div class="row align-items-center">
-                            <div class="col-md-6 d-flex align-items-center justify-content-center">
-                                {% if img_concert %}
-                                    <img src="data:image/png;base64,{{ img_concert }}" 
-                                        alt="콘서트 워드클라우드"
-                                        class="img-fluid"
-                                        style="max-height: 300px;">
-                                {% else %}
-                                    <p class="text-muted">콘서트 리뷰 데이터가 부족합니다.</p>
-                                {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <!-- 행 1: 전체 리뷰 워드클라우드 / 감정분석 그래프 -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>모든 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_concert %}
+                                            <img src="data:image/png;base64,{{ img_concert }}" alt="콘서트 전체 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">전체 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <canvas id="emotionChartConcert" height="150"></canvas>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>감정분석 그래프</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="emotionChartConcert" height="150"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>긍정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_concert_positive %}
+                                            <img src="data:image/png;base64,{{ img_concert_positive }}" alt="콘서트 긍정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">긍정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>부정 리뷰의 워드클라우드</h6>
+                                    </div>
+                                    <div class="card-body d-flex align-items-center justify-content-center">
+                                        {% if img_concert_negative %}
+                                            <img src="data:image/png;base64,{{ img_concert_negative }}" alt="콘서트 부정 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <p class="text-muted">부정 리뷰 데이터가 부족합니다.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -225,13 +403,12 @@
             </div>
 
         </div>
-        <!-- /리뷰 요약 -->
+        <!-- /리뷰 요약 섹션 -->
     </div>
 </div>
 {% endblock content %}
 
 {% block scripts %}
-<!-- Chart.js 라이브러리 로드 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -242,7 +419,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const emotionConcert = {{ emotion_concert|safe }};
     const emotionLabels = ["긍정", "부정", "중립"];
 
-    // 가로 막대형 차트를 생성하는 함수
     function createHorizontalBarChart(ctxId, emotionData, title) {
         const ctx = document.getElementById(ctxId).getContext("2d");
         new Chart(ctx, {
@@ -288,16 +464,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 각 차트 생성
     createHorizontalBarChart("emotionChartAll", emotionAll, "전체 감정");
     createHorizontalBarChart("emotionChartPlay", emotionPlay, "연극 감정");
     createHorizontalBarChart("emotionChartMusical", emotionMusical, "뮤지컬 감정");
     createHorizontalBarChart("emotionChartConcert", emotionConcert, "콘서트 감정");
 });
 </script>
-
 <script>
-    // 공연 정보 보기 (임시 함수)
     function showConcert(concertId) {
         alert("선택된 공연 ID: " + concertId);
     }

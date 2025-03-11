@@ -76,7 +76,7 @@ def home(request):
     concerts = Concert.objects.all()
     active_concert_id = request.GET.get("active_concert_id")
 
-    # 워드클라우드
+    # 모든 리뷰
     all_reviews = Review.objects.all().values_list("description", flat=True)
     play_reviews = Review.objects.filter(concert__genre="연극").values_list("description", flat=True)
     musical_reviews = Review.objects.filter(concert__genre="뮤지컬").values_list("description", flat=True)
@@ -92,7 +92,39 @@ def home(request):
     img_musical = generate_wordcloud_image(text_musical, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
     img_concert = generate_wordcloud_image(text_concert, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
 
-    # 평점
+    # 긍정/부정 리뷰 필터링 (전체)
+    all_reviews_positive = Review.objects.filter(emotion="긍정").values_list("description", flat=True)
+    all_reviews_negative = Review.objects.filter(emotion="부정").values_list("description", flat=True)
+    text_all_positive = preprocess_text(all_reviews_positive)
+    text_all_negative = preprocess_text(all_reviews_negative)
+    img_all_positive = generate_wordcloud_image(text_all_positive, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    img_all_negative = generate_wordcloud_image(text_all_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+
+    # 긍정/부정 리뷰 필터링 (연극)
+    play_reviews_positive = Review.objects.filter(concert__genre="연극", emotion="긍정").values_list("description", flat=True)
+    play_reviews_negative = Review.objects.filter(concert__genre="연극", emotion="부정").values_list("description", flat=True)
+    text_play_positive = preprocess_text(play_reviews_positive)
+    text_play_negative = preprocess_text(play_reviews_negative)
+    img_play_positive = generate_wordcloud_image(text_play_positive, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    img_play_negative = generate_wordcloud_image(text_play_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+
+    # 긍정/부정 리뷰 필터링 (뮤지컬)
+    musical_reviews_positive = Review.objects.filter(concert__genre="뮤지컬", emotion="긍정").values_list("description", flat=True)
+    musical_reviews_negative = Review.objects.filter(concert__genre="뮤지컬", emotion="부정").values_list("description", flat=True)
+    text_musical_positive = preprocess_text(musical_reviews_positive)
+    text_musical_negative = preprocess_text(musical_reviews_negative)
+    img_musical_positive = generate_wordcloud_image(text_musical_positive, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    img_musical_negative = generate_wordcloud_image(text_musical_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+
+    # 긍정/부정 리뷰 필터링 (콘서트)
+    concert_reviews_positive = Review.objects.filter(concert__genre="콘서트", emotion="긍정").values_list("description", flat=True)
+    concert_reviews_negative = Review.objects.filter(concert__genre="콘서트", emotion="부정").values_list("description", flat=True)
+    text_concert_positive = preprocess_text(concert_reviews_positive)
+    text_concert_negative = preprocess_text(concert_reviews_negative)
+    img_concert_positive = generate_wordcloud_image(text_concert_positive, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    img_concert_negative = generate_wordcloud_image(text_concert_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+
+    # 평점 관련 통계
     overall_stats = Review.objects.aggregate(avg_rating=Avg('star_rating'), total_reviews=Count('id'))
     avg_all = overall_stats['avg_rating'] * 2 if overall_stats['avg_rating'] else 0
     count_all = comma_format(overall_stats['total_reviews'] or 0)
@@ -109,6 +141,7 @@ def home(request):
     avg_concert = (concert_stats['avg_rating'] * 2) if concert_stats['avg_rating'] else 0
     count_concert = comma_format(concert_stats['total_reviews'] or 0)
 
+    # 감정 카운트
     overall_emotion_counts = Review.objects.values('emotion').annotate(count=Count('id'))
     emotion_dict_all = {'positive': 0, 'negative': 0, 'neutral': 0}
     for row in overall_emotion_counts:
@@ -157,6 +190,15 @@ def home(request):
         "img_play": img_play,
         "img_musical": img_musical,
         "img_concert": img_concert,
+
+        "img_all_positive": img_all_positive,
+        "img_all_negative": img_all_negative,
+        "img_play_positive": img_play_positive,
+        "img_play_negative": img_play_negative,
+        "img_musical_positive": img_musical_positive,
+        "img_musical_negative": img_musical_negative,
+        "img_concert_positive": img_concert_positive,
+        "img_concert_negative": img_concert_negative,
 
         "avg_all": avg_all,
         "count_all": count_all,

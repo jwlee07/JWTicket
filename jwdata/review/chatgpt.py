@@ -13,7 +13,9 @@ client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 def analyze_sentiment(review_text):
     prompt = f"""
-    아래 리뷰의 감정을 분석해주세요. 
+    아래 공연 리뷰의 감정을 분석해주세요.
+    공연 리뷰라는 것을 명심해주세요.
+    공연은 감동을 받거나 눈물을 흘리는 것은 긍정적인 감정일 수 있어요.
     결과는 '긍정', '중립', '부정' 중 하나로만 답변해주세요.
 
     리뷰 내용: {review_text}
@@ -21,7 +23,7 @@ def analyze_sentiment(review_text):
     
     response = client.chat.completions.create(
         messages=[
-            {"role": "system", "content": "당신은 감정 분석 전문가입니다."},
+            {"role": "system", "content": "당신은 공연 리뷰 감정 분석 전문가입니다."},
             {"role": "user", "content": prompt}
         ],
         model="gpt-3.5-turbo",
@@ -40,7 +42,7 @@ def analyze_sentiment(review_text):
 
 def update_reviews_with_sentiment(request):
     sleep_time = 2
-    max_updates = 5
+    max_updates = 30
 
     reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")[:max_updates]
 
