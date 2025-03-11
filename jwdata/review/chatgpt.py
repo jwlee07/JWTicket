@@ -33,15 +33,39 @@ def analyze_sentiment(review_text):
     else:
         return None
 
-def update_reviews_with_sentiment(sleep_time=2):
-    reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")
+# def update_reviews_with_sentiment(sleep_time=2):
+#     reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")
+
+#     if not reviews_to_update.exists():
+#         print("감정 분석이 필요한 리뷰가 없습니다.")
+#         return
+
+#     with transaction.atomic():
+#         for review in reviews_to_update:
+#             sentiment = analyze_sentiment(review.description)
+#             if sentiment:
+#                 review.emotion = sentiment
+#                 review.save(update_fields=["emotion"])
+            
+#             print(f"'{review.title}' 리뷰의 감정 분석 완료: {sentiment}")
+            
+#             # API 요청 간격 조절 (기본값: 1초)
+#             time.sleep(sleep_time)
+
+#     print(f"{reviews_to_update.count()}개의 리뷰 감정 분석 완료 및 저장됨.")
+
+def update_reviews_with_sentiment(sleep_time=2, max_updates=5):
+    reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")[:max_updates]
 
     if not reviews_to_update.exists():
         print("감정 분석이 필요한 리뷰가 없습니다.")
         return
 
     with transaction.atomic():
-        for review in reviews_to_update:
+        for index, review in enumerate(reviews_to_update):
+            if index >= max_updates:
+                break
+
             sentiment = analyze_sentiment(review.description)
             if sentiment:
                 review.emotion = sentiment
@@ -49,7 +73,7 @@ def update_reviews_with_sentiment(sleep_time=2):
             
             print(f"'{review.title}' 리뷰의 감정 분석 완료: {sentiment}")
             
-            # API 요청 간격 조절 (기본값: 1초)
+            # API 요청 간격 조절
             time.sleep(sleep_time)
 
-    print(f"{reviews_to_update.count()}개의 리뷰 감정 분석 완료 및 저장됨.")
+    print(f"{len(reviews_to_update)}개의 리뷰 감정 분석 완료 및 저장됨.")

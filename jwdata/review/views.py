@@ -58,11 +58,14 @@ from .sheets import (
 
 from django.db.models import Avg, Count
 
+from django.db.models import Case, When, Value, IntegerField
+
 @login_required
 def home(request):
     concerts = Concert.objects.all()
     active_concert_id = request.GET.get("active_concert_id")
 
+    # 워드클라우드
     all_reviews = Review.objects.all().values_list("description", flat=True)
     play_reviews = Review.objects.filter(concert__genre="연극").values_list("description", flat=True)
     musical_reviews = Review.objects.filter(concert__genre="뮤지컬").values_list("description", flat=True)
@@ -78,59 +81,88 @@ def home(request):
     img_musical = generate_wordcloud_image(text_musical, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
     img_concert = generate_wordcloud_image(text_concert, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
 
-    overall_stats = Review.objects.aggregate(
-        avg_rating=Avg('star_rating'),
-        total_reviews=Count('id')
-    )
+    # 평점
+    overall_stats = Review.objects.aggregate(avg_rating=Avg('star_rating'), total_reviews=Count('id'))
+    avg_all = overall_stats['avg_rating'] * 2 if overall_stats['avg_rating'] else 0
+    count_all = comma_format(overall_stats['total_reviews'] or 0)
 
-    avg_all = overall_stats['avg_rating'] * 2
-    count_all = comma_format(overall_stats['total_reviews'])
+    play_stats = Review.objects.filter(concert__genre='연극').aggregate(avg_rating=Avg('star_rating'), total_reviews=Count('id'))
+    avg_play = (play_stats['avg_rating'] * 2) if play_stats['avg_rating'] else 0
+    count_play = comma_format(play_stats['total_reviews'] or 0)
 
-    # 연극
-    play_stats = Review.objects.filter(concert__genre='연극').aggregate(
-        avg_rating=Avg('star_rating'),
-        total_reviews=Count('id')
-    )
-    avg_play = play_stats['avg_rating'] * 2
-    count_play = comma_format(play_stats['total_reviews'])
+    musical_stats = Review.objects.filter(concert__genre='뮤지컬').aggregate(avg_rating=Avg('star_rating'), total_reviews=Count('id'))
+    avg_musical = (musical_stats['avg_rating'] * 2) if musical_stats['avg_rating'] else 0
+    count_musical = comma_format(musical_stats['total_reviews'] or 0)
 
-    # 뮤지컬
-    musical_stats = Review.objects.filter(concert__genre='뮤지컬').aggregate(
-        avg_rating=Avg('star_rating'),
-        total_reviews=Count('id')
-    )
-    avg_musical = musical_stats['avg_rating'] * 2
-    count_musical = comma_format(musical_stats['total_reviews'])
+    concert_stats = Review.objects.filter(concert__genre='콘서트').aggregate(avg_rating=Avg('star_rating'), total_reviews=Count('id'))
+    avg_concert = (concert_stats['avg_rating'] * 2) if concert_stats['avg_rating'] else 0
+    count_concert = comma_format(concert_stats['total_reviews'] or 0)
 
-    # 콘서트
-    concert_stats = Review.objects.filter(concert__genre='콘서트').aggregate(
-        avg_rating=Avg('star_rating'),
-        total_reviews=Count('id')
-    )
-    avg_concert = concert_stats['avg_rating'] * 2
-    count_concert = comma_format(concert_stats['total_reviews'])
+    overall_emotion_counts = Review.objects.values('emotion').annotate(count=Count('id'))
+    emotion_dict_all = {'positive': 0, 'negative': 0, 'neutral': 0}
+    for row in overall_emotion_counts:
+        if row['emotion'] == '긍정':
+            emotion_dict_all['positive'] = row['count']
+        elif row['emotion'] == '부정':
+            emotion_dict_all['negative'] = row['count']
+        elif row['emotion'] == '중립':
+            emotion_dict_all['neutral'] = row['count']
 
-    # 4) 템플릿에 전달
-    return render(
-        request,
-        "review/index.html",
-        {
-            "concerts": concerts,
-            "active_concert_id": active_concert_id,
-            "img_all": img_all,
-            "img_play": img_play,
-            "img_musical": img_musical,
-            "img_concert": img_concert,
-            "avg_all": avg_all,
-            "count_all": count_all,
-            "avg_play": avg_play,
-            "count_play": count_play,
-            "avg_musical": avg_musical,
-            "count_musical": count_musical,
-            "avg_concert": avg_concert,
-            "count_concert": count_concert,
-        },
-    )
+    play_emotion_counts = Review.objects.filter(concert__genre='연극').values('emotion').annotate(count=Count('id'))
+    emotion_dict_play = {'positive': 0, 'negative': 0, 'neutral': 0}
+    for row in play_emotion_counts:
+        if row['emotion'] == '긍정':
+            emotion_dict_play['positive'] = row['count']
+        elif row['emotion'] == '부정':
+            emotion_dict_play['negative'] = row['count']
+        elif row['emotion'] == '중립':
+            emotion_dict_play['neutral'] = row['count']
+
+    musical_emotion_counts = Review.objects.filter(concert__genre='뮤지컬').values('emotion').annotate(count=Count('id'))
+    emotion_dict_musical = {'positive': 0, 'negative': 0, 'neutral': 0}
+    for row in musical_emotion_counts:
+        if row['emotion'] == '긍정':
+            emotion_dict_musical['positive'] = row['count']
+        elif row['emotion'] == '부정':
+            emotion_dict_musical['negative'] = row['count']
+        elif row['emotion'] == '중립':
+            emotion_dict_musical['neutral'] = row['count']
+
+    concert_emotion_counts = Review.objects.filter(concert__genre='콘서트').values('emotion').annotate(count=Count('id'))
+    emotion_dict_concert = {'positive': 0, 'negative': 0, 'neutral': 0}
+    for row in concert_emotion_counts:
+        if row['emotion'] == '긍정':
+            emotion_dict_concert['positive'] = row['count']
+        elif row['emotion'] == '부정':
+            emotion_dict_concert['negative'] = row['count']
+        elif row['emotion'] == '중립':
+            emotion_dict_concert['neutral'] = row['count']
+
+    context = {
+        "concerts": concerts,
+        "active_concert_id": active_concert_id,
+
+        "img_all": img_all,
+        "img_play": img_play,
+        "img_musical": img_musical,
+        "img_concert": img_concert,
+
+        "avg_all": avg_all,
+        "count_all": count_all,
+        "avg_play": avg_play,
+        "count_play": count_play,
+        "avg_musical": avg_musical,
+        "count_musical": count_musical,
+        "avg_concert": avg_concert,
+        "count_concert": count_concert,
+
+        "emotion_all": emotion_dict_all,
+        "emotion_play": emotion_dict_play,
+        "emotion_musical": emotion_dict_musical,
+        "emotion_concert": emotion_dict_concert,
+    }
+
+    return render(request, "review/index.html", context)
 
 @login_required
 def analyze_reviews(request, concert_id, analysis_type):
