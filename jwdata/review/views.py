@@ -40,6 +40,8 @@ from sklearn.cluster import KMeans
 
 from django.contrib.auth.decorators import login_required
 
+from .chatgpt import update_reviews_with_sentiment
+
 from .crawls import crawl_concert_info, crawl_concert_reviews, crawl_concert_seats
 
 from .sheets import (
@@ -51,6 +53,15 @@ from .sheets import (
     sync_reviews_sheet_to_db,
     sync_seats_sheet_to_db,
 )
+
+# ==================================================================
+# chatgpt
+# ==================================================================
+
+def update_sentiment_view(request):
+    update_reviews_with_sentiment()
+    return redirect('home')
+
 
 # ==================================================================
 # Analysis

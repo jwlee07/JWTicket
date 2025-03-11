@@ -31,4 +31,7 @@ urlpatterns = [
 
     # Google Sheet -> DB 동기화
     path('sync-sheet-to-db/', views.sync_all_sheet_to_db, name='sync_sheet_to_db'),
+
+    # Chatgpt 감정 분석
+    path('update-sentiment/', views.update_reviews_with_sentiment, name='update_sentiment'),
 ]

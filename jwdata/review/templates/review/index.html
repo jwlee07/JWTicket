@@ -75,6 +75,10 @@
 
     <!-- 메인 컨텐츠 영역 -->
     <div class="flex-grow-1 p-3">
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{% url 'update_sentiment' %}" class="btn btn-dark">ChatGPT 리뷰 감정</a>
+        </div>
+
         <h3 class="mb-3">리뷰 평점</h3>
 
         <!-- 평점 요약 카드 섹션 -->
@@ -154,7 +158,6 @@
                     <div class="card-body">
                         <h5 class="card-title">[연극]</h5>
                         <div class="row align-items-center">
-                            <!-- 단어 구름 -->
                             <div class="col-md-6 d-flex align-items-center justify-content-center">
                                 {% if img_play %}
                                     <img src="data:image/png;base64,{{ img_play }}" 
@@ -165,7 +168,6 @@
                                     <p class="text-muted">연극 리뷰 데이터가 부족합니다.</p>
                                 {% endif %}
                             </div>
-                            <!-- 감정 차트 -->
                             <div class="col-md-6">
                                 <canvas id="emotionChartPlay" height="150"></canvas>
                             </div>
