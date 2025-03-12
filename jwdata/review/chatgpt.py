@@ -42,25 +42,29 @@ def analyze_sentiment(review_text):
 
 def update_reviews_with_sentiment(request):
     sleep_time = 2
-    max_updates = 100
+    # max_updates = 500
 
-    reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")[:max_updates]
+    reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")
+    # reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")[:max_updates]
 
     if not reviews_to_update.exists():
         print("감정 분석이 필요한 리뷰가 없습니다.")
         return redirect("home")
 
     with transaction.atomic():
+
+        total_count = reviews_to_update.count()
+
         for index, review in enumerate(reviews_to_update):
-            if index >= max_updates:
-                break
+            # if index >= max_updates:
+            #     break
 
             sentiment = analyze_sentiment(review.description)
             if sentiment:
                 review.emotion = sentiment
                 review.save(update_fields=["emotion"])
 
-            print(f"리뷰: {review.description} -> 감정: {sentiment}")
+            print(f"[{index}/{total_count}] 공연 명: {review.concert} 리뷰: {review.title} >>> 감정: {sentiment}")
             time.sleep(sleep_time)
 
     print(f"{len(reviews_to_update)}개의 리뷰 감정 분석 완료 및 저장됨.")

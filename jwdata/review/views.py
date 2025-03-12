@@ -877,7 +877,7 @@ def sync_all_db_to_sheet(request):
     print("[DB -> Sheet] Seat 동기화 완료")
 
     response_text = "\n".join(logs)
-    return HttpResponse(response_text, content_type="text/plain")
+    return redirect("home")
 
 
 @login_required
@@ -897,7 +897,7 @@ def sync_all_sheet_to_db(request):
     print("[Sheet -> DB] Seat 동기화 완료")
 
     response_text = "\n".join(logs)
-    return HttpResponse(response_text, content_type="text/plain")
+    return redirect("home")
 
 
 # ==================================================================
