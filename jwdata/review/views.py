@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
@@ -67,9 +67,74 @@ def update_sentiment_view(request):
 # Analysis
 # ==================================================================
 
-from django.db.models import Avg, Count
+@login_required
+def concert_detail(request):
+    # URL 쿼리스트링에서 공연 id를 가져옴
+    concert_id = request.GET.get("concert_id")
+    if not concert_id:
+        return redirect("home")
+    
+    # 선택된 공연 객체 가져오기
+    concert = get_object_or_404(Concert, id=concert_id)
+    
+    # 선택된 공연 리뷰
+    reviews = Review.objects.filter(concert=concert)
+    
+    # 선택된 공연의 리뷰 통계
+    selected_stats = reviews.aggregate(avg_rating=Avg("star_rating"), total_reviews=Count("id"))
+    selected_avg = selected_stats["avg_rating"] or 0
+    selected_count = selected_stats["total_reviews"] or 0
 
-from django.db.models import Case, When, Value, IntegerField
+    # 전체 공연의 리뷰 통계
+    overall_stats = Review.objects.aggregate(avg_rating=Avg("star_rating"), total_reviews=Count("id"))
+    overall_avg = overall_stats["avg_rating"] or 0
+    overall_count = overall_stats["total_reviews"] or 0
+
+    # 선택된 공연과 동일 장르의 리뷰 통계
+    genre_reviews = Review.objects.filter(concert__genre=concert.genre)
+    genre_stats = genre_reviews.aggregate(avg_rating=Avg("star_rating"), total_reviews=Count("id"))
+    genre_avg = genre_stats["avg_rating"] or 0
+    genre_count = genre_stats["total_reviews"] or 0
+
+    # 워드클라우드 및 감정 데이터 (선택된 공연 리뷰 기준)
+    all_reviews_texts = reviews.values_list("description", flat=True)
+    text_all = preprocess_text(all_reviews_texts)
+    img_all = generate_wordcloud_image(text_all, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    
+    positive_reviews = reviews.filter(emotion="긍정").values_list("description", flat=True)
+    text_positive = preprocess_text(positive_reviews)
+    img_positive = generate_wordcloud_image(text_positive, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    
+    negative_reviews = reviews.filter(emotion="부정").values_list("description", flat=True)
+    text_negative = preprocess_text(negative_reviews)
+    img_negative = generate_wordcloud_image(text_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
+    
+    # 감정 데이터 (선택된 공연 리뷰 기준)
+    emotion_counts = reviews.values('emotion').annotate(count=Count('id'))
+    emotion_data = {"positive": 0, "negative": 0, "neutral": 0}
+    for row in emotion_counts:
+        if row["emotion"] == "긍정":
+            emotion_data["positive"] = row["count"]
+        elif row["emotion"] == "부정":
+            emotion_data["negative"] = row["count"]
+        elif row["emotion"] == "중립":
+            emotion_data["neutral"] = row["count"]
+
+    context = {
+        "selected_concert": concert,
+        "reviews": reviews,
+        "selected_avg": selected_avg * 2,
+        "selected_count": comma_format(selected_count),
+        "overall_avg": overall_avg * 2,
+        "overall_count": comma_format(overall_count),
+        "genre_avg": genre_avg * 2,
+        "genre_count": comma_format(genre_count),
+        "img_all": img_all,
+        "img_positive": img_positive,
+        "img_negative": img_negative,
+        "emotion": emotion_data,
+    }
+    return render(request, "review/review_concert_detail.html", context)
 
 @login_required
 def home(request):

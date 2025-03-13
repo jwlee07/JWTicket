@@ -5,8 +5,11 @@ urlpatterns = [
     # 로그인
     path('login/', views.user_login, name='user_login'),
 
-    # 검색 및 크롤링
+    # 홈
     path('', views.home, name='home'),
+
+    # 공연 상세
+    path('concert_detail/', views.concert_detail, name='concert_detail'),
 
     # 로그아웃
     path('', views.user_logout, name='user_logout'),

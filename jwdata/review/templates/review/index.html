@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 <script>
     function showConcert(concertId) {
-        alert("선택된 공연 ID: " + concertId);
+        window.location.href = "{% url 'concert_detail' %}?concert_id=" + concertId;
     }
 </script>
 {% endblock scripts %}
