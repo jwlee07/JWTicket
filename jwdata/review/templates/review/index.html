@@ -24,42 +24,37 @@
                 <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
                     {% for concert in concerts|dictsort:"name" %}
                         {% if concert.genre == '연극' %}
-                            <button
-                                class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
-                                data-concert-id="{{ concert.id }}" 
-                                onclick="showConcert('{{ concert.id }}')">
+                            <button class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                                    data-concert-id="{{ concert.id }}" 
+                                    onclick="showConcert('{{ concert.id }}')">
                                 {{ concert.name }}
                             </button>
                         {% endif %}
                     {% endfor %}
                 </div>
             </div>
-
             <div class="mb-4">
                 <h5>뮤지컬</h5>
                 <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
                     {% for concert in concerts|dictsort:"name" %}
                         {% if concert.genre == '뮤지컬' %}
-                            <button
-                                class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
-                                data-concert-id="{{ concert.id }}" 
-                                onclick="showConcert('{{ concert.id }}')">
+                            <button class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                                    data-concert-id="{{ concert.id }}" 
+                                    onclick="showConcert('{{ concert.id }}')">
                                 {{ concert.name }}
                             </button>
                         {% endif %}
                     {% endfor %}
                 </div>
             </div>
-
             <div class="mb-4">
                 <h5>콘서트</h5>
                 <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="공연 선택">
                     {% for concert in concerts|dictsort:"name" %}
                         {% if concert.genre == '콘서트' %}
-                            <button
-                                class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
-                                data-concert-id="{{ concert.id }}" 
-                                onclick="showConcert('{{ concert.id }}')">
+                            <button class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                                    data-concert-id="{{ concert.id }}" 
+                                    onclick="showConcert('{{ concert.id }}')">
                                 {{ concert.name }}
                             </button>
                         {% endif %}
@@ -73,7 +68,7 @@
 
     <!-- 메인 컨텐츠 영역 -->
     <div class="flex-grow-1 p-3">
-        <!-- 우측 상단 버튼 (ChatGPT 감정 분석 업데이트) -->
+        <!-- 우측 상단 버튼 (ChatGPT 감정 분석 업데이트, DB/Sheet 동기화) -->
         <div class="d-flex justify-content-end mb-3">
             <a href="{% url 'update_sentiment' %}" class="btn btn-dark me-2">ChatGPT 리뷰 감정 분석</a>
             <a href="{% url 'sync_db_to_sheet' %}" class="btn btn-success me-2">DB → Google Sheet</a>
@@ -92,7 +87,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="card shadow text-center">
                     <div class="card-body">
@@ -102,7 +96,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="card shadow text-center">
                     <div class="card-body">
@@ -112,7 +105,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="card shadow text-center">
                     <div class="card-body">
@@ -127,7 +119,6 @@
         <!-- 리뷰 요약 섹션 -->
         <div class="row">
             <h3 class="mb-3">리뷰 장르별 분석</h3>
-
             <!-- [전체] 섹션 -->
             <div class="col-12 mb-3">
                 <div class="card shadow">
@@ -193,6 +184,29 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- 행 3: TF-IDF 차트 (전체 긍정, 전체 부정) -->
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>전체 긍정 TF-IDF</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="positiveTfidfChart" height="150"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6>전체 부정 TF-IDF</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="negativeTfidfChart" height="150"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -204,7 +218,7 @@
                         <h5 class="card-title">[연극]</h5>
                     </div>
                     <div class="card-body">
-                        <!-- 행 1: 전체 리뷰 워드클라우드 / 감정분석 그래프 -->
+                        <!-- 행 1: 연극 전체 워드클라우드 / 감정분석 그래프 -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="card">
@@ -231,7 +245,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
+                        <!-- 행 2: 연극 긍정/부정 워드클라우드 -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="card">
@@ -262,6 +276,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- (연극 섹션에서는 TF-IDF 차트가 필요하다면 유사하게 추가할 수 있습니다.) -->
                     </div>
                 </div>
             </div>
@@ -273,7 +288,7 @@
                         <h5 class="card-title">[뮤지컬]</h5>
                     </div>
                     <div class="card-body">
-                        <!-- 행 1: 전체 리뷰 워드클라우드 / 감정분석 그래프 -->
+                        <!-- 행 1: 뮤지컬 전체 워드클라우드 / 감정분석 그래프 -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="card">
@@ -300,7 +315,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
+                        <!-- 행 2: 뮤지컬 긍정/부정 워드클라우드 -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="card">
@@ -331,6 +346,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- (뮤지컬 섹션에서도 TF-IDF 차트를 추가할 수 있습니다.) -->
                     </div>
                 </div>
             </div>
@@ -342,7 +358,7 @@
                         <h5 class="card-title">[콘서트]</h5>
                     </div>
                     <div class="card-body">
-                        <!-- 행 1: 전체 리뷰 워드클라우드 / 감정분석 그래프 -->
+                        <!-- 행 1: 콘서트 전체 워드클라우드 / 감정분석 그래프 -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="card">
@@ -369,7 +385,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
+                        <!-- 행 2: 콘서트 긍정/부정 워드클라우드 -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="card">
@@ -400,10 +416,10 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- (콘서트 섹션에도 TF-IDF 차트를 추가할 수 있습니다.) -->
                     </div>
                 </div>
             </div>
-
         </div>
         <!-- /리뷰 요약 섹션 -->
     </div>
@@ -430,8 +446,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     label: title,
                     data: [
-                        emotionData.positive || 0, 
-                        emotionData.negative || 0, 
+                        emotionData.positive || 0,
+                        emotionData.negative || 0,
                         emotionData.neutral || 0
                     ],
                     backgroundColor: [
@@ -471,6 +487,50 @@ document.addEventListener('DOMContentLoaded', function () {
     createHorizontalBarChart("emotionChartMusical", emotionMusical, "뮤지컬 감정");
     createHorizontalBarChart("emotionChartConcert", emotionConcert, "콘서트 감정");
 });
+</script>
+<script>
+    // TF-IDF 데이터는 views.py에서 딕셔너리로 전달됨
+    const positiveTfidf = {{ positive_tfidf|safe }};
+    const negativeTfidf = {{ negative_tfidf|safe }};
+
+    // 딕셔너리를 배열로 변환하여 labels와 scores 생성
+    const positiveLabels = Object.keys(positiveTfidf);
+    const positiveScores = Object.values(positiveTfidf);
+    const negativeLabels = Object.keys(negativeTfidf);
+    const negativeScores = Object.values(negativeTfidf);
+
+    function createTFIDFChart(ctxId, labels, scores, title) {
+        const ctx = document.getElementById(ctxId).getContext("2d");
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: title,
+                    data: scores,
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: "TF-IDF Score" }
+                    },
+                    y: { title: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // TF-IDF 차트 생성
+    createTFIDFChart("positiveTfidfChart", positiveLabels, positiveScores, "긍정 TF-IDF");
+    createTFIDFChart("negativeTfidfChart", negativeLabels, negativeScores, "부정 TF-IDF");
 </script>
 <script>
     function showConcert(concertId) {

@@ -247,6 +247,43 @@ def home(request):
         elif row['emotion'] == '중립':
             emotion_dict_concert['neutral'] = row['count']
 
+    # 전체 긍정 리뷰 TF-IDF
+    stop_words = []
+    all_reviews_positive_tfidf = TfidfVectorizer(
+        ngram_range=(3, 4),
+        min_df=1,
+        max_df=0.9,
+        max_features=50,
+        stop_words=stop_words
+    )
+    all_reviews_positive_tfidf_X = all_reviews_positive_tfidf.fit_transform(list(all_reviews_positive))
+    all_reviews_positive_tfidf_df = pd.DataFrame(
+        all_reviews_positive_tfidf_X.toarray(),
+        columns=all_reviews_positive_tfidf.get_feature_names_out()
+    )
+
+    # 전체 부정 리뷰 TF-IDF
+    all_reviews_negative_tfidf = TfidfVectorizer(
+        ngram_range=(3, 4),
+        min_df=1,
+        max_df=0.9,
+        max_features=50,
+        stop_words=stop_words
+    )
+    all_reviews_negative_tfidf_X = all_reviews_negative_tfidf.fit_transform(list(all_reviews_negative))
+    all_reviews_negative_tfidf_df = pd.DataFrame(
+        all_reviews_negative_tfidf_X.toarray(),
+        columns=all_reviews_negative_tfidf.get_feature_names_out()
+    )
+
+    # 각 단어(또는 n-gram)의 TF-IDF 점수를 합산하고 내림차순 정렬
+    positive_tfidf_sum = all_reviews_positive_tfidf_df.sum().sort_values(ascending=False).head(7)
+    negative_tfidf_sum = all_reviews_negative_tfidf_df.sum().sort_values(ascending=False).head(7)
+
+    # 결과를 딕셔너리로 변환 (나중에 템플릿에서 JSON으로 변환하여 사용)
+    positive_tfidf = positive_tfidf_sum.to_dict()
+    negative_tfidf = negative_tfidf_sum.to_dict()
+
     context = {
         "concerts": concerts,
         "active_concert_id": active_concert_id,
@@ -278,6 +315,9 @@ def home(request):
         "emotion_play": emotion_dict_play,
         "emotion_musical": emotion_dict_musical,
         "emotion_concert": emotion_dict_concert,
+
+        "positive_tfidf": positive_tfidf,
+        "negative_tfidf": negative_tfidf,
     }
 
     return render(request, "review/index.html", context)
