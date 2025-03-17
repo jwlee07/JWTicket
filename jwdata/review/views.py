@@ -969,6 +969,7 @@ def sync_all_sheet_to_db(request):
 # 텍스트 전처리 함수
 # ==================================================================
 
+stop_words = ['이','것','정말','너무','그리고', '공연', '좀', '공연', '연극', '뮤지컬', '콘서트', '더', '진짜', '또', '수', '나', '배우', '연기', '보고', '넘버', '작품', '생각', '조금', '타인', '삶', '그', '왜', '때', '때문', '일단']
 
 def clean_text(text):
     cleaned = re.sub(r"[^가-힣a-zA-Z0-9\s]", "", text)
@@ -987,7 +988,7 @@ def generate_wordcloud_image(text, wc_width=800, wc_height=800, fig_width=8, fig
     ).generate(text)
 
     fig = plt.figure(figsize=(fig_width, fig_height))
-    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.imshow(wordcloud.to_array(), interpolation="bilinear")
     plt.axis("off")
 
     buffer = io.BytesIO()
@@ -1012,8 +1013,6 @@ def preprocess_text(texts):
 
         # 명사만 추출
         nouns = okt.nouns(cleaned)
-
-        stop_words = {'이','것','정말','너무','그리고'}
         nouns = [n for n in nouns if n not in stop_words]
 
         # 전체 리스트에 추가
