@@ -116,6 +116,46 @@
             </div>
         </div>
 
+        <div class="row">
+            <h3 class="mb-3">리뷰 장르별 분석</h3>
+            <table class="table table-bordered table-hover mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>장르</th>
+                        <th>공연명</th>
+                        <th>장소</th>
+                        <th>평균 평점</th>
+                        <th>총 리뷰 수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for concert in concert_summary %}
+                    <tr>
+                        <td>{{ concert.concert__genre }}</td>
+                        <td>{{ concert.concert__name }}</td>
+                        <td>{{ concert.concert__place }}</td>
+                        <td>{{ concert.average_rating|floatformat:1 }}/10</td>
+                        <td>{{ concert.total_reviews }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-5">
+            <h2>공연별 리뷰 수 추이</h2>
+            <div class="card p-3">
+                <canvas id="reviewChart" width="100%" height="50"></canvas>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <h2>공연별 평균 평점 추이 (10점 만점)</h2>
+            <div class="card p-3">
+                <canvas id="ratingChart" width="100%" height="50"></canvas>
+            </div>
+        </div>
+
         <!-- 리뷰 요약 섹션 -->
         <div class="row">
             <h3 class="mb-3">리뷰 장르별 분석</h3>
@@ -393,18 +433,18 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- (콘서트 섹션에도 TF-IDF 차트를 추가할 수 있습니다.) -->
                     </div>
                 </div>
             </div>
         </div>
-        <!-- /리뷰 요약 섹션 -->
     </div>
 </div>
 {% endblock content %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // 감정 데이터
@@ -464,6 +504,151 @@ document.addEventListener('DOMContentLoaded', function () {
     createHorizontalBarChart("emotionChartMusical", emotionMusical, "뮤지컬 감정");
     createHorizontalBarChart("emotionChartConcert", emotionConcert, "콘서트 감정");
 });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const concertDateSummary = {{ concert_date_summary|safe }};
+    const concertDateRatingSummary = {{ concert_date_rating_summary|safe }};
+
+    // 임의의 선 색상을 생성하는 함수
+    function getRandomColor() {
+        const r = Math.floor(Math.random() * 256);
+        const g = Math.floor(Math.random() * 256);
+        const b = Math.floor(Math.random() * 256);
+        return `rgba(${r}, ${g}, ${b}, 1)`;
+    }
+
+    // 리뷰 수 추이 데이터셋 구성 (각 공연별, x: 날짜, y: reviews_count)
+    const reviewDatasets = [];
+    for (const concert in concertDateSummary) {
+        const dataPoints = concertDateSummary[concert].map(item => ({
+            x: item.date_str,  // 수정: item.date_str 사용
+            y: item.reviews_count
+        }));
+        reviewDatasets.push({
+            label: concert,
+            data: dataPoints,
+            fill: false,
+            borderColor: getRandomColor(),
+            tension: 0.1
+        });
+    }
+
+    // 평균 평점 추이 데이터셋 구성 (각 공연별, x: 날짜, y: average_rating)
+    const ratingDatasets = [];
+    for (const concert in concertDateRatingSummary) {
+        const dataPoints = concertDateRatingSummary[concert].map(item => ({
+            x: item.date_str,  // 수정: item.date_str 사용
+            y: item.average_rating
+        }));
+        ratingDatasets.push({
+            label: concert,
+            data: dataPoints,
+            fill: false,
+            borderColor: getRandomColor(),
+            tension: 0.1
+        });
+    }
+
+    // "공연별 리뷰 수 추이" 라인 차트 생성
+    const reviewCtx = document.getElementById("reviewChart").getContext("2d");
+    new Chart(reviewCtx, {
+        type: 'line',
+        data: {
+            datasets: reviewDatasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        tooltipFormat: 'MM월DD일(ddd)',
+                        displayFormats: {
+                            day: 'MM월DD일(ddd)'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: '날짜',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '리뷰 수',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // "공연별 평균 평점 추이 (10점 만점)" 라인 차트 생성
+    const ratingCtx = document.getElementById("ratingChart").getContext("2d");
+    new Chart(ratingCtx, {
+        type: 'line',
+        data: {
+            datasets: ratingDatasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                        tooltipFormat: 'MM월DD일(ddd)',
+                        displayFormats: {
+                            day: 'MM월DD일(ddd)'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: '날짜',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    suggestedMax: 10,
+                    title: {
+                        display: true,
+                        text: '평균 평점',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});    
 </script>
 <script>
     function showConcert(concertId) {

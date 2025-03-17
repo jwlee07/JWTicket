@@ -20,7 +20,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 from .models import Concert, Review, Seat
 
-import time
+from datetime import date, timedelta
 
 import io
 import base64
@@ -247,6 +247,47 @@ def home(request):
         elif row['emotion'] == '중립':
             emotion_dict_concert['neutral'] = row['count']
 
+    # 공연별 요약
+    all_reviews = Review.objects.all()
+
+    # 공연별 요약
+    concert_summary = (
+        all_reviews.values("concert__name", "concert__place", "concert__genre")
+        .annotate(average_rating=Avg("star_rating") * 2, total_reviews=Count("id"))
+        .order_by("concert__name")
+    )
+
+    # 최근 30일 기준 날짜 계산 (오늘 포함)
+    thirty_days_ago = date.today() - timedelta(days=30)
+
+    # 공연별 날짜별 리뷰 수 (최근 30일)
+    concert_date_summary = {
+        c["concert__name"]: list(
+            all_reviews.filter(concert__name=c["concert__name"], date__gte=thirty_days_ago)
+            .values("date")
+            .annotate(reviews_count=Count("id"))
+            .order_by("-date")
+            .annotate(date_str=Cast("date", output_field=CharField()))
+            .values("date_str", "reviews_count")
+        )
+        for c in concert_summary
+    }
+    print("concert_date_summary", concert_date_summary)
+
+    # 공연별 날짜별 평균 평점 (최근 30일)
+    concert_date_rating_summary = {
+        c["concert__name"]: list(
+            all_reviews.filter(concert__name=c["concert__name"], date__gte=thirty_days_ago)
+            .values("date")
+            .annotate(average_rating=Avg("star_rating") * 2)
+            .order_by("-date")
+            .annotate(date_str=Cast("date", output_field=CharField()))
+            .values("date_str", "average_rating")
+        )
+        for c in concert_summary
+    }
+    print("concert_date_rating_summary", concert_date_rating_summary)
+
     context = {
         "concerts": concerts,
         "active_concert_id": active_concert_id,
@@ -278,6 +319,10 @@ def home(request):
         "emotion_play": emotion_dict_play,
         "emotion_musical": emotion_dict_musical,
         "emotion_concert": emotion_dict_concert,
+
+        "concert_summary": concert_summary,
+        "concert_date_summary": concert_date_summary,
+        "concert_date_rating_summary": concert_date_rating_summary,
     }
 
     return render(request, "review/index.html", context)
