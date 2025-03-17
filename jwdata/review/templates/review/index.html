@@ -115,6 +115,7 @@
             </div>
         </div>
 
+        <!-- 공연별 요약 테이블 -->
         <div class="mt-5">
             <h3>공연별 요약 정보</h3>
             <table class="table table-bordered table-hover mt-3">
@@ -122,7 +123,6 @@
                     <tr>
                         <th>장르</th>
                         <th>공연명</th>
-                        <th>장소</th>
                         <th>평균 평점</th>
                         <th>총 리뷰 수</th>
                     </tr>
@@ -132,7 +132,6 @@
                     <tr>
                         <td>{{ concert.concert__genre }}</td>
                         <td>{{ concert.concert__name }}</td>
-                        <td>{{ concert.concert__place }}</td>
                         <td>{{ concert.average_rating|floatformat:1 }}/10</td>
                         <td>{{ concert.total_reviews }}</td>
                     </tr>
@@ -476,13 +475,9 @@
                             beginAtZero: true,
                             title: { display: true, text: '리뷰 수' }
                         },
-                        y: {
-                            title: { display: false }
-                        }
+                        y: { title: { display: false } }
                     },
-                    plugins: {
-                        legend: { display: false }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
         }
@@ -494,18 +489,31 @@
     });
 </script>
 <script>
-    // 날짜별 리뷰 수 및 평균 평점 차트
+    // 공연별 날짜 데이터 차트 (리뷰 수 & 평균 평점) - 동일한 공연 색상 사용
     document.addEventListener('DOMContentLoaded', function () {
         const concertDateSummary = {{ concert_date_summary|safe }};
         const concertDateRatingSummary = {{ concert_date_rating_summary|safe }};
-
+        
+        // 공연별 색상 맵핑(동일 공연은 동일 색상)
+        const concertColors = {};
         function getRandomColor() {
             const r = Math.floor(Math.random() * 256);
             const g = Math.floor(Math.random() * 256);
             const b = Math.floor(Math.random() * 256);
             return `rgba(${r}, ${g}, ${b}, 1)`;
         }
-
+        // 두 JSON 객체를 순회하면서 모든 공연 이름에 대해 색상 지정
+        Object.keys(concertDateSummary).forEach(concert => {
+            if (!concertColors[concert]) {
+                concertColors[concert] = getRandomColor();
+            }
+        });
+        Object.keys(concertDateRatingSummary).forEach(concert => {
+            if (!concertColors[concert]) {
+                concertColors[concert] = getRandomColor();
+            }
+        });
+        
         // 리뷰 수 추이 데이터셋 구성 (날짜: date_str 사용)
         const reviewDatasets = [];
         for (const concert in concertDateSummary) {
@@ -517,11 +525,11 @@
                 label: concert,
                 data: dataPoints,
                 fill: false,
-                borderColor: getRandomColor(),
+                borderColor: concertColors[concert],
                 tension: 0.1
             });
         }
-
+        
         // 평균 평점 추이 데이터셋 구성 (날짜: date_str 사용)
         const ratingDatasets = [];
         for (const concert in concertDateRatingSummary) {
@@ -533,12 +541,12 @@
                 label: concert,
                 data: dataPoints,
                 fill: false,
-                borderColor: getRandomColor(),
+                borderColor: concertColors[concert],
                 tension: 0.1
             });
         }
-
-        // 리뷰 수 추이 차트
+        
+        // "공연별 리뷰 수 추이" 차트 생성
         const reviewCtx = document.getElementById("reviewChart").getContext("2d");
         new Chart(reviewCtx, {
             type: 'line',
@@ -570,13 +578,11 @@
                         }
                     }
                 },
-                plugins: {
-                    legend: { display: true, position: 'bottom' }
-                }
+                plugins: { legend: { display: true, position: 'bottom' } }
             }
         });
-
-        // 평균 평점 추이 차트
+        
+        // "공연별 평균 평점 추이 (10점 만점)" 차트 생성
         const ratingCtx = document.getElementById("ratingChart").getContext("2d");
         new Chart(ratingCtx, {
             type: 'line',
@@ -609,9 +615,7 @@
                         }
                     }
                 },
-                plugins: {
-                    legend: { display: true, position: 'bottom' }
-                }
+                plugins: { legend: { display: true, position: 'bottom' } }
             }
         });
     });
