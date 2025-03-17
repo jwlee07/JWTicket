@@ -184,29 +184,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 행 3: TF-IDF 차트 (전체 긍정, 전체 부정) -->
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6>전체 긍정 TF-IDF</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="positiveTfidfChart" height="150"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6>전체 부정 TF-IDF</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="negativeTfidfChart" height="150"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -487,50 +464,6 @@ document.addEventListener('DOMContentLoaded', function () {
     createHorizontalBarChart("emotionChartMusical", emotionMusical, "뮤지컬 감정");
     createHorizontalBarChart("emotionChartConcert", emotionConcert, "콘서트 감정");
 });
-</script>
-<script>
-    // TF-IDF 데이터는 views.py에서 딕셔너리로 전달됨
-    const positiveTfidf = {{ positive_tfidf|safe }};
-    const negativeTfidf = {{ negative_tfidf|safe }};
-
-    // 딕셔너리를 배열로 변환하여 labels와 scores 생성
-    const positiveLabels = Object.keys(positiveTfidf);
-    const positiveScores = Object.values(positiveTfidf);
-    const negativeLabels = Object.keys(negativeTfidf);
-    const negativeScores = Object.values(negativeTfidf);
-
-    function createTFIDFChart(ctxId, labels, scores, title) {
-        const ctx = document.getElementById(ctxId).getContext("2d");
-        new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: title,
-                    data: scores,
-                    backgroundColor: "rgba(75, 192, 192, 0.6)",
-                    borderColor: "rgba(75, 192, 192, 1)",
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: "y",
-                responsive: true,
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        title: { display: true, text: "TF-IDF Score" }
-                    },
-                    y: { title: { display: false } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-
-    // TF-IDF 차트 생성
-    createTFIDFChart("positiveTfidfChart", positiveLabels, positiveScores, "긍정 TF-IDF");
-    createTFIDFChart("negativeTfidfChart", negativeLabels, negativeScores, "부정 TF-IDF");
 </script>
 <script>
     function showConcert(concertId) {
