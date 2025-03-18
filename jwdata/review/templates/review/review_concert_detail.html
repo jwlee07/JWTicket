@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <!-- 추가: 최근 30일 간의 리뷰 추이 및 평균 평점 추이 그래프 -->
+    <!-- 최근 30일 간의 리뷰 추이 및 평균 평점 추이 그래프 -->
     <div class="mt-5">
         <h3>최근 30일 리뷰 수 추이</h3>
         <div class="card p-3">
@@ -132,6 +132,74 @@
             </div><!-- card -->
         </div><!-- col-12 -->
     </div><!-- row -->
+
+    <!-- 긍정/부정 리뷰 테이블 섹션 (가로 50:50) -->
+    <div class="row mt-5">
+        <!-- 긍정 리뷰 테이블 -->
+        <div class="col-md-6">
+            <h4 class="mb-3">긍정 리뷰</h4>
+            <table class="table">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="white-space: nowrap;">작성자</th>
+                        <th style="white-space: nowrap;">작성일</th>
+                        <th style="white-space: nowrap;">제목</th>
+                        <th style="white-space: nowrap;">내용</th>
+                        <th style="white-space: nowrap;">평점</th>
+                        <th style="white-space: nowrap;">좋아요</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in positive_reviews %}
+                        <tr>
+                            <td>{{ review.nickname }}</td>
+                            <td>{{ review.date }}</td>
+                            <td>{{ review.title }}</td>
+                            <td>{{ review.description }}</td>
+                            <td>{{ review.star_rating }}</td>
+                            <td>{{ review.like_count }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">긍정 리뷰가 없습니다.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- 부정 리뷰 테이블 -->
+        <div class="col-md-6">
+            <h4 class="mb-3">부정 리뷰</h4>
+            <table class="table">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="white-space: nowrap;">작성자</th>
+                        <th style="white-space: nowrap;">작성일</th>
+                        <th style="white-space: nowrap;">제목</th>
+                        <th style="white-space: nowrap;">내용</th>
+                        <th style="white-space: nowrap;">평점</th>
+                        <th style="white-space: nowrap;">좋아요</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in negative_reviews %}
+                        <tr>
+                            <td>{{ review.nickname }}</td>
+                            <td>{{ review.date }}</td>
+                            <td>{{ review.title }}</td>
+                            <td>{{ review.description }}</td>
+                            <td>{{ review.star_rating }}</td>
+                            <td>{{ review.like_count }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">부정 리뷰가 없습니다.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock content %}
 

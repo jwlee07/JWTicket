@@ -69,12 +69,12 @@ def update_sentiment_view(request):
 
 @login_required
 def concert_detail(request):
-    # URL 쿼리스트링에서 공연 id를 가져옴
+    # URL 쿼리스트링에서 공연 id 가져오기
     concert_id = request.GET.get("concert_id")
     if not concert_id:
         return redirect("home")
     
-    # 선택된 공연 객체 가져오기
+    # 선택된 공연 객체 및 관련 리뷰 조회
     concert = get_object_or_404(Concert, id=concert_id)
     reviews = Review.objects.filter(concert=concert)
     
@@ -99,16 +99,18 @@ def concert_detail(request):
     text_all = preprocess_text(all_reviews_texts)
     img_all = generate_wordcloud_image(text_all, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
     
-    positive_reviews = reviews.filter(emotion="긍정").values_list("description", flat=True)
-    text_positive = preprocess_text(positive_reviews)
+    # 긍정 리뷰 관련 처리
+    positive_reviews_qs = reviews.filter(emotion="긍정")
+    text_positive = preprocess_text(positive_reviews_qs.values_list("description", flat=True))
     img_positive = generate_wordcloud_image(text_positive, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
     
-    negative_reviews = reviews.filter(emotion="부정").values_list("description", flat=True)
-    text_negative = preprocess_text(negative_reviews)
+    # 부정 리뷰 관련 처리
+    negative_reviews_qs = reviews.filter(emotion="부정")
+    text_negative = preprocess_text(negative_reviews_qs.values_list("description", flat=True))
     img_negative = generate_wordcloud_image(text_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
     
     # 감정 데이터 계산
-    emotion_counts = reviews.values('emotion').annotate(count=Count('id'))
+    emotion_counts = reviews.values("emotion").annotate(count=Count("id"))
     emotion_data = {"positive": 0, "negative": 0, "neutral": 0}
     for row in emotion_counts:
         if row["emotion"] == "긍정":
@@ -128,7 +130,7 @@ def concert_detail(request):
         .annotate(date_str=Cast("date", output_field=CharField()))
         .values("date_str", "reviews_count")
     )
-    # 최근 30일 간의 날짜별 평균 평점 (평균 평점은 10점 만점으로 환산)
+    # 최근 30일 간의 날짜별 평균 평점 (10점 만점 기준)
     selected_date_rating_summary = (
         reviews.filter(date__gte=thirty_days_ago)
         .values("date")
@@ -138,6 +140,10 @@ def concert_detail(request):
         .values("date_str", "average_rating")
     )
     
+    # 긍정 및 부정 리뷰 테이블용 데이터 (최근 순 정렬)
+    positive_reviews_list = positive_reviews_qs.order_by("-date")
+    negative_reviews_list = negative_reviews_qs.order_by("-date")
+
     context = {
         "selected_concert": concert,
         "reviews": reviews,
@@ -151,9 +157,12 @@ def concert_detail(request):
         "img_positive": img_positive,
         "img_negative": img_negative,
         "emotion": emotion_data,
-        
+
         "selected_date_summary": list(selected_date_summary),
         "selected_date_rating_summary": list(selected_date_rating_summary),
+
+        "positive_reviews": positive_reviews_list,
+        "negative_reviews": negative_reviews_list,
     }
     return render(request, "review/review_concert_detail.html", context)
 
