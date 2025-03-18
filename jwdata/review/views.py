@@ -76,8 +76,6 @@ def concert_detail(request):
     
     # 선택된 공연 객체 가져오기
     concert = get_object_or_404(Concert, id=concert_id)
-    
-    # 선택된 공연 리뷰
     reviews = Review.objects.filter(concert=concert)
     
     # 선택된 공연의 리뷰 통계
@@ -90,13 +88,13 @@ def concert_detail(request):
     overall_avg = overall_stats["avg_rating"] or 0
     overall_count = overall_stats["total_reviews"] or 0
 
-    # 선택된 공연과 동일 장르의 리뷰 통계
+    # 동일 장르 리뷰 통계
     genre_reviews = Review.objects.filter(concert__genre=concert.genre)
     genre_stats = genre_reviews.aggregate(avg_rating=Avg("star_rating"), total_reviews=Count("id"))
     genre_avg = genre_stats["avg_rating"] or 0
     genre_count = genre_stats["total_reviews"] or 0
 
-    # 워드클라우드 및 감정 데이터 (선택된 공연 리뷰 기준)
+    # 워드클라우드 이미지 생성
     all_reviews_texts = reviews.values_list("description", flat=True)
     text_all = preprocess_text(all_reviews_texts)
     img_all = generate_wordcloud_image(text_all, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
@@ -109,7 +107,7 @@ def concert_detail(request):
     text_negative = preprocess_text(negative_reviews)
     img_negative = generate_wordcloud_image(text_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
     
-    # 감정 데이터 (선택된 공연 리뷰 기준)
+    # 감정 데이터 계산
     emotion_counts = reviews.values('emotion').annotate(count=Count('id'))
     emotion_data = {"positive": 0, "negative": 0, "neutral": 0}
     for row in emotion_counts:
@@ -120,6 +118,26 @@ def concert_detail(request):
         elif row["emotion"] == "중립":
             emotion_data["neutral"] = row["count"]
 
+    # 최근 30일 간의 리뷰 추이 데이터 (날짜별 리뷰 수)
+    thirty_days_ago = date.today() - timedelta(days=30)
+    selected_date_summary = (
+        reviews.filter(date__gte=thirty_days_ago)
+        .values("date")
+        .annotate(reviews_count=Count("id"))
+        .order_by("date")
+        .annotate(date_str=Cast("date", output_field=CharField()))
+        .values("date_str", "reviews_count")
+    )
+    # 최근 30일 간의 날짜별 평균 평점 (평균 평점은 10점 만점으로 환산)
+    selected_date_rating_summary = (
+        reviews.filter(date__gte=thirty_days_ago)
+        .values("date")
+        .annotate(average_rating=Avg("star_rating") * 2)
+        .order_by("date")
+        .annotate(date_str=Cast("date", output_field=CharField()))
+        .values("date_str", "average_rating")
+    )
+    
     context = {
         "selected_concert": concert,
         "reviews": reviews,
@@ -133,6 +151,9 @@ def concert_detail(request):
         "img_positive": img_positive,
         "img_negative": img_negative,
         "emotion": emotion_data,
+        
+        "selected_date_summary": list(selected_date_summary),
+        "selected_date_rating_summary": list(selected_date_rating_summary),
     }
     return render(request, "review/review_concert_detail.html", context)
 
