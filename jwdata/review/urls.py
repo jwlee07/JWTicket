@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, chatgpt
 
 urlpatterns = [
     # 로그인
@@ -13,9 +13,6 @@ urlpatterns = [
 
     # 로그아웃
     path('', views.user_logout, name='user_logout'),
-
-    # 홈
-    # path('review_home', views.review_home, name='review_home'),
 
     # 특정 공연에 대한 리뷰 분석
     path('analyze/<int:concert_id>/<str:analysis_type>/', views.analyze_reviews, name='analyze_reviews'),
@@ -37,4 +34,10 @@ urlpatterns = [
 
     # Chatgpt 감정 분석
     path('update-sentiment/', views.update_reviews_with_sentiment, name='update_sentiment'),
+
+    # Chatgpt 긍정 리뷰 요약 분석
+    path('summarize/positive/<int:concert_id>/', views.summarize_positive_reviews, name='summarize_positive_reviews'),
+
+    # Chatgpt 부정 리뷰 요약 분석
+    path('summarize/negative/<int:concert_id>/', views.summarize_negative_reviews, name='summarize_negative_reviews'),
 ]

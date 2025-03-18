@@ -40,7 +40,11 @@ from sklearn.cluster import KMeans
 
 from django.contrib.auth.decorators import login_required
 
-from .chatgpt import update_reviews_with_sentiment
+from .chatgpt import (
+    update_reviews_with_sentiment, 
+    summarize_positive_reviews,
+    summarize_negative_reviews,
+)
 
 from .crawls import crawl_concert_info, crawl_concert_reviews, crawl_concert_seats
 
