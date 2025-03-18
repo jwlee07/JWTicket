@@ -75,6 +75,8 @@ def summarize_positive_reviews(request, concert_id):
     # 긍정 리뷰 요약 및 개선점 프롬프트 구성
     prompt_positive = f"""
     아래는 선택된 공연의 최근 30개의 긍정 리뷰입니다.
+    긍정적인 부분을 더욱 강조하고, 개선할 점을 찾아주세요.
+    볼드체나 이모티콘은 사용하지 마세요.
     이 리뷰들을 요약하고, 공연을 더욱 발전시킬 수 있는 개선점 3가지를 제안해주세요.
     리뷰 내용:
     {positive_text}
@@ -112,6 +114,8 @@ def summarize_negative_reviews(request, concert_id):
     # 부정 리뷰 요약 및 개선점 프롬프트 구성
     prompt_negative = f"""
     아래는 선택된 공연의 최근 30개의 부정 리뷰입니다.
+    부정적인 부분을 더욱 강조하고, 개선할 점을 찾아주세요.
+    볼드체나 이모티콘은 사용하지 마세요.
     이 리뷰들을 요약하고, 부정 리뷰 개선을 위한 3가지 개선점을 제안해주세요.
     리뷰 내용:
     {negative_text}
