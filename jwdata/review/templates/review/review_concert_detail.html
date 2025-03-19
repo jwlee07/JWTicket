@@ -43,6 +43,21 @@
         </div>
     </div>
 
+    <!-- 리뷰 요약 호출 버튼 섹션 -->
+    <div class="row mt-4">
+        <div class="col-12 text-left">
+            <a href="{% url 'summarize_positive_reviews' selected_concert.id %}" id="positiveSummaryBtn" class="btn btn-primary me-2">긍정 ChatGPT 요약 분석</a>
+            <a href="{% url 'summarize_negative_reviews' selected_concert.id %}" id="negativeSummaryBtn" class="btn btn-danger">부정 ChatGPT 요약 분석</a>
+        </div>
+    </div>
+    <!-- 요약 결과를 표시할 컨테이너 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div id="positiveSummaryContainer"></div>
+            <div id="negativeSummaryContainer" class="mt-4"></div>
+        </div>
+    </div>
+
     <!-- 최근 30일 간의 리뷰 추이 및 평균 평점 추이 그래프 -->
     <div class="mt-5">
         <h3>최근 30일 리뷰 수 추이</h3>
@@ -132,21 +147,6 @@
             </div><!-- card -->
         </div><!-- col-12 -->
     </div><!-- row -->
-
-    <!-- 리뷰 요약 호출 버튼 섹션 -->
-    <div class="row mt-4">
-        <div class="col-12 text-center">
-            <a href="{% url 'summarize_positive_reviews' selected_concert.id %}" id="positiveSummaryBtn" class="btn btn-primary me-2">긍정 ChatGPT 요약 분석</a>
-            <a href="{% url 'summarize_negative_reviews' selected_concert.id %}" id="negativeSummaryBtn" class="btn btn-danger">부정 ChatGPT 요약 분석</a>
-        </div>
-    </div>
-    <!-- 요약 결과를 표시할 컨테이너 -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div id="positiveSummaryContainer"></div>
-            <div id="negativeSummaryContainer" class="mt-4"></div>
-        </div>
-    </div>
 
     <!-- 긍정/부정 리뷰 테이블 섹션 (가로 50:50) -->
     <div class="row mt-5">

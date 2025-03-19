@@ -25,6 +25,10 @@ def analyze_sentiment(review_text):
         model="gpt-3.5-turbo",
     )
     
+    # 응답 후 로그 출력
+    print("analyze_sentiment 응답:")
+    print(response)
+    
     sentiment = response.choices[0].message.content.strip()
     
     if "긍정" in sentiment:
@@ -47,15 +51,16 @@ def update_reviews_with_sentiment(request):
 
     with transaction.atomic():
         total_count = reviews_to_update.count()
+        print(f"총 {total_count}개의 리뷰에 대해 감정 분석을 시작합니다.")
         for index, review in enumerate(reviews_to_update):
             sentiment = analyze_sentiment(review.description)
             if sentiment:
                 review.emotion = sentiment
                 review.save(update_fields=["emotion"])
-            print(f"[{index}/{total_count}] 공연 명: {review.concert} 리뷰: {review.title} >>> 감정: {sentiment}")
+            print(f"[{index+1}/{total_count}] 공연 명: {review.concert} / 리뷰 제목: {review.title} >>> 감정: {sentiment}")
             time.sleep(sleep_time)
 
-    print(f"{len(reviews_to_update)}개의 리뷰 감정 분석 완료 및 저장됨.")
+    print(f"{total_count}개의 리뷰 감정 분석 완료 및 저장됨.")
     return redirect("home")
 
 def summarize_positive_reviews(request, concert_id):
@@ -74,10 +79,20 @@ def summarize_positive_reviews(request, concert_id):
     
     # 긍정 리뷰 요약 및 개선점 프롬프트 구성
     prompt_positive = f"""
-    아래는 선택된 공연의 최근 30개의 긍정 리뷰입니다.
-    긍정적인 부분을 더욱 강조하고, 개선할 점을 찾아주세요.
-    볼드체나 이모티콘은 사용하지 마세요.
-    이 리뷰들을 요약하고, 공연을 더욱 발전시킬 수 있는 개선점 3가지를 제안해주세요.
+    아래는 공연의 최근 긍정 리뷰입니다.
+    긍정 리뷰를 요약하고 긍정적인 영역을 더욱 발전시킬 수 있는 인사이트를 3개 제안해주세요.
+    아래 예시 형식을 지켜주세요.
+
+    예시 형식:
+    1. 요약
+    - 최대 3줄 이내로 요약
+    2. 인사이트
+    - 3가지 항목 제안
+
+    추가 조건:
+    - 볼드체(**)나 이모티콘을 사용하지 마세요.
+    - 공연의 긍정적인 특성을 강조하면서, 더 발전시킬 수 있는 아이디어를 제시해주세요.
+
     리뷰 내용:
     {positive_text}
     """
@@ -89,6 +104,10 @@ def summarize_positive_reviews(request, concert_id):
         ],
         model="gpt-3.5-turbo",
     )
+    
+    print("summarize_positive_reviews 응답:")
+    print(response_positive)
+    
     result_positive = response_positive.choices[0].message.content.strip()
     
     context = {
@@ -113,10 +132,20 @@ def summarize_negative_reviews(request, concert_id):
     
     # 부정 리뷰 요약 및 개선점 프롬프트 구성
     prompt_negative = f"""
-    아래는 선택된 공연의 최근 30개의 부정 리뷰입니다.
-    부정적인 부분을 더욱 강조하고, 개선할 점을 찾아주세요.
-    볼드체나 이모티콘은 사용하지 마세요.
-    이 리뷰들을 요약하고, 부정 리뷰 개선을 위한 3가지 개선점을 제안해주세요.
+    아래는 공연의 최근 부정 리뷰입니다.
+    부정리뷰를 요약하고 개선할 수 있는 인사이트를 제안해주세요.
+    아래 예시 형식을 지켜주세요.
+
+    예시 형식:
+    1. 요약
+    - 최대 3줄 이내로 요약
+    2. 인사이트
+    - 3가지 항목 제안
+
+    추가 조건:
+    - 볼드체(**)나 이모티콘을 사용하지 마세요.
+    - 구체적이고 실행 가능한 개선 아이디어를 제시해주세요.
+    
     리뷰 내용:
     {negative_text}
     """
@@ -128,6 +157,10 @@ def summarize_negative_reviews(request, concert_id):
         ],
         model="gpt-3.5-turbo",
     )
+    
+    print("summarize_negative_reviews 응답:")
+    print(response_negative)
+    
     result_negative = response_negative.choices[0].message.content.strip()
     
     context = {
