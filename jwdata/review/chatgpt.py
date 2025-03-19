@@ -1,9 +1,14 @@
 from django.conf import settings
 from django.shortcuts import render, redirect
-import time
-from review.models import Review
 from django.db import transaction
+
+import time
+
+from review.models import Review
+
 from openai import OpenAI
+
+from review.slacks import chatgpt_review_send_slack_message
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -109,6 +114,14 @@ def summarize_positive_reviews(request, concert_id):
     print(response_positive)
     
     result_positive = response_positive.choices[0].message.content.strip()
+
+    chatgpt_review_send_slack_message(
+        user_ids=["U0809FLM811"],
+        channel="C08JDKB6DC3",
+        concert_name=positive_reviews[0].concert.name,
+        emotion="긍정",
+        message=result_positive
+    )
     
     context = {
         "result_positive": result_positive,
@@ -145,7 +158,7 @@ def summarize_negative_reviews(request, concert_id):
     추가 조건:
     - 볼드체(**)나 이모티콘을 사용하지 마세요.
     - 구체적이고 실행 가능한 개선 아이디어를 제시해주세요.
-    
+
     리뷰 내용:
     {negative_text}
     """
@@ -162,6 +175,14 @@ def summarize_negative_reviews(request, concert_id):
     print(response_negative)
     
     result_negative = response_negative.choices[0].message.content.strip()
+
+    chatgpt_review_send_slack_message(
+        user_ids=["U0809FLM811", "U07BZ99GETB", "U082KGZ7J3X"],
+        channel="C08JDKB6DC3",
+        concert_name=negative_reviews[0].concert.name,
+        emotion="부정",
+        message=result_negative
+    )
     
     context = {
         "result_negative": result_negative,

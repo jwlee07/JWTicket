@@ -17,6 +17,7 @@ from decouple import config
 # secret key
 OPENAI_API_KEY = config('OPENAI_API_KEY')
 GOOGLE_SHEET_KEY = config('GOOGLE_SHEET_KEY')
+SLACK_OAUTH_TOKEN = config('SLACK_OAUTH_TOKEN')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
