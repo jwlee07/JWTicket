@@ -116,7 +116,6 @@ def summarize_positive_reviews(request, concert_id):
     result_positive = response_positive.choices[0].message.content.strip()
 
     chatgpt_review_send_slack_message(
-        user_ids=["U0809FLM811"],
         channel="C08JDKB6DC3",
         concert_name=positive_reviews[0].concert.name,
         emotion="긍정",
@@ -177,7 +176,6 @@ def summarize_negative_reviews(request, concert_id):
     result_negative = response_negative.choices[0].message.content.strip()
 
     chatgpt_review_send_slack_message(
-        user_ids=["U0809FLM811", "U07BZ99GETB", "U082KGZ7J3X"],
         channel="C08JDKB6DC3",
         concert_name=negative_reviews[0].concert.name,
         emotion="부정",

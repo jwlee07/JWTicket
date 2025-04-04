@@ -145,8 +145,8 @@ def concert_detail(request):
     )
     
     # 긍정 및 부정 리뷰 테이블용 데이터 (최근 순 정렬)
-    positive_reviews_list = positive_reviews_qs.order_by("-date")
-    negative_reviews_list = negative_reviews_qs.order_by("-date")
+    positive_reviews_list = positive_reviews_qs.order_by("-date")[:30]
+    negative_reviews_list = negative_reviews_qs.order_by("-date")[:30]
 
     context = {
         "selected_concert": concert,
@@ -1049,7 +1049,7 @@ def sync_all_sheet_to_db(request):
 stop_words = ['이','것','정말','너무','그리고', '공연', '좀', '공연', '연극', '뮤지컬', 
             '콘서트', '더', '진짜', '또', '수', '나', '배우', '연기', '보고', '넘버', '작품', 
             '생각', '조금', '타인', '삶', '그', '왜', '때', '때문', '일단', '끝', '못', '볼', 
-            '저', '막', '안', '내용', '거', '말', '게', '데', '진']
+            '저', '막', '안', '내용', '거', '말', '게', '데', '진', '무명', '준희', '라이카']
 
 def clean_text(text):
     cleaned = re.sub(r"[^가-힣a-zA-Z0-9\s]", "", text)
