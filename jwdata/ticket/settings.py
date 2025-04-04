@@ -148,8 +148,6 @@ CRONJOBS = [
     ('0 20 * * *', 'review.tasks.crawl_all_concerts_reviews'),
     # 매일 00시, 06시, 12시, 18시에 잔여 좌석 크롤링
     ('0 0,6,12,18 * * *', 'review.tasks.crawl_all_concerts_seats'),
-    
-    # 테스트 5분마다
-    # ('*/5 * * * *', 'review.tasks.crawl_all_concerts_reviews'),
-    # ('*/10 * * * *', 'review.tasks.crawl_all_concerts_seats'),
+    # 매주 화요일 오전 11시에 리뷰 요약 슬랙 메세지 전송
+    ('0 11 * * TUE', 'review.tasks.summarize_reviews_cron'),
 ]

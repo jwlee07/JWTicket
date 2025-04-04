@@ -11,6 +11,9 @@ from selenium.common.exceptions import NoSuchElementException
 
 from .models import Concert
 
+from django.test import RequestFactory
+from review.chatgpt import summarize_positive_reviews, summarize_negative_reviews
+
 from .views import (
     crawl_concert_info, 
     crawl_concert_reviews, 
@@ -221,3 +224,13 @@ def crawl_all_concerts_seats():
     finally:
         driver.quit()
         log("[crawl_all_concerts_seats] 종료")
+
+def summarize_reviews_cron():
+    # 더미 request 생성 (view 함수를 호출하기 위해)
+    request = RequestFactory().get("/")
+    # slack_channel_id가 설정된 공연만 조회
+    concerts = Concert.objects.filter(slack_channel_id__isnull=False).exclude(slack_channel_id="")
+
+    for concert in concerts:
+        summarize_positive_reviews(request, concert.id, concert.slack_channel_id)
+        summarize_negative_reviews(request, concert.id, concert.slack_channel_id)

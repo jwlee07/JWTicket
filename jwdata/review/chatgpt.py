@@ -68,7 +68,7 @@ def update_reviews_with_sentiment(request):
     print(f"{total_count}개의 리뷰 감정 분석 완료 및 저장됨.")
     return redirect("home")
 
-def summarize_positive_reviews(request, concert_id):
+def summarize_positive_reviews(request, concert_id, slack_channel_id):
     positive_reviews = Review.objects.filter(
         concert_id=concert_id,
         emotion="긍정",
@@ -97,7 +97,6 @@ def summarize_positive_reviews(request, concert_id):
     추가 조건:
     - 볼드체(**)나 이모티콘을 사용하지 마세요.
     - 공연의 긍정적인 특성을 강조하면서, 더 발전시킬 수 있는 아이디어를 제시해주세요.
-
     리뷰 내용:
     {positive_text}
     """
@@ -107,7 +106,7 @@ def summarize_positive_reviews(request, concert_id):
             {"role": "system", "content": "당신은 공연 리뷰 분석 전문가입니다."},
             {"role": "user", "content": prompt_positive}
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4",
     )
     
     print("summarize_positive_reviews 응답:")
@@ -116,7 +115,7 @@ def summarize_positive_reviews(request, concert_id):
     result_positive = response_positive.choices[0].message.content.strip()
 
     chatgpt_review_send_slack_message(
-        channel="C08JDKB6DC3",
+        channel=slack_channel_id,
         concert_name=positive_reviews[0].concert.name,
         emotion="긍정",
         message=result_positive
@@ -128,7 +127,7 @@ def summarize_positive_reviews(request, concert_id):
     }
     return render(request, "review/summarized_positive_reviews.html", context)
 
-def summarize_negative_reviews(request, concert_id):
+def summarize_negative_reviews(request, concert_id, slack_channel_id):
     negative_reviews = Review.objects.filter(
         concert_id=concert_id,
         emotion="부정",
@@ -167,7 +166,7 @@ def summarize_negative_reviews(request, concert_id):
             {"role": "system", "content": "당신은 공연 리뷰 분석 전문가입니다."},
             {"role": "user", "content": prompt_negative}
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4",
     )
     
     print("summarize_negative_reviews 응답:")
@@ -176,7 +175,7 @@ def summarize_negative_reviews(request, concert_id):
     result_negative = response_negative.choices[0].message.content.strip()
 
     chatgpt_review_send_slack_message(
-        channel="C08JDKB6DC3",
+        channel=slack_channel_id,
         concert_name=negative_reviews[0].concert.name,
         emotion="부정",
         message=result_negative
