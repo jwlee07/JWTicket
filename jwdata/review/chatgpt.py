@@ -68,7 +68,7 @@ def update_reviews_with_sentiment(request):
     print(f"{total_count}개의 리뷰 감정 분석 완료 및 저장됨.")
     return redirect("home")
 
-def summarize_positive_reviews(request, concert_id, slack_channel_id):
+def summarize_positive_reviews(request, concert_id, slack_channel_id=None):
     positive_reviews = Review.objects.filter(
         concert_id=concert_id,
         emotion="긍정",
@@ -114,12 +114,13 @@ def summarize_positive_reviews(request, concert_id, slack_channel_id):
     
     result_positive = response_positive.choices[0].message.content.strip()
 
-    chatgpt_review_send_slack_message(
-        channel=slack_channel_id,
-        concert_name=positive_reviews[0].concert.name,
-        emotion="긍정",
-        message=result_positive
-    )
+    if slack_channel_id:
+        chatgpt_review_send_slack_message(
+            channel=slack_channel_id,
+            concert_name=positive_reviews[0].concert.name,
+            emotion="긍정",
+            message=result_positive
+        )
     
     context = {
         "result_positive": result_positive,
@@ -127,7 +128,7 @@ def summarize_positive_reviews(request, concert_id, slack_channel_id):
     }
     return render(request, "review/summarized_positive_reviews.html", context)
 
-def summarize_negative_reviews(request, concert_id, slack_channel_id):
+def summarize_negative_reviews(request, concert_id, slack_channel_id=None):
     negative_reviews = Review.objects.filter(
         concert_id=concert_id,
         emotion="부정",
@@ -174,12 +175,13 @@ def summarize_negative_reviews(request, concert_id, slack_channel_id):
     
     result_negative = response_negative.choices[0].message.content.strip()
 
-    chatgpt_review_send_slack_message(
-        channel=slack_channel_id,
-        concert_name=negative_reviews[0].concert.name,
-        emotion="부정",
-        message=result_negative
-    )
+    if slack_channel_id:
+        chatgpt_review_send_slack_message(
+            channel=slack_channel_id,
+            concert_name=negative_reviews[0].concert.name,
+            emotion="부정",
+            message=result_negative
+        )
     
     context = {
         "result_negative": result_negative,
