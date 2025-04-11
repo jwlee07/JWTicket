@@ -537,24 +537,23 @@ def analyze_all_pattern(request):
 # Login / Logout
 # ==================================================================
 
-
 def user_login(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-
+        
         if user is not None:
+            # 인증 성공 시 로그인 처리
             login(request, user)
-            # messages.success(request, f"{username} 님, 반가워요!")
-            return redirect("home")
+            return redirect('review:home')
         else:
-            messages.error(request, "티켓스퀘어 PM 이진욱님에게 문의하세요:)")
-            return render(request, "review/login.html")
-    else:
-        return render(request, "review/login.html")
-
+            # 인증 실패 시 메시지 띄우고 다시 로그인 페이지로
+            messages.error(request, '아이디 또는 비밀번호가 잘못되었습니다.')
+            return redirect('review:user_login')
+    
+    # GET 요청 시 로그인 폼 보여주기
+    return render(request, 'review/login.html')
 
 def user_logout(request):
     response = render(request, "review/login.html")
