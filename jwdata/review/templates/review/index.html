@@ -13,9 +13,9 @@
             <div class="mb-4">
                 <h5>통합</h5>
                 <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="통합 바로가기">
-                    <a href="{% url 'analyze_all_reviews' %}" class="btn btn-outline-light text-start">공연 리뷰</a>
-                    <a href="{% url 'analyze_all_pattern' %}" class="btn btn-outline-light text-start">관람 패턴</a>
-                    <a href="{% url 'analyze_all_seats' %}" class="btn btn-outline-light text-start">잔여 좌석</a>
+                    <a href="{% url 'review:all_reviews' %}" class="btn btn-outline-light text-start">공연 리뷰</a>
+                    <a href="{% url 'review:all_pattern' %}" class="btn btn-outline-light text-start">관람 패턴</a>
+                    <a href="{% url 'review:all_seats' %}" class="btn btn-outline-light text-start">잔여 좌석</a>
                 </div>
             </div>
             <!-- 장르별 공연 목록 -->
@@ -70,9 +70,10 @@
     <div class="flex-grow-1 p-3">
         <!-- 상단 액션 버튼 -->
         <div class="d-flex justify-content-end mb-3">
-            <a href="{% url 'update_sentiment' %}" class="btn btn-dark me-2">ChatGPT 리뷰 감정 분석</a>
-            <a href="{% url 'sync_db_to_sheet' %}" class="btn btn-success me-2">DB → Google Sheet</a>
-            <a href="{% url 'sync_sheet_to_db' %}" class="btn btn-success me-2">Google Sheet → DB</a>
+            <a href="{% url 'review:update_sentiment' %}" class="btn btn-dark me-2">ChatGPT 리뷰 감정 분석</a>
+            <a href="{% url 'review:sync_db_to_sheet' %}" class="btn btn-success me-2">DB → Google Sheet</a>
+            <a href="{% url 'review:sync_sheet_to_db' %}" class="btn btn-success me-2">Google Sheet → DB</a>
+            <button onclick="logout()" class="btn btn-danger">로그아웃</button>
         </div>
 
         <!-- 평점 요약 카드 -->
@@ -623,7 +624,20 @@
 </script>
 <script>
     function showConcert(concertId) {
-        window.location.href = "{% url 'concert_detail' %}?concert_id=" + concertId;
+        window.location.href = "{% url 'review:concert_detail' pk=0 %}".replace('0', concertId);
+    }
+</script>
+<script>
+    function logout() {
+        fetch("{% url 'review:user_logout' %}")
+            .then(response => {
+                if (response.ok) {
+                    location.href = "{% url 'review:user_login' %}";
+                }
+            })
+            .catch(error => {
+                console.error('로그아웃 실패:', error);
+            });
     }
 </script>
 {% endblock scripts %}

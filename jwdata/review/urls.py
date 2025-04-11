@@ -1,30 +1,32 @@
 from django.urls import path
 from . import views, chatgpt
 
+app_name = "review"
+
 urlpatterns = [
     # 로그인
     path('login/', views.user_login, name='user_login'),
 
     # 홈
-    path('', views.home, name='home'),
+    path('', views.HomeView.as_view(), name='home'),
 
     # 공연 상세
-    path('concert_detail/', views.concert_detail, name='concert_detail'),
+    path("concert/<int:pk>/", views.ConcertDetailView.as_view(), name="concert_detail"),
 
     # 로그아웃
-    path('', views.user_logout, name='user_logout'),
+    path('logout/', views.user_logout, name='user_logout'),
 
     # 특정 공연에 대한 리뷰 분석
-    path('analyze/<int:concert_id>/<str:analysis_type>/', views.analyze_reviews, name='analyze_reviews'),
+    path('analyze/<int:concert_id>/<str:analysis_type>/', views.ReviewAnalysisView.as_view(), name='analyze_reviews'),
 
     # 모든 리뷰 보기
-    path('all/reviews', views.analyze_all_reviews, name='analyze_all_reviews'),
+    path("all_reviews/", views.AllReviewsView.as_view(), name="all_reviews"),
 
     # 관람 패턴
-    path('all/pattern', views.analyze_all_pattern, name='analyze_all_pattern'),
+    path("all_pattern/", views.AllPatternView.as_view(), name="all_pattern"),
     
     # 잔여 좌석 분석
-    path('all/seats', views.analyze_all_seats, name='analyze_all_seats'),
+    path("all_seats/", views.AllSeatsView.as_view(), name="all_seats"),
 
     # DB -> Google Sheet 동기화
     path('sync-db-to-sheet/', views.sync_all_db_to_sheet, name='sync_db_to_sheet'),

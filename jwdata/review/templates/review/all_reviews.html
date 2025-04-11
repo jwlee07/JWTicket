@@ -20,7 +20,7 @@
         -->
         <div class="card p-3 mt-4">
             <h2 class="mb-3">기간 지정</h2>
-            <form method="GET" action="{% url 'analyze_all_reviews' %}">
+            <form method="GET" action="{% url 'review:all_reviews' %}">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label for="start_date" class="form-label">시작일</label>
@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 legend: { position: 'top' },
                 tooltip: {
                     callbacks: {
-                        // 툴팁에 "명" 단위 표시
+                        // 툴크에 "명" 단위 표시
                         label: function (context) {
                             return `${context.label}: ${context.raw}명`;
                         }
