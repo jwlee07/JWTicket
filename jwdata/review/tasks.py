@@ -225,6 +225,62 @@ def crawl_all_concerts_seats():
         driver.quit()
         log("[crawl_all_concerts_seats] 종료")
 
+def crawl_specific_concert_review(concert_name):
+    log(f"[crawl_specific_concert_review] '{concert_name}' 리뷰 크롤링 시작")
+    driver = get_chrome_driver()
+
+    try:
+        concert_qs = Concert.objects.filter(name__icontains=concert_name.strip())
+        if not concert_qs.exists():
+            log(f"[ERROR] '{concert_name}'에 해당하는 Concert 객체를 찾을 수 없습니다.")
+            return
+
+        concert = concert_qs.first()
+
+        # 공연 검색 및 상세 페이지 진입 로직 복사
+        driver.get("https://tickets.interpark.com/")
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div'))
+        )
+        time.sleep(2)
+
+        search_box = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div')
+        search_box.click()
+        time.sleep(2)
+
+        active_input = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div/input')
+        active_input.send_keys(concert_name)
+        time.sleep(2)
+        active_input.send_keys(Keys.RETURN)
+        time.sleep(2)
+
+        element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[1]/div[2]/a[1]/ul'))
+        )
+        element.click()
+        time.sleep(2)
+
+        if len(driver.window_handles) > 1:
+            driver.switch_to.window(driver.window_handles[1])
+            time.sleep(2)
+
+        try:
+            popup_close_button = driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/button')
+            driver.execute_script("arguments[0].click();", popup_close_button)
+            time.sleep(2)
+        except NoSuchElementException:
+            pass
+
+        # 공연 정보 크롤링 (옵션)
+        crawl_concert_info(driver)
+
+        # 리뷰 크롤링
+        crawl_concert_reviews(driver, concert)
+        log("[crawl_specific_concert_review] 완료")
+
+    finally:
+        driver.quit()
+
 def summarize_reviews_cron():
     # 더미 request 생성 (view 함수를 호출하기 위해)
     request = RequestFactory().get("/")
