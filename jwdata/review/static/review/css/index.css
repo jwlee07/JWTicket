@@ -1,0 +1,258 @@
+.sidebar {
+    height: 100%;
+    width: 200px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+.sidebar a {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+}
+
+.sidebar a:hover {
+    color: #f1f1f1;
+}
+
+.main {
+    margin-left: 200px;
+    padding: 0px 10px;
+}
+
+.genre-button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.genre-button:hover {
+    background-color: #444;
+}
+
+.action-button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.action-button:hover {
+    background-color: #45a049;
+}
+
+.rating-container {
+    margin: 20px 0;
+}
+
+.rating-bar {
+    width: 100%;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.rating-progress {
+    height: 20px;
+    background-color: #4CAF50;
+    border-radius: 5px;
+    transition: width 0.5s ease-in-out;
+}
+
+#concertTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+#concertTable th, #concertTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#concertTable th {
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+}
+
+#concertTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#concertTable tr:hover {
+    background-color: #ddd;
+}
+
+.sort-icon {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 5px;
+    vertical-align: middle;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+}
+
+.sort-icon.asc {
+    border-bottom: 4px solid currentColor;
+}
+
+.sort-icon.desc {
+    border-top: 4px solid currentColor;
+}
+
+/* 카드 호버 효과 */
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* 테이블 스타일 */
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.progress {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+}
+
+/* 호버 효과 */
+.concert-row:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* 차트 컨테이너 스타일 */
+#reviewChart {
+    min-height: 400px;
+}
+
+/* 로딩 스피너 스타일 */
+#chartLoading {
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+/* 필터 스타일 */
+.form-select {
+    min-width: 120px;
+    border-color: #e9ecef;
+    background-color: #f8f9fa;
+}
+
+.form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* 평점 차트 스타일 */
+#ratingChart {
+    min-height: 400px;
+}
+
+/* 로딩 스피너 스타일 */
+#ratingChartLoading {
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+/* 워드클라우드 및 감정 분석 스타일 */
+.genre-content {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.genre-content.d-none {
+    opacity: 0;
+    display: none !important;
+}
+
+.genre-content:not(.d-none) {
+    opacity: 1;
+}
+
+.btn-group .btn {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.btn-group .btn.active {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.card.bg-light {
+    background-color: rgba(0,0,0,0.02) !important;
+    border: none;
+}
+
+.card-subtitle {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+    .table-responsive {
+        border: 0;
+    }
+    
+    .input-group {
+        width: 100%;
+    }
+
+    .card-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .d-flex.gap-2 {
+        width: 100%;
+    }
+    
+    .form-select {
+        flex: 1;
+    }
+
+    .btn-group {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+} 

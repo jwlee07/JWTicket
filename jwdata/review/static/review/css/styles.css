@@ -1,0 +1,46 @@
+.genre-content {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.genre-content.d-none {
+    opacity: 0;
+    display: none !important;
+}
+
+.genre-content:not(.d-none) {
+    opacity: 1;
+}
+
+.btn-group .btn {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+}
+
+.btn-group .btn.active {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.card.bg-light {
+    background-color: rgba(0,0,0,0.02) !important;
+    border: none;
+}
+
+.card-subtitle {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .btn-group {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .btn-group .btn {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+} 
