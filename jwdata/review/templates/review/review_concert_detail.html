@@ -590,69 +590,115 @@
         });
     </script>
 
-    <!-- 긍정/부정 리뷰 테이블 섹션 (가로 50:50) -->
-    <div class="row mt-5">
-        <!-- 긍정 리뷰 테이블 -->
+    <!-- 긍정/부정 리뷰 섹션 -->
+    <div class="row mt-5 g-4">
+        <!-- 긍정 리뷰 섹션 -->
         <div class="col-md-6">
-            <h4 class="mb-3">긍정 리뷰</h4>
-            <table class="table">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="white-space: nowrap;">작성자</th>
-                        <th style="white-space: nowrap;">작성일</th>
-                        <th style="white-space: nowrap;">제목</th>
-                        <th style="white-space: nowrap;">내용</th>
-                        <th style="white-space: nowrap;">평점</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for review in positive_reviews %}
-                        <tr>
-                            <td>{{ review.nickname }}</td>
-                            <td>{{ review.date }}</td>
-                            <td>{{ review.title }}</td>
-                            <td>{{ review.description }}</td>
-                            <td>{{ review.star_rating }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center">긍정 리뷰가 없습니다.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-smile-beam text-primary me-2"></i>
+                        <h5 class="mb-0">긍정 리뷰</h5>
+                        <span class="badge bg-primary ms-2">{{ positive_reviews|length }}개</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="review-container" style="max-height: 600px; overflow-y: auto;">
+                        {% if positive_reviews %}
+                            {% for review in positive_reviews %}
+                                <div class="review-card p-3 border-bottom {% if not forloop.last %}border-bottom{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">{{ review.title }}</h6>
+                                            <div class="text-muted small">
+                                                <i class="fas fa-user me-1"></i>{{ review.nickname }}
+                                                <i class="fas fa-calendar ms-2 me-1"></i>{{ review.date }}
+                                            </div>
+                                        </div>
+                                        <div class="rating-badge bg-primary bg-opacity-10 px-2 py-1 rounded">
+                                            <i class="fas fa-star text-warning me-1"></i>
+                                            <span class="fw-bold text-primary">{{ review.star_rating }}</span>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0 text-muted">{{ review.description }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                                <p class="mb-0">긍정 리뷰가 없습니다.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- 부정 리뷰 테이블 -->
+
+        <!-- 부정 리뷰 섹션 -->
         <div class="col-md-6">
-            <h4 class="mb-3">부정 리뷰</h4>
-            <table class="table">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="white-space: nowrap;">작성자</th>
-                        <th style="white-space: nowrap;">작성일</th>
-                        <th style="white-space: nowrap;">제목</th>
-                        <th style="white-space: nowrap;">내용</th>
-                        <th style="white-space: nowrap;">평점</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for review in negative_reviews %}
-                        <tr>
-                            <td>{{ review.nickname }}</td>
-                            <td>{{ review.date }}</td>
-                            <td>{{ review.title }}</td>
-                            <td>{{ review.description }}</td>
-                            <td>{{ review.star_rating }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center">부정 리뷰가 없습니다.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-frown text-danger me-2"></i>
+                        <h5 class="mb-0">부정 리뷰</h5>
+                        <span class="badge bg-danger ms-2">{{ negative_reviews|length }}개</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="review-container" style="max-height: 600px; overflow-y: auto;">
+                        {% if negative_reviews %}
+                            {% for review in negative_reviews %}
+                                <div class="review-card p-3 border-bottom {% if not forloop.last %}border-bottom{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">{{ review.title }}</h6>
+                                            <div class="text-muted small">
+                                                <i class="fas fa-user me-1"></i>{{ review.nickname }}
+                                                <i class="fas fa-calendar ms-2 me-1"></i>{{ review.date }}
+                                            </div>
+                                        </div>
+                                        <div class="rating-badge bg-danger bg-opacity-10 px-2 py-1 rounded">
+                                            <i class="fas fa-star text-warning me-1"></i>
+                                            <span class="fw-bold text-danger">{{ review.star_rating }}</span>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0 text-muted">{{ review.description }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                                <p class="mb-0">부정 리뷰가 없습니다.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <style>
+        .review-container {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+        }
+        .review-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .review-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .review-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .review-card {
+            transition: background-color 0.2s ease;
+        }
+        .review-card:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+    </style>
 </div>
 {% endblock content %}
 
