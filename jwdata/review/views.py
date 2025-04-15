@@ -68,7 +68,7 @@ from .services import ConcertAnalysisService, HomeAnalysisService, ReviewAnalysi
 
 def update_sentiment_view(request):
     update_reviews_with_sentiment()
-    return redirect('review:home')
+    return redirect('home')
 
 
 # ==================================================================
@@ -590,7 +590,7 @@ def sync_all_db_to_sheet(request):
     print("[DB -> Sheet] Seat 동기화 완료")
 
     response_text = "\n".join(logs)
-    return redirect('review:home')
+    return redirect("home")
 
 
 @login_required
@@ -610,7 +610,7 @@ def sync_all_sheet_to_db(request):
     print("[Sheet -> DB] Seat 동기화 완료")
 
     response_text = "\n".join(logs)
-    return redirect('review:home')
+    return redirect("home")
 
 
 # ==================================================================
