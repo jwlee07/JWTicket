@@ -4,59 +4,248 @@
 {% block content %}
 <div class="container mt-5">
     <!-- 공연 상세 정보 -->
-    <div class="mb-4">
-        <h2>{{ selected_concert.name }} 상세 정보</h2>
-        <p><strong>장소:</strong> {{ selected_concert.place }}</p>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="mb-3">{{ selected_concert.name }}</h2>
+                    <div class="d-flex flex-wrap gap-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                            <span>{{ selected_concert.place }}</span>
+                        </div>
+                        {% if selected_concert.genre %}
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-tag-fill text-primary me-2"></i>
+                            <span>{{ selected_concert.genre }}</span>
+                        </div>
+                        {% endif %}
+                        {% if selected_concert.date %}
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar-event-fill text-primary me-2"></i>
+                            <span>{{ selected_concert.date }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button class="btn btn-outline-primary" onclick="window.history.back()">
+                        <i class="bi bi-arrow-left me-1"></i>목록으로
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 평점 카드 섹션 -->
-    <div class="row g-3 mb-4">
-        <!-- 전체 공연 리뷰 평균 평점 카드 -->
-        <div class="col-12 col-md-4">
-            <div class="card shadow text-center">
-                <div class="card-body">
-                    <h5 class="card-title">전체 공연 리뷰 평점</h5>
-                    <h3 class="card-text text-primary">{{ overall_avg|floatformat:1|default:"0.0" }}/10</h3>
-                    <p class="text-muted small mb-0">총 리뷰: {{ overall_count|default:"0" }}건</p>
+    <div class="mt-4">
+        <h3 class="mb-4">
+            <i class="fas fa-star text-warning me-2"></i>리뷰 평점 분석
+        </h3>
+        <div class="row g-4">
+            <!-- 전체 공연 리뷰 평균 평점 카드 -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card-body text-center p-4">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <i class="fas fa-chart-line fa-2x text-primary me-2"></i>
+                            <h5 class="card-title mb-0">전체 공연 리뷰 평점</h5>
+                        </div>
+                        <div class="display-4 fw-bold text-primary mb-2">{{ overall_avg|floatformat:1|default:"0.0" }}</div>
+                        <div class="text-muted small mb-3">/10점</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 style="width: {% widthratio overall_avg|default:0 10 100 %}%;" 
+                                 aria-valuenow="{{ overall_avg|floatformat:1|default:'0' }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="10">
+                            </div>
+                        </div>
+                        <p class="text-muted small mt-3 mb-0">
+                            총 리뷰 <span class="fw-bold">{{ overall_count|default:"0" }}</span>건
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- 해당 장르 리뷰 평균 평점 카드 -->
-        <div class="col-12 col-md-4">
-            <div class="card shadow text-center">
-                <div class="card-body">
-                    <h5 class="card-title">해당 장르 리뷰 평점</h5>
-                    <h3 class="card-text text-primary">{{ genre_avg|floatformat:1|default:"0.0" }}/10</h3>
-                    <p class="text-muted small mb-0">총 리뷰: {{ genre_count|default:"0" }}건</p>
+            
+            <!-- 해당 장르 리뷰 평균 평점 카드 -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card-body text-center p-4">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <i class="fas fa-theater-masks fa-2x text-info me-2"></i>
+                            <h5 class="card-title mb-0">해당 장르 리뷰 평점</h5>
+                        </div>
+                        <div class="display-4 fw-bold text-info mb-2">{{ genre_avg|floatformat:1|default:"0.0" }}</div>
+                        <div class="text-muted small mb-3">/10점</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 style="width: {% widthratio genre_avg|default:0 10 100 %}%;" 
+                                 aria-valuenow="{{ genre_avg|floatformat:1|default:'0' }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="10">
+                            </div>
+                        </div>
+                        <p class="text-muted small mt-3 mb-0">
+                            장르 리뷰 <span class="fw-bold">{{ genre_count|default:"0" }}</span>건
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- 선택 공연 리뷰 평균 평점 카드 -->
-        <div class="col-12 col-md-4">
-            <div class="card shadow text-center">
-                <div class="card-body">
-                    <h5 class="card-title">선택 공연 리뷰 평점</h5>
-                    <h3 class="card-text text-primary">{{ selected_avg|floatformat:1|default:"0.0" }}/10</h3>
-                    <p class="text-muted small mb-0">총 리뷰: {{ selected_count|default:"0" }}건</p>
+            
+            <!-- 선택 공연 리뷰 평균 평점 카드 -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card-body text-center p-4">
+                        <div class="d-flex align-items-center justify-content-center mb-3">
+                            <i class="fas fa-award fa-2x text-success me-2"></i>
+                            <h5 class="card-title mb-0">선택 공연 리뷰 평점</h5>
+                        </div>
+                        <div class="display-4 fw-bold text-success mb-2">{{ selected_avg|floatformat:1|default:"0.0" }}</div>
+                        <div class="text-muted small mb-3">/10점</div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio selected_avg|default:0 10 100 %}%;" 
+                                 aria-valuenow="{{ selected_avg|floatformat:1|default:'0' }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="10">
+                            </div>
+                        </div>
+                        <p class="text-muted small mt-3 mb-0">
+                            공연 리뷰 <span class="fw-bold">{{ selected_count|default:"0" }}</span>건
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 리뷰 요약 호출 버튼 섹션 -->
-    <div class="row mt-4">
-        <div class="col-12 text-left">
-            <a href="{% url 'review:summarize_positive_reviews' selected_concert.id %}" id="positiveSummaryBtn" class="btn btn-primary me-2">긍정 ChatGPT 요약 분석</a>
-            <a href="{% url 'review:summarize_negative_reviews' selected_concert.id %}" id="negativeSummaryBtn" class="btn btn-danger">부정 ChatGPT 요약 분석</a>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h4 class="card-title mb-3">ChatGPT 리뷰 분석</h4>
+            <div class="d-flex gap-2 mb-3">
+                <button id="positiveSummaryBtn" 
+                        class="btn btn-primary d-flex align-items-center gap-2"
+                        data-url="{% url 'review:summarize_positive_reviews' selected_concert.id %}">
+                    <i class="bi bi-emoji-smile-fill"></i>
+                    긍정 리뷰 분석
+                </button>
+                <button id="negativeSummaryBtn" 
+                        class="btn btn-danger d-flex align-items-center gap-2"
+                        data-url="{% url 'review:summarize_negative_reviews' selected_concert.id %}">
+                    <i class="bi bi-emoji-frown-fill"></i>
+                    부정 리뷰 분석
+                </button>
+            </div>
+            <!-- 요약 결과를 표시할 컨테이너 -->
+            <div id="summaryResults">
+                <div id="positiveSummaryContainer" class="mb-3">
+                    <!-- 긍정 요약 결과가 여기에 표시됩니다 -->
+                </div>
+                <div id="negativeSummaryContainer">
+                    <!-- 부정 요약 결과가 여기에 표시됩니다 -->
+                </div>
+            </div>
         </div>
     </div>
-    <!-- 요약 결과를 표시할 컨테이너 -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div id="positiveSummaryContainer"></div>
-            <div id="negativeSummaryContainer" class="mt-4"></div>
-        </div>
-    </div>
+
+    <style>
+        .summary-content {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .summary-content.positive {
+            border-left: 4px solid var(--bs-primary);
+        }
+        
+        .summary-content.negative {
+            border-left: 4px solid var(--bs-danger);
+        }
+        
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const positiveSummaryBtn = document.getElementById('positiveSummaryBtn');
+            const negativeSummaryBtn = document.getElementById('negativeSummaryBtn');
+            
+            function showLoading(containerId) {
+                document.getElementById(containerId).innerHTML = `
+                    <div class="loading-spinner">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function handleSummaryClick(btn, containerId) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // URL 가져오기
+                    const url = btn.dataset.url;
+                    if (!url) {
+                        console.error('URL이 설정되지 않았습니다.');
+                        return;
+                    }
+                    
+                    // 버튼 비활성화
+                    btn.disabled = true;
+                    
+                    // 로딩 표시
+                    showLoading(containerId);
+                    
+                    fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        const container = document.getElementById(containerId);
+                        container.innerHTML = `
+                            <div class="summary-content ${containerId.includes('positive') ? 'positive' : 'negative'}">
+                                ${html}
+                            </div>
+                        `;
+                    })
+                    .catch(error => {
+                        document.getElementById(containerId).innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                요약을 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.
+                            </div>
+                        `;
+                        console.error('Error:', error);
+                    })
+                    .finally(() => {
+                        // 버튼 재활성화
+                        btn.disabled = false;
+                    });
+                });
+            }
+            
+            // 긍정 요약 버튼 이벤트 설정
+            handleSummaryClick(positiveSummaryBtn, 'positiveSummaryContainer');
+            
+            // 부정 요약 버튼 이벤트 설정
+            handleSummaryClick(negativeSummaryBtn, 'negativeSummaryContainer');
+        });
+    </script>
 
     <!-- 최근 30일 간의 리뷰 추이 및 평균 평점 추이 그래프 -->
     <div class="mt-5">
@@ -306,34 +495,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 y: { beginAtZero: true, suggestedMax: 10, title: { display: true, text: '평균 평점' } }
             }
         }
-    });
-
-    // AJAX를 통한 요약 결과 동적 업데이트 -------------------------------
-    const positiveBtn = document.getElementById('positiveSummaryBtn');
-    const negativeBtn = document.getElementById('negativeSummaryBtn');
-
-    positiveBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        fetch(this.href, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('positiveSummaryContainer').innerHTML = html;
-        })
-        .catch(error => console.error('Error fetching 긍정 요약:', error));
-    });
-
-    negativeBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        fetch(this.href, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('negativeSummaryContainer').innerHTML = html;
-        })
-        .catch(error => console.error('Error fetching 부정 요약:', error));
     });
 });
 </script>
