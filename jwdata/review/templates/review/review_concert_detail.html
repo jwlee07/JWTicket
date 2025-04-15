@@ -401,81 +401,194 @@
         });
     </script>
 
-    <!-- 기존의 리뷰 분석 섹션 -->
-    <div class="row mt-5">
-        <h3 class="mb-3">리뷰 분석</h3>
-        <div class="col-12 mb-3">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h5 class="card-title">[{{ selected_concert.name }} - 전체 리뷰 분석]</h5>
+    <!-- 리뷰 분석 섹션 -->
+    <div class="mt-5">
+        <div class="d-flex align-items-center mb-4">
+            <i class="fas fa-chart-pie text-primary me-2"></i>
+            <h3 class="mb-0">리뷰 분석</h3>
+        </div>
+        
+        <div class="row g-4">
+            <!-- 워드클라우드 분석 -->
+            <div class="col-12 col-lg-8">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cloud text-primary me-2"></i>워드클라우드 분석
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center p-4">
+                                        <h6 class="card-subtitle mb-3 text-muted">전체 리뷰 키워드</h6>
+                                        {% if img_all %}
+                                            <img src="data:image/png;base64,{{ img_all }}" alt="전체 워드클라우드" class="img-fluid" style="max-height: 300px;">
+                                        {% else %}
+                                            <div class="text-center text-muted my-5">
+                                                <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                                                <p class="mb-0">데이터가 부족합니다</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center p-4">
+                                        <h6 class="card-subtitle mb-3 text-success">긍정 리뷰 키워드</h6>
+                                        {% if img_positive %}
+                                            <img src="data:image/png;base64,{{ img_positive }}" alt="긍정 워드클라우드" class="img-fluid" style="max-height: 200px;">
+                                        {% else %}
+                                            <div class="text-center text-muted my-5">
+                                                <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                                                <p class="mb-0">데이터가 부족합니다</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center p-4">
+                                        <h6 class="card-subtitle mb-3 text-danger">부정 리뷰 키워드</h6>
+                                        {% if img_negative %}
+                                            <img src="data:image/png;base64,{{ img_negative }}" alt="부정 워드클라우드" class="img-fluid" style="max-height: 200px;">
+                                        {% else %}
+                                            <div class="text-center text-muted my-5">
+                                                <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                                                <p class="mb-0">데이터가 부족합니다</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <!-- 행 1: 전체 리뷰 워드클라우드 / 감정 분석 그래프 -->
-                    <div class="row mb-3">
-                        <!-- 전체 리뷰 워드클라우드 -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6>모든 리뷰의 워드클라우드</h6>
-                                </div>
-                                <div class="card-body d-flex align-items-center justify-content-center">
-                                    {% if img_all %}
-                                        <img src="data:image/png;base64,{{ img_all }}" alt="전체 워드클라우드" class="img-fluid" style="max-height: 300px;">
-                                    {% else %}
-                                        <p class="text-muted">전체 리뷰 데이터가 부족합니다.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
+            </div>
+
+            <!-- 감정 분석 -->
+            <div class="col-12 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-heart text-danger me-2"></i>감정 분석
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <canvas id="emotionChart" height="300"></canvas>
                         </div>
-                        <!-- 감정 분석 그래프 -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6>감정분석 그래프</h6>
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                <div>
+                                    <i class="fas fa-smile-beam text-primary me-2"></i>
+                                    <span class="text-primary">긍정적 리뷰</span>
                                 </div>
-                                <div class="card-body">
-                                    <canvas id="emotionChart" height="150"></canvas>
+                                <span class="badge bg-primary">{{ emotion.positive|default:0 }}개</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                <div>
+                                    <i class="fas fa-frown text-danger me-2"></i>
+                                    <span class="text-danger">부정적 리뷰</span>
                                 </div>
+                                <span class="badge bg-danger">{{ emotion.negative|default:0 }}개</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                                <div>
+                                    <i class="fas fa-meh text-secondary me-2"></i>
+                                    <span class="text-secondary">중립적 리뷰</span>
+                                </div>
+                                <span class="badge bg-secondary">{{ emotion.neutral|default:0 }}개</span>
+                            </div>
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-between align-items-center p-3 bg-dark bg-opacity-10 rounded">
+                                <div>
+                                    <i class="fas fa-chart-pie text-dark me-2"></i>
+                                    <span class="fw-bold text-dark">총 리뷰</span>
+                                </div>
+                                <span class="badge bg-dark">{{ emotion.positive|default:0|add:emotion.negative|default:0|add:emotion.neutral|default:0 }}개</span>
                             </div>
                         </div>
                     </div>
-                    <!-- 행 2: 긍정 리뷰 워드클라우드 / 부정 리뷰 워드클라우드 -->
-                    <div class="row">
-                        <!-- 긍정 리뷰 워드클라우드 -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6>긍정 리뷰의 워드클라우드</h6>
-                                </div>
-                                <div class="card-body d-flex align-items-center justify-content-center">
-                                    {% if img_positive %}
-                                        <img src="data:image/png;base64,{{ img_positive }}" alt="긍정 워드클라우드" class="img-fluid" style="max-height: 300px;">
-                                    {% else %}
-                                        <p class="text-muted">긍정 리뷰 데이터가 부족합니다.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <!-- 부정 리뷰 워드클라우드 -->
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6>부정 리뷰의 워드클라우드</h6>
-                                </div>
-                                <div class="card-body d-flex align-items-center justify-content-center">
-                                    {% if img_negative %}
-                                        <img src="data:image/png;base64,{{ img_negative }}" alt="부정 워드클라우드" class="img-fluid" style="max-height: 300px;">
-                                    {% else %}
-                                        <p class="text-muted">부정 리뷰 데이터가 부족합니다.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div><!-- card-body -->
-            </div><!-- card -->
-        </div><!-- col-12 -->
-    </div><!-- row -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const emotionData = {{ emotion|safe }};
+            const ctx = document.getElementById('emotionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ["긍정", "부정", "중립"],
+                    datasets: [{
+                        label: "감정 분석",
+                        data: [
+                            emotionData.positive || 0,
+                            emotionData.negative || 0,
+                            emotionData.neutral || 0
+                        ],
+                        backgroundColor: [
+                            'rgba(0, 123, 255, 0.6)',  // 긍정: primary 색상
+                            'rgba(220, 53, 69, 0.6)',   // 부정: danger 색상
+                            'rgba(108, 117, 125, 0.6)'  // 중립: secondary 색상
+                        ],
+                        borderColor: [
+                            'rgb(0, 123, 255)',    // 긍정: primary 색상
+                            'rgb(220, 53, 69)',    // 부정: danger 색상
+                            'rgb(108, 117, 125)'   // 중립: secondary 색상
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}건`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: '리뷰 수'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 
     <!-- 긍정/부정 리뷰 테이블 섹션 (가로 50:50) -->
     <div class="row mt-5">
@@ -561,14 +674,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     emotionData.neutral || 0
                 ],
                 backgroundColor: [
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(201, 203, 207, 0.6)'
+                    'rgba(0, 123, 255, 0.6)',  // 긍정: primary 색상
+                    'rgba(220, 53, 69, 0.6)',   // 부정: danger 색상
+                    'rgba(108, 117, 125, 0.6)'  // 중립: secondary 색상
                 ],
                 borderColor: [
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(201, 203, 207, 1)'
+                    'rgb(0, 123, 255)',    // 긍정: primary 색상
+                    'rgb(220, 53, 69)',    // 부정: danger 색상
+                    'rgb(108, 117, 125)'   // 중립: secondary 색상
                 ],
                 borderWidth: 1
             }]
@@ -576,14 +689,42 @@ document.addEventListener('DOMContentLoaded', function () {
         options: {
             indexAxis: 'y',
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: { size: 14 },
+                    bodyFont: { size: 13 },
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.raw}건`;
+                        }
+                    }
+                }
+            },
             scales: {
                 x: {
                     beginAtZero: true,
-                    title: { display: true, text: '리뷰 수' }
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: '리뷰 수'
+                    }
                 },
-                y: { title: { display: false } }
-            },
-            plugins: { legend: { display: false } }
+                y: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
         }
     });
 });
