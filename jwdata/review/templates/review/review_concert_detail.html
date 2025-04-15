@@ -247,19 +247,159 @@
         });
     </script>
 
-    <!-- 최근 30일 간의 리뷰 추이 및 평균 평점 추이 그래프 -->
-    <div class="mt-5">
-        <h3>최근 30일 리뷰 수 추이</h3>
-        <div class="card p-3">
-            <canvas id="reviewTrendChart" width="100%" height="50"></canvas>
+    <!-- 최근 30일 리뷰 추이 섹션 -->
+    <div class="row g-4 mt-4">
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-chart-line text-primary me-2"></i>최근 30일 리뷰 수 추이
+                    </h3>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="reviewTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-star text-warning me-2"></i>최근 30일 평균 평점 추이
+                    </h3>
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="ratingTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="mt-5">
-        <h3>최근 30일 평균 평점 추이 (10점 만점)</h3>
-        <div class="card p-3">
-            <canvas id="ratingTrendChart" width="100%" height="50"></canvas>
-        </div>
-    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 리뷰 추이 차트
+            const dateSummary = {{ selected_date_summary|safe }};
+            const reviewLabels = dateSummary.map(item => item.date_str);
+            const reviewCounts = dateSummary.map(item => item.reviews_count);
+            
+            new Chart(document.getElementById("reviewTrendChart"), {
+                type: 'line',
+                data: {
+                    labels: reviewLabels,
+                    datasets: [{
+                        label: '일별 리뷰 수',
+                        data: reviewCounts,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: '날짜'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: '리뷰 수'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 평점 추이 차트
+            const ratingSummary = {{ selected_date_rating_summary|safe }};
+            const ratingLabels = ratingSummary.map(item => item.date_str);
+            const averageRatings = ratingSummary.map(item => item.average_rating);
+            
+            new Chart(document.getElementById("ratingTrendChart"), {
+                type: 'line',
+                data: {
+                    labels: ratingLabels,
+                    datasets: [{
+                        label: '일별 평균 평점',
+                        data: averageRatings,
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: '날짜'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: '평균 평점'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 
     <!-- 기존의 리뷰 분석 섹션 -->
     <div class="row mt-5">
@@ -444,56 +584,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 y: { title: { display: false } }
             },
             plugins: { legend: { display: false } }
-        }
-    });
-
-    const dateSummary = {{ selected_date_summary|safe }};
-    const reviewLabels = dateSummary.map(item => item.date_str);
-    const reviewCounts = dateSummary.map(item => item.reviews_count);
-    const reviewCtx = document.getElementById("reviewTrendChart").getContext("2d");
-    new Chart(reviewCtx, {
-        type: 'line',
-        data: {
-            labels: reviewLabels,
-            datasets: [{
-                label: '리뷰 수',
-                data: reviewCounts,
-                fill: false,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: { title: { display: true, text: '날짜' } },
-                y: { beginAtZero: true, title: { display: true, text: '리뷰 수' } }
-            }
-        }
-    });
-
-    const ratingSummary = {{ selected_date_rating_summary|safe }};
-    const ratingLabels = ratingSummary.map(item => item.date_str);
-    const averageRatings = ratingSummary.map(item => item.average_rating);
-    const ratingCtx = document.getElementById("ratingTrendChart").getContext("2d");
-    new Chart(ratingCtx, {
-        type: 'line',
-        data: {
-            labels: ratingLabels,
-            datasets: [{
-                label: '평균 평점',
-                data: averageRatings,
-                fill: false,
-                borderColor: 'rgba(255, 159, 64, 1)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: { title: { display: true, text: '날짜' } },
-                y: { beginAtZero: true, suggestedMax: 10, title: { display: true, text: '평균 평점' } }
-            }
         }
     });
 });
