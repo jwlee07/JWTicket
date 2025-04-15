@@ -66,7 +66,7 @@ def update_reviews_with_sentiment(request):
             time.sleep(sleep_time)
 
     print(f"{total_count}개의 리뷰 감정 분석 완료 및 저장됨.")
-    return redirect("home")
+    return redirect('review:home')
 
 def summarize_positive_reviews(request, concert_id, slack_channel_id=None):
     positive_reviews = Review.objects.filter(
@@ -77,7 +77,7 @@ def summarize_positive_reviews(request, concert_id, slack_channel_id=None):
     
     if not positive_reviews:
         print("분석할 긍정 리뷰가 없습니다.")
-        return redirect("home")
+        return redirect('review:home')
     
     # 긍정 리뷰 내용 합치기
     positive_text = "\n\n".join([review.description for review in positive_reviews])
@@ -137,7 +137,7 @@ def summarize_negative_reviews(request, concert_id, slack_channel_id=None):
     
     if not negative_reviews:
         print("분석할 부정 리뷰가 없습니다.")
-        return redirect("home")
+        return redirect('review:home')
     
     # 부정 리뷰 내용 합치기
     negative_text = "\n\n".join([review.description for review in negative_reviews])
