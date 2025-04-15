@@ -845,21 +845,28 @@
         
         // 공연별 색상 맵핑(동일 공연은 동일 색상)
         const concertColors = {};
-        function getRandomColor() {
-            const r = Math.floor(Math.random() * 256);
-            const g = Math.floor(Math.random() * 256);
-            const b = Math.floor(Math.random() * 256);
-            return `rgba(${r}, ${g}, ${b}, 1)`;
-        }
+        const bootstrapColors = [
+            'rgba(13, 110, 253, 1)',     // primary
+            'rgba(108, 117, 125, 1)',    // secondary
+            'rgba(25, 135, 84, 1)',      // success
+            'rgba(220, 53, 69, 1)',      // danger
+            'rgba(255, 193, 7, 1)',      // warning
+            'rgba(13, 202, 240, 1)',     // info
+            'rgba(33, 37, 41, 1)'        // dark
+        ];
+        let colorIndex = 0;
+
         // 두 JSON 객체를 순회하면서 모든 공연 이름에 대해 색상 지정
         Object.keys(concertDateSummary).forEach(concert => {
             if (!concertColors[concert]) {
-                concertColors[concert] = getRandomColor();
+                concertColors[concert] = bootstrapColors[colorIndex % bootstrapColors.length];
+                colorIndex++;
             }
         });
         Object.keys(concertDateRatingSummary).forEach(concert => {
             if (!concertColors[concert]) {
-                concertColors[concert] = getRandomColor();
+                concertColors[concert] = bootstrapColors[colorIndex % bootstrapColors.length];
+                colorIndex++;
             }
         });
         
@@ -870,13 +877,22 @@
                 x: item.date_str,
                 y: item.reviews_count
             }));
-            reviewDatasets.push({
-                label: concert,
-                data: dataPoints,
-                fill: false,
-                borderColor: concertColors[concert],
-                tension: 0.1
-            });
+            
+            // 데이터가 있는 경우에만 데이터셋에 추가
+            if (dataPoints.some(point => point.y > 0)) {
+                const color = concertColors[concert];
+                reviewDatasets.push({
+                    label: concert,
+                    data: dataPoints,
+                    fill: false,
+                    borderColor: color,
+                    backgroundColor: color.replace('1)', '0.1)'),
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    tension: 0.1
+                });
+            }
         }
         
         // 평균 평점 추이 데이터셋 구성 (날짜: date_str 사용)
@@ -886,13 +902,22 @@
                 x: item.date_str,
                 y: item.average_rating
             }));
-            ratingDatasets.push({
-                label: concert,
-                data: dataPoints,
-                fill: false,
-                borderColor: concertColors[concert],
-                tension: 0.1
-            });
+            
+            // 데이터가 있는 경우에만 데이터셋에 추가
+            if (dataPoints.some(point => point.y > 0)) {
+                const color = concertColors[concert];
+                ratingDatasets.push({
+                    label: concert,
+                    data: dataPoints,
+                    fill: false,
+                    borderColor: color,
+                    backgroundColor: color.replace('1)', '0.1)'),
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    tension: 0.1
+                });
+            }
         }
         
         // "공연별 리뷰 수 추이" 차트 생성
