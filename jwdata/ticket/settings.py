@@ -144,10 +144,12 @@ LOGIN_URL = '/review/login/'
 
 # CRONTAB List
 CRONJOBS = [
-    # 매일 저녁 8시에 모든 콘서트 리뷰 크롤링 (변경)
+    # 매일 저녁 8시에 모든 콘서트 리뷰 크롤링
     ('0 20 * * *', 'review.tasks.crawl_all_concerts_reviews'),
-    # 매일 00시, 06시, 12시, 18시에 잔여 좌석 크롤링
-    # ('0 0,6,12,18 * * *', 'review.tasks.crawl_all_concerts_seats'),
+    # 매주 화요일 오전 10시에 리뷰 감정 분석 실행
+    ('0 10 * * TUE', 'review.chatgpt.update_reviews_with_sentiment'),
     # 매주 화요일 오전 11시에 리뷰 요약 슬랙 메세지 전송
     ('0 11 * * TUE', 'review.tasks.summarize_reviews_cron'),
+    # 매일 00시, 06시, 12시, 18시에 잔여 좌석 크롤링
+    # ('0 0,6,12,18 * * *', 'review.tasks.crawl_all_concerts_seats'),
 ]
