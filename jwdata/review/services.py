@@ -93,12 +93,10 @@ class ConcertAnalysisService:
         return emotion_data
 
     def get_review_trends(self):
-        """최근 30일간의 리뷰 추이 데이터를 가져옵니다."""
-        thirty_days_ago = date.today() - timedelta(days=30)
-        
+        """리뷰가 존재하는 모든 날짜의 리뷰 추이 데이터를 가져옵니다."""
         # 날짜별 리뷰 수
         date_summary = (
-            self.reviews.filter(date__gte=thirty_days_ago)
+            self.reviews
             .values("date")
             .annotate(reviews_count=Count("id"))
             .order_by("date")
@@ -108,7 +106,7 @@ class ConcertAnalysisService:
         
         # 날짜별 평균 평점
         date_rating_summary = (
-            self.reviews.filter(date__gte=thirty_days_ago)
+            self.reviews
             .values("date")
             .annotate(average_rating=Avg("star_rating") * 2)
             .order_by("date")
