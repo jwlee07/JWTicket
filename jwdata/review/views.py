@@ -83,6 +83,9 @@ class ConcertDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        # 모든 공연 정보 추가
+        context['concerts'] = Concert.objects.all()
+        
         # 서비스 객체 생성
         analysis_service = ConcertAnalysisService(self.object.id)
         

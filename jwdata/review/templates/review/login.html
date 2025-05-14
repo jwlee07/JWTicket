@@ -2,53 +2,243 @@
 {% load static %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <!-- 로그인 카드 (가로 최대 폭을 제한: 400px 정도) -->
-    <div class="card p-4" style="max-width: 400px; width: 100%;">
-        <h2 class="text-center mb-4">로그인</h2>
-        <form method="POST">
+<div class="login-container">
+    <div class="login-card">
+        <!-- 로고 및 타이틀 -->
+        <div class="text-center mb-5">
+            <h1 class="login-title">공연 리뷰 대시보드</h1>
+            <p class="login-subtitle">리뷰 데이터로 보는 공연의 모든 것</p>
+        </div>
+
+        <!-- 로그인 폼 -->
+        <form method="POST" class="login-form">
             {% csrf_token %}
-            <!-- 아이디 -->
-            <div class="mb-3">
+            
+            <!-- 아이디 입력 -->
+            <div class="form-group">
                 <label for="username" class="form-label">아이디</label>
-                <input 
-                    type="text" 
-                    class="form-control" 
-                    id="username" 
-                    name="username" 
-                    placeholder="아이디를 입력하세요" 
-                    required
-                >
+                <div class="input-wrapper">
+                    <i class="bi bi-person text-muted"></i>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-input" 
+                        placeholder="아이디를 입력하세요"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
             </div>
-            <!-- 비밀번호 -->
-            <div class="mb-3">
+
+            <!-- 비밀번호 입력 -->
+            <div class="form-group">
                 <label for="password" class="form-label">비밀번호</label>
-                <input 
-                    type="password" 
-                    class="form-control" 
-                    id="password" 
-                    name="password" 
-                    placeholder="비밀번호를 입력하세요" 
-                    required
-                >
+                <div class="input-wrapper">
+                    <i class="bi bi-lock text-muted"></i>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="비밀번호를 입력하세요"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
             </div>
+
             <!-- 로그인 버튼 -->
-            <div class="d-grid">
-                <button type="submit" class="btn btn-dark">
-                    로그인
-                </button>
-            </div>
+            <button type="submit" class="login-button">
+                로그인
+            </button>
         </form>
 
+        <!-- 에러 메시지 -->
         {% if messages %}
-        <div class="mt-3">
             {% for msg in messages %}
-            <div class="alert alert-info" role="alert">
+            <div class="alert-message">
+                <i class="bi bi-info-circle me-2"></i>
                 {{ msg }}
             </div>
             {% endfor %}
-        </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+    /* 토스 스타일 변수 */
+    :root {
+        --toss-blue: #3182f6;
+        --toss-blue-hover: #1b64da;
+        --toss-blue-active: #1b64da;
+        --toss-blue-light: #e7f0ff;
+        --toss-gray-50: #f9fafb;
+        --toss-gray-100: #f2f4f6;
+        --toss-gray-200: #e5e8eb;
+        --toss-gray-300: #d1d6db;
+        --toss-gray-400: #b0b8c1;
+        --toss-gray-500: #8b95a1;
+        --toss-gray-600: #6b7684;
+        --toss-gray-700: #4e5968;
+        --toss-gray-800: #333d4b;
+        --toss-gray-900: #191f28;
+    }
+
+    /* 기본 스타일 */
+    body {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        background-color: var(--toss-gray-50);
+        color: var(--toss-gray-900);
+        line-height: 1.5;
+        letter-spacing: -0.3px;
+    }
+
+    /* 로그인 컨테이너 */
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    /* 로그인 카드 */
+    .login-card {
+        background: white;
+        border-radius: 24px;
+        padding: 48px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .login-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    /* 타이틀 스타일 */
+    .login-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--toss-gray-900);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .login-subtitle {
+        font-size: 1rem;
+        color: var(--toss-gray-600);
+        margin-bottom: 0;
+    }
+
+    /* 폼 스타일 */
+    .login-form {
+        margin-top: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--toss-gray-700);
+        margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-wrapper i {
+        position: absolute;
+        left: 1rem;
+        color: var(--toss-gray-500);
+        font-size: 1.25rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem 0.875rem 3rem;
+        font-size: 1rem;
+        border: 1px solid var(--toss-gray-200);
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        color: var(--toss-gray-900);
+        background-color: white;
+    }
+
+    .form-input:hover {
+        border-color: var(--toss-gray-300);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--toss-blue);
+        box-shadow: 0 0 0 3px var(--toss-blue-light);
+    }
+
+    .form-input::placeholder {
+        color: var(--toss-gray-400);
+    }
+
+    /* 로그인 버튼 */
+    .login-button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+        background-color: var(--toss-blue);
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .login-button:hover {
+        background-color: var(--toss-blue-hover);
+        transform: translateY(-2px);
+    }
+
+    .login-button:active {
+        background-color: var(--toss-blue-active);
+        transform: translateY(0);
+    }
+
+    /* 알림 메시지 */
+    .alert-message {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 12px;
+        background-color: var(--toss-blue-light);
+        color: var(--toss-blue);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+        .login-card {
+            padding: 32px;
+            border-radius: 16px;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+        }
+
+        .login-subtitle {
+            font-size: 0.875rem;
+        }
+    }
+</style>
 {% endblock content %}
