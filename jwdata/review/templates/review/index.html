@@ -9,105 +9,154 @@
     <title>리뷰 분석</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'review/css/index.css' %}">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 {% block content %}
-<div class="d-flex" style="min-height: 100vh;">
+<!-- 네비게이션 바 (헤더뷰) -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid px-4 d-flex align-items-center">
+        <button class="btn btn-link d-lg-none me-2" type="button" id="sidebarToggle" aria-label="메뉴 열기">
+            <i class="bi bi-list"></i>
+        </button>
+        <a class="navbar-brand d-flex align-items-center" href="#">
+            <span style="color: #000000; font-weight: 700;">공연 리뷰 대시보드</span>
+        </a>
+        <div class="ms-auto">
+            <button onclick="logout()" class="btn btn-outline-danger btn-sm d-flex align-items-center">
+                <i class="bi bi-box-arrow-right me-1"></i>
+                <span>로그아웃</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="d-flex w-100" style="min-height: 100vh;">
     <!-- 사이드바 -->
-    <nav id="sidebar" class="bg-dark text-white p-3" style="min-width: 250px; transition: all 0.3s; overflow-x: hidden;">
-        <div class="d-flex flex-column mb-4">
-            <h4 class="mb-0">공연 대시보드</h4>
-            <small>담당자: 이진욱</small>
-        </div>        
-        {% if concerts %}
-            <div class="mb-4">
-                <h5>통합</h5>
-                <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="통합 바로가기">
-                    <a href="{% url 'review:all_reviews' %}" class="btn btn-outline-light text-start">공연 리뷰</a>
-                    <a href="{% url 'review:all_pattern' %}" class="btn btn-outline-light text-start">관람 패턴</a>
-                    <a href="{% url 'review:all_seats' %}" class="btn btn-outline-light text-start">잔여 좌석</a>
+    <aside class="sidebar">
+        <nav class="sidebar-menu">
+            {% if concerts %}
+                <!-- 통합 메뉴 섹션 -->
+                <div class="menu-section">
+                    <div class="menu-header">
+                        <span class="submenu-title">통합 메뉴</span>
+                    </div>
+                    
+                    <div class="menu-items">
+                        <a href="{% url 'review:all_reviews' %}" 
+                           class="menu-item {% if request.resolver_match.url_name == 'all_reviews' %}active{% endif %}">
+                            <span>공연 리뷰</span>
+                        </a>
+                        
+                        <a href="{% url 'review:all_pattern' %}" 
+                           class="menu-item {% if request.resolver_match.url_name == 'all_pattern' %}active{% endif %}">
+                            <span>관람 패턴</span>
+                        </a>
+                        
+                        <a href="{% url 'review:all_seats' %}" 
+                           class="menu-item {% if request.resolver_match.url_name == 'all_seats' %}active{% endif %}">
+                            <span>잔여 좌석</span>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <!-- 장르별 공연 목록 -->
-            <div class="mb-4">
-                <h5>연극</h5>
-                <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="연극 공연 선택">
-                    {% for concert in concerts|dictsort:"name" %}
-                        {% if concert.genre == '연극' %}
-                            <button class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
-                                    data-concert-id="{{ concert.id }}" 
-                                    onclick="showConcert('{{ concert.id }}')">
-                                {{ concert.name }}
-                            </button>
-                        {% endif %}
-                    {% endfor %}
+                
+                <!-- 장르별 메뉴 섹션 -->
+                <div class="menu-section">
+                    <div class="menu-header">
+                        <span class="submenu-title">장르별 공연</span>
+                    </div>
+                    
+                    <!-- 연극 드롭다운 -->
+                    <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapsePlay" aria-expanded="false">
+                        <span>연극</span>
+                    </a>
+                    <div class="collapse" id="collapsePlay">
+                        <div class="submenu">
+                            {% for concert in concerts|dictsort:"name" %}
+                                {% if concert.genre == '연극' %}
+                                    <div class="menu-item {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                                         onclick="showConcert('{{ concert.id }}')">
+                                        <span>{{ concert.name }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- 뮤지컬 드롭다운 -->
+                    <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseMusical" aria-expanded="false">
+                        <span>뮤지컬</span>
+                    </a>
+                    <div class="collapse" id="collapseMusical">
+                        <div class="submenu">
+                            {% for concert in concerts|dictsort:"name" %}
+                                {% if concert.genre == '뮤지컬' %}
+                                    <div class="menu-item {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                                         onclick="showConcert('{{ concert.id }}')">
+                                        <span>{{ concert.name }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- 콘서트 드롭다운 -->
+                    <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseConcert" aria-expanded="false">
+                        <span>콘서트</span>
+                    </a>
+                    <div class="collapse" id="collapseConcert">
+                        <div class="submenu">
+                            {% for concert in concerts|dictsort:"name" %}
+                                {% if concert.genre == '콘서트' %}
+                                    <div class="menu-item {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
+                                         onclick="showConcert('{{ concert.id }}')">
+                                        <span>{{ concert.name }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="mb-4">
-                <h5>뮤지컬</h5>
-                <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="뮤지컬 공연 선택">
-                    {% for concert in concerts|dictsort:"name" %}
-                        {% if concert.genre == '뮤지컬' %}
-                            <button class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
-                                    data-concert-id="{{ concert.id }}" 
-                                    onclick="showConcert('{{ concert.id }}')">
-                                {{ concert.name }}
-                            </button>
-                        {% endif %}
-                    {% endfor %}
+            {% else %}
+                <div class="alert alert-light text-center mt-4">
+                    <p class="mb-0">현재 등록된 공연 정보가 없습니다.</p>
                 </div>
-            </div>
-            <div class="mb-4">
-                <h5>콘서트</h5>
-                <div class="btn-group-vertical w-100 mt-2" role="group" aria-label="콘서트 공연 선택">
-                    {% for concert in concerts|dictsort:"name" %}
-                        {% if concert.genre == '콘서트' %}
-                            <button class="btn btn-outline-light text-start {% if concert.id|stringformat:"s" == active_concert_id %}active{% endif %}" 
-                                    data-concert-id="{{ concert.id }}" 
-                                    onclick="showConcert('{{ concert.id }}')">
-                                {{ concert.name }}
-                            </button>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-        {% else %}
-            <p class="mt-5 text-muted">현재 등록된 공연 정보가 없습니다.</p>
-        {% endif %}
-    </nav>
+            {% endif %}
+        </nav>
+    </aside>
 
     <!-- 메인 컨텐츠 영역 -->
-    <div class="flex-grow-1 p-3">
+    <div class="main-content">
         <!-- 상단 액션 버튼 -->
-        <div class="d-flex justify-content-end mb-3">
-            <a href="{% url 'review:update_sentiment' %}" class="btn btn-dark me-2">ChatGPT 리뷰 감정 분석</a>
-            <a href="{% url 'review:sync_db_to_sheet' %}" class="btn btn-success me-2">DB → Google Sheet</a>
-            <a href="{% url 'review:sync_sheet_to_db' %}" class="btn btn-success me-2">Google Sheet → DB</a>
-            <button onclick="logout()" class="btn btn-danger">로그아웃</button>
+        <div class="d-flex justify-content-end mb-5 gap-3">
+            <a href="{% url 'review:update_sentiment' %}" class="btn btn-primary d-flex align-items-center shadow-sm">
+                <span>ChatGPT 감정 분석</span>
+            </a>
         </div>
 
         <!-- 평점 요약 카드 -->
-        <div class="mt-4">
-            <h3 class="mb-4">
+        <div class="mt-4 mb-4">
+            <h3 class="mb-3 fw-bold">
                 <i class="fas fa-star text-warning me-2"></i>리뷰 평균 평점
             </h3>
-            <div class="row g-4">
+            <div class="row g-3">
                 <!-- 전체 평균 평점 카드 -->
-                <div class="col-12 col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm hover-card">
-                        <div class="card-body text-center p-4">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-chart-line fa-2x text-primary me-2"></i>
-                                <h5 class="card-title mb-0">전체 평균 평점</h5>
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 border-0">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="card-title mb-0 fw-bold">전체 평균</h5>
                             </div>
-                            <div class="display-4 fw-bold text-primary mb-2">{{ avg_all|floatformat:1|default:"0.0" }}</div>
-                            <div class="text-muted small mb-3">/10점</div>
-                            <div class="progress" style="height: 8px;">
+                            <div class="d-flex align-items-baseline mb-2">
+                                <div class="display-5 fw-bold text-primary me-2">{{ avg_all|floatformat:1|default:"0.0" }}</div>
+                                <div class="text-muted">/10점</div>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px;">
                                 <div class="progress-bar bg-primary" role="progressbar" 
                                      style="width: {% widthratio avg_all|default:0 10 100 %}%;" 
                                      aria-valuenow="{{ avg_all|floatformat:1|default:'0' }}" 
@@ -115,24 +164,28 @@
                                      aria-valuemax="10">
                                 </div>
                             </div>
-                            <p class="text-muted small mt-3 mb-0">
-                                총 리뷰 <span class="fw-bold">{{ count_all|default:"0" }}</span>건
-                            </p>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-comments text-muted me-2 small"></i>
+                                <p class="text-muted mb-0">
+                                    총 <span class="fw-bold">{{ count_all|default:"0" }}</span>건의 리뷰
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 연극 평균 평점 카드 -->
-                <div class="col-12 col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm hover-card">
-                        <div class="card-body text-center p-4">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-theater-masks fa-2x text-info me-2"></i>
-                                <h5 class="card-title mb-0">연극 평균 평점</h5>
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 border-0">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="card-title mb-0 fw-bold">연극 평균</h5>
                             </div>
-                            <div class="display-4 fw-bold text-info mb-2">{{ avg_play|floatformat:1|default:"0.0" }}</div>
-                            <div class="text-muted small mb-3">/10점</div>
-                            <div class="progress" style="height: 8px;">
+                            <div class="d-flex align-items-baseline mb-2">
+                                <div class="display-5 fw-bold text-info me-2">{{ avg_play|floatformat:1|default:"0.0" }}</div>
+                                <div class="text-muted">/10점</div>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px;">
                                 <div class="progress-bar bg-info" role="progressbar" 
                                      style="width: {% widthratio avg_play|default:0 10 100 %}%;" 
                                      aria-valuenow="{{ avg_play|floatformat:1|default:'0' }}" 
@@ -140,24 +193,28 @@
                                      aria-valuemax="10">
                                 </div>
                             </div>
-                            <p class="text-muted small mt-3 mb-0">
-                                연극 리뷰 <span class="fw-bold">{{ count_play|default:"0" }}</span>건
-                            </p>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-comments text-muted me-2 small"></i>
+                                <p class="text-muted mb-0">
+                                    총 <span class="fw-bold">{{ count_play|default:"0" }}</span>건의 리뷰
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 뮤지컬 평균 평점 카드 -->
-                <div class="col-12 col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm hover-card">
-                        <div class="card-body text-center p-4">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-music fa-2x text-success me-2"></i>
-                                <h5 class="card-title mb-0">뮤지컬 평균 평점</h5>
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 border-0">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="card-title mb-0 fw-bold">뮤지컬 평균</h5>
                             </div>
-                            <div class="display-4 fw-bold text-success mb-2">{{ avg_musical|floatformat:1|default:"0.0" }}</div>
-                            <div class="text-muted small mb-3">/10점</div>
-                            <div class="progress" style="height: 8px;">
+                            <div class="d-flex align-items-baseline mb-2">
+                                <div class="display-5 fw-bold text-success me-2">{{ avg_musical|floatformat:1|default:"0.0" }}</div>
+                                <div class="text-muted">/10점</div>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px;">
                                 <div class="progress-bar bg-success" role="progressbar" 
                                      style="width: {% widthratio avg_musical|default:0 10 100 %}%;" 
                                      aria-valuenow="{{ avg_musical|floatformat:1|default:'0' }}" 
@@ -165,24 +222,28 @@
                                      aria-valuemax="10">
                                 </div>
                             </div>
-                            <p class="text-muted small mt-3 mb-0">
-                                뮤지컬 리뷰 <span class="fw-bold">{{ count_musical|default:"0" }}</span>건
-                            </p>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-comments text-muted me-2 small"></i>
+                                <p class="text-muted mb-0">
+                                    총 <span class="fw-bold">{{ count_musical|default:"0" }}</span>건의 리뷰
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 콘서트 평균 평점 카드 -->
-                <div class="col-12 col-md-6 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm hover-card">
-                        <div class="card-body text-center p-4">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <i class="fas fa-guitar fa-2x text-warning me-2"></i>
-                                <h5 class="card-title mb-0">콘서트 평균 평점</h5>
+                <div class="col-6 col-md-3">
+                    <div class="card h-100 border-0">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="card-title mb-0 fw-bold">콘서트 평균</h5>
                             </div>
-                            <div class="display-4 fw-bold text-warning mb-2">{{ avg_concert|floatformat:1|default:"0.0" }}</div>
-                            <div class="text-muted small mb-3">/10점</div>
-                            <div class="progress" style="height: 8px;">
+                            <div class="d-flex align-items-baseline mb-2">
+                                <div class="display-5 fw-bold text-warning me-2">{{ avg_concert|floatformat:1|default:"0.0" }}</div>
+                                <div class="text-muted">/10점</div>
+                            </div>
+                            <div class="progress mb-2" style="height: 8px;">
                                 <div class="progress-bar bg-warning" role="progressbar" 
                                      style="width: {% widthratio avg_concert|default:0 10 100 %}%;" 
                                      aria-valuenow="{{ avg_concert|floatformat:1|default:'0' }}" 
@@ -190,9 +251,12 @@
                                      aria-valuemax="10">
                                 </div>
                             </div>
-                            <p class="text-muted small mt-3 mb-0">
-                                콘서트 리뷰 <span class="fw-bold">{{ count_concert|default:"0" }}</span>건
-                            </p>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-comments text-muted me-2 small"></i>
+                                <p class="text-muted mb-0">
+                                    총 <span class="fw-bold">{{ count_concert|default:"0" }}</span>건의 리뷰
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -200,11 +264,11 @@
         </div>
 
         <!-- 공연별 요약 테이블 -->
-        <div class="mt-5">
-            <div class="card border-0 shadow-sm">
+        <div class="mt-4 mb-4">
+            <div class="card border-0">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
+                        <h3 class="mb-0 fw-bold">
                             <i class="fas fa-table text-primary me-2"></i>공연별 요약 정보
                         </h3>
                     </div>
@@ -212,30 +276,30 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0" id="concertTable">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
-                                    <th class="px-4 py-3" onclick="sortTable(0)">
+                                    <th class="px-3 py-3" onclick="sortTable(0)">
                                         <div class="d-flex align-items-center">
-                                            장르
-                                            <i class="fas fa-sort ms-2 text-muted"></i>
+                                            <span>장르</span>
+                                            <i class="fas fa-sort ms-2 text-muted small"></i>
                                         </div>
                                     </th>
-                                    <th class="px-4 py-3" onclick="sortTable(1)">
+                                    <th class="px-3 py-3" onclick="sortTable(1)">
                                         <div class="d-flex align-items-center">
-                                            공연명
-                                            <i class="fas fa-sort ms-2 text-muted"></i>
+                                            <span>공연명</span>
+                                            <i class="fas fa-sort ms-2 text-muted small"></i>
                                         </div>
                                     </th>
-                                    <th class="px-4 py-3 text-center" onclick="sortTable(2)">
+                                    <th class="px-3 py-3 text-center" onclick="sortTable(2)">
                                         <div class="d-flex align-items-center justify-content-center">
-                                            평균 평점
-                                            <i class="fas fa-sort ms-2 text-muted"></i>
+                                            <span>평균 평점</span>
+                                            <i class="fas fa-sort ms-2 text-muted small"></i>
                                         </div>
                                     </th>
-                                    <th class="px-4 py-3 text-center" onclick="sortTable(3)">
+                                    <th class="px-3 py-3 text-center" onclick="sortTable(3)">
                                         <div class="d-flex align-items-center justify-content-center">
-                                            총 리뷰 수
-                                            <i class="fas fa-sort ms-2 text-muted"></i>
+                                            <span>총 리뷰 수</span>
+                                            <i class="fas fa-sort ms-2 text-muted small"></i>
                                         </div>
                                     </th>
                                 </tr>
@@ -243,47 +307,39 @@
                             <tbody>
                                 {% for concert in concert_summary %}
                                 <tr class="concert-row align-middle" data-genre="{{ concert.concert__genre }}">
-                                    <td class="px-4 py-3">
+                                    <td class="px-3 py-2">
                                         {% if concert.concert__genre == '연극' %}
-                                            <span class="badge bg-info">
+                                            <span class="badge bg-info bg-opacity-10 text-info py-2 px-3">
                                                 <i class="fas fa-theater-masks me-1"></i>연극
                                             </span>
                                         {% elif concert.concert__genre == '뮤지컬' %}
-                                            <span class="badge bg-success">
+                                            <span class="badge bg-success bg-opacity-10 text-success py-2 px-3">
                                                 <i class="fas fa-music me-1"></i>뮤지컬
                                             </span>
                                         {% else %}
-                                            <span class="badge bg-warning">
+                                            <span class="badge bg-warning bg-opacity-10 text-warning py-2 px-3">
                                                 <i class="fas fa-guitar me-1"></i>콘서트
                                             </span>
                                         {% endif %}
                                     </td>
-                                    <td class="px-4 py-3 fw-medium">{{ concert.concert__name }}</td>
-                                    <td class="px-4 py-3 text-center">
+                                    <td class="px-3 py-2 fw-medium">{{ concert.concert__name }}</td>
+                                    <td class="px-3 py-2 text-center">
                                         <div class="d-flex align-items-center justify-content-center">
-                                            <div class="me-2">
-                                                <div class="small fw-bold">{{ concert.average_rating|floatformat:1 }}/10</div>
-                                                <div class="progress" style="width: 100px; height: 4px;">
+                                            <div class="me-3">
+                                                <div class="fw-bold" style="font-size: 1.1rem;">{{ concert.average_rating|floatformat:1 }}</div>
+                                                <div class="progress mt-1" style="width: 80px; height: 5px; border-radius: 3px;">
                                                     <div class="progress-bar {% if concert.concert__genre == '연극' %}bg-info{% elif concert.concert__genre == '뮤지컬' %}bg-success{% else %}bg-warning{% endif %}" 
                                                          role="progressbar" 
                                                          style="width: {% widthratio concert.average_rating 10 100 %}%;">
                                                     </div>
                                                 </div>
                                             </div>
-                                            {% if concert.average_rating >= 8.0 %}
-                                                <i class="fas fa-grin-stars text-warning" data-bs-toggle="tooltip" title="최고 평가"></i>
-                                            {% elif concert.average_rating >= 6.0 %}
-                                                <i class="fas fa-smile text-success" data-bs-toggle="tooltip" title="긍정적"></i>
-                                            {% else %}
-                                                <i class="fas fa-meh text-muted" data-bs-toggle="tooltip" title="보통"></i>
-                                            {% endif %}
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <span class="badge bg-light text-dark">
-                                            <i class="fas fa-comments me-1"></i>
-                                            {{ concert.total_reviews }}
-                                        </span>
+                                    <td class="px-3 py-2 text-center">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <span class="fw-medium">{{ concert.total_reviews }}개</span>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -295,18 +351,21 @@
         </div>
 
         <!-- 공연별 리뷰 수 추이 차트 -->
-        <div class="mt-5">
-            <div class="card border-0 shadow-sm">
+        <div class="mt-4 mb-4">
+            <div class="card border-0">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
-                            <i class="fas fa-chart-line text-primary me-2"></i>최근 30일 공연별 리뷰 수 추이
+                        <h3 class="mb-0 fw-bold">
+                            <i class="fas fa-chart-line text-primary me-2"></i>공연별 리뷰 수 추이
                         </h3>
+                        <div class="badge bg-primary bg-opacity-10 text-primary py-1 px-2 fw-medium">
+                            최근 30일
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
                     <div class="position-relative">
-                        <canvas id="reviewChart" width="100%" height="50"></canvas>
+                        <canvas id="reviewChart" width="100%" height="45"></canvas>
                         <div id="chartLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none">
                             <div class="d-flex justify-content-center align-items-center h-100">
                                 <div class="spinner-border text-primary" role="status">
@@ -320,18 +379,21 @@
         </div>
 
         <!-- 평균 평점 추이 차트 -->
-        <div class="mt-5">
-            <div class="card border-0 shadow-sm">
+        <div class="mt-4 mb-4">
+            <div class="card border-0">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
-                            <i class="fas fa-star text-warning me-2"></i>최근 30일 공연별 평균 평점 추이
+                        <h3 class="mb-0 fw-bold">
+                            <i class="fas fa-star text-warning me-2"></i>공연별 평균 평점 추이
                         </h3>
+                        <div class="badge bg-primary bg-opacity-10 text-primary py-1 px-2 fw-medium">
+                            최근 30일
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
                     <div class="position-relative">
-                        <canvas id="ratingChart" width="100%" height="50"></canvas>
+                        <canvas id="ratingChart" width="100%" height="45"></canvas>
                         <div id="ratingChartLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none">
                             <div class="d-flex justify-content-center align-items-center h-100">
                                 <div class="spinner-border text-warning" role="status">
@@ -345,124 +407,80 @@
         </div>
 
         <!-- 리뷰 워드클라우드 및 감정 분석 섹션 -->
-        <div class="mt-5">
-            <div class="card border-0 shadow-sm">
+        <div class="mt-4 mb-4">
+            <div class="card border-0">
                 <div class="card-header bg-white border-0 py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
-                            <i class="fas fa-chart-pie text-primary me-2"></i>리뷰 분석 대시보드
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <h3 class="mb-0 fw-bold mb-2 mb-md-0">
+                            <i class="fas fa-chart-pie text-primary me-2"></i>리뷰 감정 분석
                         </h3>
-                        <div class="btn-group shadow-sm" role="group">
-                            <button type="button" class="btn btn-primary position-relative active px-4" data-genre="all" onclick="switchGenre(this)">
-                                <i class="fas fa-chart-line me-2"></i>전체
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-primary position-relative active px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="all" onclick="switchGenre(this)">
+                                <i class="fas fa-chart-line me-1"></i>전체
                             </button>
-                            <button type="button" class="btn btn-info position-relative px-4" data-genre="play" onclick="switchGenre(this)">
-                                <i class="fas fa-theater-masks me-2"></i>연극
+                            <button type="button" class="btn btn-outline-primary position-relative px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="play" onclick="switchGenre(this)">
+                                <i class="fas fa-theater-masks me-1"></i>연극
                             </button>
-                            <button type="button" class="btn btn-success position-relative px-4" data-genre="musical" onclick="switchGenre(this)">
-                                <i class="fas fa-music me-2"></i>뮤지컬
+                            <button type="button" class="btn btn-outline-primary position-relative px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="musical" onclick="switchGenre(this)">
+                                <i class="fas fa-music me-1"></i>뮤지컬
                             </button>
-                            <button type="button" class="btn btn-warning position-relative px-4" data-genre="concert" onclick="switchGenre(this)">
-                                <i class="fas fa-guitar me-2"></i>콘서트
+                            <button type="button" class="btn btn-outline-primary position-relative px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="concert" onclick="switchGenre(this)">
+                                <i class="fas fa-guitar me-1"></i>콘서트
                             </button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body p-3">
                     <!-- 장르별 분석 컨텐츠 -->
                     <div class="genre-content" id="genre-all">
-                        <div class="row g-4">
-                            <!-- 워드클라우드 카드 -->
-                            <div class="col-12 col-lg-8">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-cloud text-primary me-2"></i>워드클라우드 분석
-                                        </h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="row g-4">
-                                            <div class="col-12">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-muted">전체 리뷰 키워드</h6>
-                                                        {% if img_all %}
-                                                            <img src="data:image/png;base64,{{ img_all }}" alt="전체 워드클라우드" class="img-fluid" style="max-height: 300px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-success">긍정 리뷰 키워드</h6>
-                                                        {% if img_all_positive %}
-                                                            <img src="data:image/png;base64,{{ img_all_positive }}" alt="긍정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-danger">부정 리뷰 키워드</h6>
-                                                        {% if img_all_negative %}
-                                                            <img src="data:image/png;base64,{{ img_all_negative }}" alt="부정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="row g-3">
                             <!-- 감정 분석 카드 -->
-                            <div class="col-12 col-lg-4">
-                                <div class="card h-100 border-0 shadow-sm">
+                            <div class="col-12">
+                                <div class="card h-100 border-0">
                                     <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-heart text-danger me-2"></i>감정 분석
+                                        <h5 class="mb-0 fw-bold">
+                                            감정 분석
                                         </h5>
                                     </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <canvas id="emotionChartAll" height="300"></canvas>
-                                        </div>
-                                        <div class="mt-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-smile-beam text-primary me-2"></i>
-                                                    <span class="text-primary">긍정적 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-primary">{{ emotion_all.positive|default:0 }}개</span>
+                                    <div class="card-body p-3">
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
+                                                <canvas id="emotionChartAll" style="width: 100%; height: 100%;"></canvas>
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-frown text-danger me-2"></i>
-                                                    <span class="text-danger">부정적 리뷰</span>
+                                            <div class="col-lg-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-primary">긍정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_all.positive|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-danger">{{ emotion_all.negative|default:0 }}개</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-meh text-secondary me-2"></i>
-                                                    <span class="text-secondary">중립적 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-danger">부정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_all.negative|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-secondary">{{ emotion_all.neutral|default:0 }}개</span>
-                                            </div>
-                                            <hr class="my-4">
-                                            <div class="d-flex justify-content-between align-items-center p-3 bg-dark bg-opacity-10 rounded">
-                                                <div>
-                                                    <i class="fas fa-chart-pie text-dark me-2"></i>
-                                                    <span class="fw-bold text-dark">총 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-secondary">중립적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_all.neutral|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-dark">{{ emotion_all.positive|default:0|add:emotion_all.negative|default:0|add:emotion_all.neutral|default:0 }}개</span>
+                                                <hr class="my-3">
+                                                <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-bold text-dark">총 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
+                                                        {{ emotion_all.positive|default:0|add:emotion_all.negative|default:0|add:emotion_all.neutral|default:0 }}개
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -473,96 +491,54 @@
 
                     <!-- 연극 분석 컨텐츠 -->
                     <div class="genre-content d-none" id="genre-play">
-                        <div class="row g-4">
-                            <div class="col-12 col-lg-8">
-                                <div class="card h-100 border-0 shadow-sm">
+                        <div class="row g-3">
+                            <!-- 감정 분석 카드 -->
+                            <div class="col-12">
+                                <div class="card h-100 border-0">
                                     <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-cloud text-info me-2"></i>연극 워드클라우드 분석
-                                        </h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="row g-4">
-                                            <div class="col-12">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-muted">연극 리뷰 키워드</h6>
-                                                        {% if img_play %}
-                                                            <img src="data:image/png;base64,{{ img_play }}" alt="연극 워드클라우드" class="img-fluid" style="max-height: 300px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-success">긍정 리뷰 키워드</h6>
-                                                        {% if img_play_positive %}
-                                                            <img src="data:image/png;base64,{{ img_play_positive }}" alt="연극 긍정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-danger">부정 리뷰 키워드</h6>
-                                                        {% if img_play_negative %}
-                                                            <img src="data:image/png;base64,{{ img_play_negative }}" alt="연극 부정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-4">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
+                                        <h5 class="mb-0 fw-bold">
                                             <i class="fas fa-heart text-danger me-2"></i>연극 감정 분석
                                         </h5>
                                     </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <canvas id="emotionChartPlay" height="300"></canvas>
-                                        </div>
-                                        <div class="mt-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-smile-beam text-primary me-2"></i>
-                                                    <span class="text-primary">긍정적 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-primary">{{ emotion_play.positive|default:0 }}개</span>
+                                    <div class="card-body p-3">
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
+                                                <canvas id="emotionChartPlay" style="width: 100%; height: 100%;"></canvas>
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-frown text-danger me-2"></i>
-                                                    <span class="text-danger">부정적 리뷰</span>
+                                            <div class="col-lg-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-primary">긍정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_play.positive|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-danger">{{ emotion_play.negative|default:0 }}개</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-meh text-secondary me-2"></i>
-                                                    <span class="text-secondary">중립적 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-danger">부정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_play.negative|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-secondary">{{ emotion_play.neutral|default:0 }}개</span>
-                                            </div>
-                                            <hr class="my-4">
-                                            <div class="d-flex justify-content-between align-items-center p-3 bg-dark bg-opacity-10 rounded">
-                                                <div>
-                                                    <i class="fas fa-chart-pie text-dark me-2"></i>
-                                                    <span class="fw-bold text-dark">총 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-secondary">중립적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_play.neutral|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-dark">{{ emotion_play.positive|default:0|add:emotion_play.negative|default:0|add:emotion_play.neutral|default:0 }}개</span>
+                                                <hr class="my-3">
+                                                <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-bold text-dark">총 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
+                                                        {{ emotion_play.positive|default:0|add:emotion_play.negative|default:0|add:emotion_play.neutral|default:0 }}개
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -573,96 +549,54 @@
 
                     <!-- 뮤지컬 분석 컨텐츠 -->
                     <div class="genre-content d-none" id="genre-musical">
-                        <div class="row g-4">
-                            <div class="col-12 col-lg-8">
-                                <div class="card h-100 border-0 shadow-sm">
+                        <div class="row g-3">
+                            <!-- 감정 분석 카드 -->
+                            <div class="col-12">
+                                <div class="card h-100 border-0">
                                     <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-cloud text-success me-2"></i>뮤지컬 워드클라우드 분석
-                                        </h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="row g-4">
-                                            <div class="col-12">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-muted">뮤지컬 리뷰 키워드</h6>
-                                                        {% if img_musical %}
-                                                            <img src="data:image/png;base64,{{ img_musical }}" alt="뮤지컬 워드클라우드" class="img-fluid" style="max-height: 300px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-success">긍정 리뷰 키워드</h6>
-                                                        {% if img_musical_positive %}
-                                                            <img src="data:image/png;base64,{{ img_musical_positive }}" alt="뮤지컬 긍정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-danger">부정 리뷰 키워드</h6>
-                                                        {% if img_musical_negative %}
-                                                            <img src="data:image/png;base64,{{ img_musical_negative }}" alt="뮤지컬 부정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-4">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
+                                        <h5 class="mb-0 fw-bold">
                                             <i class="fas fa-heart text-danger me-2"></i>뮤지컬 감정 분석
                                         </h5>
                                     </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <canvas id="emotionChartMusical" height="300"></canvas>
-                                        </div>
-                                        <div class="mt-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-smile-beam text-primary me-2"></i>
-                                                    <span class="text-primary">긍정적 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-primary">{{ emotion_musical.positive|default:0 }}개</span>
+                                    <div class="card-body p-3">
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
+                                                <canvas id="emotionChartMusical" style="width: 100%; height: 100%;"></canvas>
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-frown text-danger me-2"></i>
-                                                    <span class="text-danger">부정적 리뷰</span>
+                                            <div class="col-lg-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-primary">긍정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_musical.positive|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-danger">{{ emotion_musical.negative|default:0 }}개</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-meh text-secondary me-2"></i>
-                                                    <span class="text-secondary">중립적 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-danger">부정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_musical.negative|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-secondary">{{ emotion_musical.neutral|default:0 }}개</span>
-                                            </div>
-                                            <hr class="my-4">
-                                            <div class="d-flex justify-content-between align-items-center p-3 bg-dark bg-opacity-10 rounded">
-                                                <div>
-                                                    <i class="fas fa-chart-pie text-dark me-2"></i>
-                                                    <span class="fw-bold text-dark">총 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-secondary">중립적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_musical.neutral|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-dark">{{ emotion_musical.positive|default:0|add:emotion_musical.negative|default:0|add:emotion_musical.neutral|default:0 }}개</span>
+                                                <hr class="my-3">
+                                                <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-bold text-dark">총 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
+                                                        {{ emotion_musical.positive|default:0|add:emotion_musical.negative|default:0|add:emotion_musical.neutral|default:0 }}개
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -673,96 +607,54 @@
 
                     <!-- 콘서트 분석 컨텐츠 -->
                     <div class="genre-content d-none" id="genre-concert">
-                        <div class="row g-4">
-                            <div class="col-12 col-lg-8">
-                                <div class="card h-100 border-0 shadow-sm">
+                        <div class="row g-3">
+                            <!-- 감정 분석 카드 -->
+                            <div class="col-12">
+                                <div class="card h-100 border-0">
                                     <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
-                                            <i class="fas fa-cloud text-warning me-2"></i>콘서트 워드클라우드 분석
-                                        </h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="row g-4">
-                                            <div class="col-12">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-muted">콘서트 리뷰 키워드</h6>
-                                                        {% if img_concert %}
-                                                            <img src="data:image/png;base64,{{ img_concert }}" alt="콘서트 워드클라우드" class="img-fluid" style="max-height: 300px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-success">긍정 리뷰 키워드</h6>
-                                                        {% if img_concert_positive %}
-                                                            <img src="data:image/png;base64,{{ img_concert_positive }}" alt="콘서트 긍정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="card bg-light border-0">
-                                                    <div class="card-body text-center p-4">
-                                                        <h6 class="card-subtitle mb-3 text-danger">부정 리뷰 키워드</h6>
-                                                        {% if img_concert_negative %}
-                                                            <img src="data:image/png;base64,{{ img_concert_negative }}" alt="콘서트 부정 워드클라우드" class="img-fluid" style="max-height: 200px;">
-                                                        {% else %}
-                                                            <p class="text-muted my-5">데이터가 부족합니다</p>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-lg-4">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-header bg-white border-0 py-3">
-                                        <h5 class="mb-0">
+                                        <h5 class="mb-0 fw-bold">
                                             <i class="fas fa-heart text-danger me-2"></i>콘서트 감정 분석
                                         </h5>
                                     </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-4">
-                                            <canvas id="emotionChartConcert" height="300"></canvas>
-                                        </div>
-                                        <div class="mt-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-smile-beam text-primary me-2"></i>
-                                                    <span class="text-primary">긍정적 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-primary">{{ emotion_concert.positive|default:0 }}개</span>
+                                    <div class="card-body p-3">
+                                        <div class="row">
+                                            <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
+                                                <canvas id="emotionChartConcert" style="width: 100%; height: 100%;"></canvas>
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-frown text-danger me-2"></i>
-                                                    <span class="text-danger">부정적 리뷰</span>
+                                            <div class="col-lg-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-primary">긍정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_concert.positive|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-danger">{{ emotion_concert.negative|default:0 }}개</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
-                                                <div>
-                                                    <i class="fas fa-meh text-secondary me-2"></i>
-                                                    <span class="text-secondary">중립적 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-danger">부정적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_concert.negative|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-secondary">{{ emotion_concert.neutral|default:0 }}개</span>
-                                            </div>
-                                            <hr class="my-4">
-                                            <div class="d-flex justify-content-between align-items-center p-3 bg-dark bg-opacity-10 rounded">
-                                                <div>
-                                                    <i class="fas fa-chart-pie text-dark me-2"></i>
-                                                    <span class="fw-bold text-dark">총 리뷰</span>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-medium text-secondary">중립적 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
+                                                        {{ emotion_concert.neutral|default:0 }}개
+                                                    </div>
                                                 </div>
-                                                <span class="badge bg-dark">{{ emotion_concert.positive|default:0|add:emotion_concert.negative|default:0|add:emotion_concert.neutral|default:0 }}개</span>
+                                                <hr class="my-3">
+                                                <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-bold text-dark">총 리뷰</span>
+                                                    </div>
+                                                    <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
+                                                        {{ emotion_concert.positive|default:0|add:emotion_concert.negative|default:0|add:emotion_concert.neutral|default:0 }}개
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -775,6 +667,15 @@
         </div>
     </div>
 </div>
+
+<!-- 푸터 -->
+<footer class="footer">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-end align-items-center py-3">
+            <span class="text-muted">담당자: 플랫폼팀 이진욱</span>
+        </div>
+    </div>
+</footer>
 {% endblock content %}
 
 {% block scripts %}
@@ -817,6 +718,7 @@
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     indexAxis: 'y',
                     responsive: true,
                     scales: {
@@ -824,7 +726,17 @@
                             beginAtZero: true,
                             title: { display: true, text: '리뷰 수' }
                         },
-                        y: { title: { display: false } }
+                        y: { 
+                            title: { display: false },
+                            ticks: {
+                                color: (context) => {
+                                    const index = context.index;
+                                    if (index === 0) return 'rgba(13, 110, 253, 1)'; // 긍정: 파란색
+                                    if (index === 1) return 'rgba(220, 53, 69, 1)';  // 부정: 빨간색
+                                    return 'rgba(108, 117, 125, 1)';                 // 중립: 회색
+                                }
+                            }
+                        }
                     },
                     plugins: { legend: { display: false } }
                 }
@@ -842,6 +754,11 @@
     document.addEventListener('DOMContentLoaded', function () {
         const concertDateSummary = {{ concert_date_summary|safe }};
         const concertDateRatingSummary = {{ concert_date_rating_summary|safe }};
+        
+        // 최근 30일 날짜 계산
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
         
         // 공연별 색상 맵핑(동일 공연은 동일 색상)
         const concertColors = {};
@@ -873,17 +790,24 @@
         // 리뷰 수 추이 데이터셋 구성 (날짜: date_str 사용)
         const reviewDatasets = [];
         for (const concert in concertDateSummary) {
-            const dataPoints = concertDateSummary[concert].map(item => ({
-                x: item.date_str,
-                y: item.reviews_count
-            }));
+            // 최근 30일 데이터만 필터링
+            const filteredDataPoints = concertDateSummary[concert]
+                .map(item => {
+                    const itemDate = new Date(item.date_str);
+                    return {
+                        x: item.date_str,
+                        y: item.reviews_count,
+                        date: itemDate
+                    };
+                })
+                .filter(item => item.date >= thirtyDaysAgo);
             
             // 데이터가 있는 경우에만 데이터셋에 추가
-            if (dataPoints.some(point => point.y > 0)) {
+            if (filteredDataPoints.some(point => point.y > 0)) {
                 const color = concertColors[concert];
                 reviewDatasets.push({
                     label: concert,
-                    data: dataPoints,
+                    data: filteredDataPoints,
                     fill: false,
                     borderColor: color,
                     backgroundColor: color.replace('1)', '0.1)'),
@@ -898,17 +822,24 @@
         // 평균 평점 추이 데이터셋 구성 (날짜: date_str 사용)
         const ratingDatasets = [];
         for (const concert in concertDateRatingSummary) {
-            const dataPoints = concertDateRatingSummary[concert].map(item => ({
-                x: item.date_str,
-                y: item.average_rating
-            }));
+            // 최근 30일 데이터만 필터링
+            const filteredDataPoints = concertDateRatingSummary[concert]
+                .map(item => {
+                    const itemDate = new Date(item.date_str);
+                    return {
+                        x: item.date_str,
+                        y: item.average_rating,
+                        date: itemDate
+                    };
+                })
+                .filter(item => item.date >= thirtyDaysAgo);
             
             // 데이터가 있는 경우에만 데이터셋에 추가
-            if (dataPoints.some(point => point.y > 0)) {
+            if (filteredDataPoints.some(point => point.y > 0)) {
                 const color = concertColors[concert];
                 ratingDatasets.push({
                     label: concert,
-                    data: dataPoints,
+                    data: filteredDataPoints,
                     fill: false,
                     borderColor: color,
                     backgroundColor: color.replace('1)', '0.1)'),
@@ -941,7 +872,8 @@
                             display: true,
                             text: '날짜',
                             font: { size: 14, weight: 'bold' }
-                        }
+                        },
+                        min: thirtyDaysAgo.toISOString()
                     },
                     y: {
                         beginAtZero: true,
@@ -952,7 +884,16 @@
                         }
                     }
                 },
-                plugins: { legend: { display: true, position: 'bottom' } }
+                plugins: { 
+                    legend: { 
+                        display: true, 
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    }
+                }
             }
         });
         
@@ -977,7 +918,8 @@
                             display: true,
                             text: '날짜',
                             font: { size: 14, weight: 'bold' }
-                        }
+                        },
+                        min: thirtyDaysAgo.toISOString()
                     },
                     y: {
                         beginAtZero: true,
@@ -989,7 +931,16 @@
                         }
                     }
                 },
-                plugins: { legend: { display: true, position: 'bottom' } }
+                plugins: { 
+                    legend: { 
+                        display: true, 
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    }
+                }
             }
         });
     });
@@ -1080,225 +1031,524 @@ function sortTable(columnIndex) {
 </script>
 
 <style>
-    .hover-card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    /* 토스 스타일 기본 설정 */
+    :root {
+        --toss-blue: #3182f6;
+        --toss-blue-light: #e7f0ff;
+        --toss-gray-50: #f9fafb;
+        --toss-gray-100: #f2f4f6;
+        --toss-gray-200: #e5e8eb;
+        --toss-gray-300: #d1d6db;
+        --toss-gray-400: #b0b8c1;
+        --toss-gray-500: #8b95a1;
+        --toss-gray-600: #6b7684;
+        --toss-gray-700: #4e5968;
+        --toss-gray-800: #333d4b;
+        --toss-gray-900: #191f28;
     }
     
-    .hover-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    body {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        background-color: var(--toss-gray-50);
+        color: var(--toss-gray-900);
+        line-height: 1.5;
+        letter-spacing: -0.3px;
+        min-height: 100vh;
+        overflow-x: hidden;
+        width: 100%;
+        padding-top: 60px; /* 네비게이션 바 높이만큼 패딩 추가 */
+        padding-bottom: 60px; /* 푸터 높이만큼 패딩 추가 */
     }
     
-    .display-4 {
-        font-size: 2.5rem;
+    /* 네비게이션 바 스타일 */
+    .navbar {
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+        height: 60px;
+        padding: 0;
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        z-index: 1030;
+        transition: box-shadow 0.2s ease-in-out;
+    }
+
+    .navbar:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 2px 3px rgba(0,0,0,0.04);
+    }
+
+    .navbar .container-fluid {
+        height: 100%;
+    }
+
+    .navbar-brand {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-right: 2rem;
+        letter-spacing: -0.02em;
+        transition: color 0.2s ease;
     }
     
-    .progress {
-        background-color: rgba(0,0,0,0.05);
-    }
-    
-    @media (max-width: 768px) {
-        .display-4 {
-            font-size: 2rem;
-        }
-    }
-
-    /* 테이블 스타일 */
-    .table th {
-        cursor: pointer;
-        user-select: none;
-        white-space: nowrap;
-    }
-
-    .table td {
-        vertical-align: middle;
-    }
-
-    .progress {
-        background-color: rgba(0,0,0,0.05);
-    }
-
-    .badge {
-        font-weight: 500;
-        padding: 0.5em 0.8em;
-    }
-
-    /* 호버 효과 */
-    .concert-row:hover {
-        background-color: rgba(0,0,0,0.02);
-    }
-
-    /* 반응형 조정 */
-    @media (max-width: 768px) {
-        .table-responsive {
-            border: 0;
-        }
-        
-        .input-group {
-            width: 100%;
-        }
-    }
-
-    /* 차트 컨테이너 스타일 */
-    #reviewChart {
-        min-height: 400px;
-    }
-
-    /* 로딩 스피너 스타일 */
-    #chartLoading {
-        background-color: rgba(255, 255, 255, 0.8);
+    /* 사이드바 스타일 */
+    .sidebar {
+        width: 280px;
+        background-color: white;
+        border-right: 1px solid var(--toss-gray-200);
+        height: calc(100vh - 60px); /* 네비게이션 바 높이 제외 */
+        overflow-y: auto;
+        position: fixed;
+        top: 60px; /* 네비게이션 바 아래에 위치 */
+        left: 0;
+        bottom: 60px; /* 푸터 위에 위치 */
+        padding: 24px 0;
         z-index: 1000;
     }
-
-    /* 필터 스타일 */
-    .form-select {
-        min-width: 120px;
-        border-color: #e9ecef;
-        background-color: #f8f9fa;
-    }
-
-    .form-select:focus {
-        border-color: #80bdff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-
-    /* 반응형 조정 */
-    @media (max-width: 768px) {
-        .card-header {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .d-flex.gap-2 {
-            width: 100%;
-        }
-        
-        .form-select {
-            flex: 1;
-        }
-    }
-
-    /* 평점 차트 스타일 */
-    #ratingChart {
-        min-height: 400px;
-    }
-
-    /* 로딩 스피너 스타일 */
-    #ratingChartLoading {
-        background-color: rgba(255, 255, 255, 0.8);
-        z-index: 1000;
-    }
-
-    /* 반응형 조정 */
-    @media (max-width: 768px) {
-        .card-header {
-            flex-direction: column;
-            gap: 1rem;
-        }
-    }
-
-    /* 워드클라우드 및 감정 분석 스타일 */
-    .genre-content {
-        transition: opacity 0.3s ease-in-out;
+    
+    /* 사이드바 헤더 스타일 */
+    .sidebar-header {
+        padding: 0 24px;
+        margin-bottom: 20px;
     }
     
-    .genre-content.d-none {
-        opacity: 0;
-        display: none !important;
+    .sidebar-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--toss-gray-900);
+        margin-bottom: 4px;
+        letter-spacing: -0.5px;
     }
     
-    .genre-content:not(.d-none) {
-        opacity: 1;
+    .sidebar-subtitle {
+        font-size: 14px;
+        color: var(--toss-gray-600);
+        margin-bottom: 0;
     }
     
-    /* 장르 선택 버튼 스타일 */
-    .btn-group .btn {
-        padding: 0.7rem 1.5rem;
-        font-weight: 500;
-        border: none;
+    .sidebar-menu {
+        display: flex;
+        flex-direction: column;
+        padding: 0 1rem;
+    }
+    
+    /* 메뉴 스타일 복원 */
+    .menu-section {
+        margin-bottom: 1.25rem;
+    }
+
+    .menu-item {
         position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        padding: 0.875rem 1.125rem;
+        color: #4E5968;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-radius: 12px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        margin: 0.25rem 0;
+        cursor: pointer;
     }
-    
-    .btn-group .btn:hover {
-        transform: translateY(-2px);
+
+    .menu-item:hover {
+        color: #191F28;
+        background-color: #F2F4F6;
+        text-decoration: none;
     }
-    
-    .btn-group .btn.active {
-        transform: translateY(-2px);
+
+    .menu-item.active {
+        color: #3B82F6;
+        background-color: #EFF6FF;
+        font-weight: 600;
     }
-    
-    .btn-group .btn .badge {
+
+    .menu-item span {
+        flex: 1;
+        font-size: 0.9375rem;
+    }
+
+    .submenu {
+        background-color: #F9FAFB;
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        border-radius: 12px;
+    }
+
+    .submenu .menu-item {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 400;
+        margin: 0.125rem 0;
+    }
+
+    .menu-toggle::after {
+        display: inline-block;
+        margin-left: auto;
+        content: "";
+        width: 1rem;
+        height: 1rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238B95A1'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+        transition: transform 0.2s ease;
+    }
+
+    .menu-toggle[aria-expanded="true"]::after {
+        transform: rotate(180deg);
+    }
+
+    .submenu-title {
+        padding: 0.5rem 1rem 0.375rem;
         font-size: 0.75rem;
-        padding: 0.35em 0.65em;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
+        color: #8B95A1;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
     }
     
-    .btn-group .btn:hover .badge {
-        transform: scale(1.1);
+    /* 메인 컨텐츠 영역 */
+    .main-content {
+        margin-left: 280px; /* 사이드바 너비 */
+        padding: 1.5rem;
+        min-height: calc(100vh - 120px); /* 네비게이션 바와 푸터 높이 제외 */
+        box-sizing: border-box;
+        width: calc(100% - 280px); /* 사이드바 너비를 제외한 전체 너비 */
+        overflow-x: hidden;
+        flex-grow: 1;
+        max-width: 100%;
     }
     
-    /* 장르별 버튼 호버 효과 */
+    /* 카드 스타일 복원 */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    .card-header {
+        background-color: #fff;
+        border-bottom: none;
+        padding: 1.25rem 1.25rem 0.75rem;
+        width: 100%;
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+        width: 100%;
+    }
+    
+    /* 버튼 스타일 복원 */
+    .btn {
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 0.6rem 1.25rem;
+        transition: all 0.2s ease;
+        box-shadow: none;
+    }
+    
+    .btn-primary {
+        background-color: var(--toss-blue);
+        border-color: var(--toss-blue);
+    }
+    
     .btn-primary:hover {
-        background-color: #0056b3;
+        background-color: #2b76e5;
+        border-color: #2b76e5;
+        transform: translateY(-2px);
     }
     
-    .btn-info:hover {
-        background-color: #0dcaf0;
+    .btn-outline-danger {
+        color: #F03E3E;
+        border-color: #F03E3E;
+        background-color: transparent;
     }
     
-    .btn-success:hover {
-        background-color: #157347;
+    .btn-outline-danger:hover {
+        background-color: #FFE3E3;
+        color: #E03131;
+        border-color: #E03131;
     }
     
-    .btn-warning:hover {
-        background-color: #ffca2c;
+    /* 푸터 스타일 */
+    .footer {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #ffffff;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        font-size: 0.875rem;
+        z-index: 1020;
+        height: 60px;
+        display: flex;
+        align-items: center;
+    }
+
+    .footer .text-muted {
+        color: #6B7280 !important;
+        font-weight: 400;
+        letter-spacing: -0.01em;
     }
     
+    /* 모바일 대응 */
     @media (max-width: 768px) {
-        .btn-group {
-            flex-direction: column;
-            width: 100%;
-            gap: 0.5rem;
+        .navbar {
+            height: 56px;
         }
         
-        .btn-group .btn {
-            width: 100%;
-            border-radius: 0.375rem !important;
-            margin: 0;
+        body {
+            padding-top: 56px;
         }
         
-        .btn-group .btn .badge {
-            position: static !important;
-            transform: none !important;
-            margin-left: 0.5rem;
+        .sidebar {
+            width: 100%;
+            transform: translateX(-100%);
+            z-index: 1040;
+            top: 56px;
         }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .main-content {
+            margin-left: 0;
+            padding: 1rem;
+            width: 100%;
+        }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
+
+        .main-content::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1030;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        body.sidebar-open .main-content::before {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .footer {
+            left: 0;
+            width: 100%;
+        }
+        
+        /* 모바일에서 카드 여백 줄이기 */
+        .card-header {
+            padding: 1.25rem 1.25rem 0.5rem;
+        }
+        
+        .card-body {
+            padding: 1.25rem;
+        }
+        
+        /* 모바일에서 그리드 여백 조정 */
+        .row {
+            margin-right: -10px;
+            margin-left: -10px;
+        }
+        
+        .col-12, .col-md-6, .col-lg-3 {
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+        
+        /* 모바일에서 간격 줄이기 */
+        .mt-5, .my-5, .mb-5 {
+            margin-top: 2rem !important;
+            margin-bottom: 2rem !important;
+        }
+        
+        .g-4 {
+            --bs-gutter-y: 1rem;
+            --bs-gutter-x: 1rem;
+        }
+    }
+
+    /* 태블릿 대응 */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .main-content {
+            width: calc(100% - 280px);
+        }
+        
+        /* 태블릿에서 카드 레이아웃 조정 */
+        .col-lg-3 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+
+    /* 대형 화면 대응 */
+    @media (min-width: 1400px) {
+        .main-content {
+            padding: 1.75rem;
+            max-width: calc(100% - 280px);
+        }
+        
+        .container-fluid, .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+    }
+
+    /* 컨테이너 스타일 추가 */
+    .container-fluid, .container {
+        width: 100%;
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+        margin-right: auto;
+        margin-left: auto;
+        max-width: 100%;
+    }
+
+    .row {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
+    }
+
+    /* 테이블 스타일 추가 */
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        color: var(--toss-gray-900);
+        border-collapse: collapse;
+    }
+
+    /* 차트 컨테이너 스타일 추가 */
+    .position-relative {
+        position: relative;
+        width: 100%;
+    }
+
+    canvas {
+        max-width: 100%;
+    }
+
+    /* 열 여백 조정 */
+    .col-12, .col-md-6, .col-lg-3 {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    /* 간격 조정 */
+    .mt-5, .my-5 {
+        margin-top: 2rem !important;
+    }
+
+    .mb-5, .my-5 {
+        margin-bottom: 2rem !important;
+    }
+
+    .g-4 {
+        --bs-gutter-y: 0.75rem;
+        --bs-gutter-x: 0.75rem;
     }
 </style>
+
 <script>
-    // 장르 전환 함수
-    function switchGenre(button) {
-        // 모든 버튼에서 active 클래스 제거
-        document.querySelectorAll('[data-genre]').forEach(btn => {
-            btn.classList.remove('active');
+    // 사이드바 토글 기능
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const body = document.body;
+        
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                body.classList.toggle('sidebar-open');
+            });
+        }
+        
+        // 화면 크기가 변경될 때 사이드바 상태 관리
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('show');
+                body.classList.remove('sidebar-open');
+            }
         });
         
-        // 클릭된 버튼에 active 클래스 추가
-        button.classList.add('active');
+        // 장르 전환 함수 복원
+        window.switchGenre = function(button) {
+            // 모든 버튼에서 active 클래스 제거 및 스타일 초기화
+            document.querySelectorAll('[data-genre]').forEach(btn => {
+                btn.classList.remove('active');
+                
+                // 프라이머리 버튼 스타일로 초기화
+                if(btn.classList.contains('btn-primary')) {
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-outline-primary');
+                }
+            });
+            
+            // 클릭된 버튼에 active 클래스 추가 및 스타일 변경
+            button.classList.add('active');
+            if(button.classList.contains('btn-outline-primary')) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-primary');
+            }
+            
+            // 모든 장르 컨텐츠 숨기기
+            document.querySelectorAll('.genre-content').forEach(content => {
+                content.classList.add('d-none');
+            });
+            
+            // 선택된 장르 컨텐츠 표시
+            const selectedGenre = button.getAttribute('data-genre');
+            document.getElementById(`genre-${selectedGenre}`).classList.remove('d-none');
+            
+            // 차트 리사이즈 트리거
+            window.dispatchEvent(new Event('resize'));
+        };
         
-        // 모든 장르 컨텐츠 숨기기
-        document.querySelectorAll('.genre-content').forEach(content => {
-            content.classList.add('d-none');
-        });
-        
-        // 선택된 장르 컨텐츠 표시
-        const selectedGenre = button.getAttribute('data-genre');
-        document.getElementById(`genre-${selectedGenre}`).classList.remove('d-none');
-        
-        // 차트 리사이즈 트리거
-        window.dispatchEvent(new Event('resize'));
-    }
+        // 사이드바 드롭다운 아이콘 회전 처리
+        // 현재 활성화된 공연이 있는 경우 해당 장르 드롭다운 자동 열기
+        const activeMenuItem = document.querySelector('.menu-item.active');
+        if (activeMenuItem) {
+            const parentCollapse = activeMenuItem.closest('.collapse');
+            if (parentCollapse) {
+                parentCollapse.classList.add('show');
+                const trigger = document.querySelector(`[data-bs-target="#${parentCollapse.id}"]`);
+                if (trigger) {
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+            }
+        }
+    });
 </script>
 {% endblock scripts %}

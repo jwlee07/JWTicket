@@ -28,7 +28,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud
 
 import re
 import pandas as pd
@@ -664,29 +663,11 @@ def clean_text(text):
     return cleaned
 
 def generate_wordcloud_image(text, wc_width=800, wc_height=800, fig_width=8, fig_height=8):
-    if not text.strip():
-        return None
-
-    wordcloud = WordCloud(
-        font_path='/Library/Fonts/AppleGothic.ttf',
-        width=wc_width, 
-        height=wc_height, 
-        background_color="white"
-    ).generate(text)
-
-    fig = plt.figure(figsize=(fig_width, fig_height))
-    plt.imshow(wordcloud.to_array(), interpolation="bilinear")
-    plt.axis("off")
-
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format="png", bbox_inches="tight")
-    buffer.seek(0)
-    image_png = buffer.getvalue()
-    buffer.close()
-    plt.close(fig)
-
-    base64_img = base64.b64encode(image_png).decode("utf-8")
-    return base64_img
+    """
+    워드클라우드 기능이 비활성화되었습니다.
+    빈 문자열을 반환합니다.
+    """
+    return ""
 
 def preprocess_text(texts):
     okt = Okt()

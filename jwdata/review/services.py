@@ -3,7 +3,7 @@ from django.db.models.functions import Cast, Concat, Length
 from django.db.models import CharField, Value
 from datetime import date, timedelta
 from .models import Review, Concert, Seat
-from .utils import preprocess_text, generate_wordcloud_image, comma_format, clean_text
+from .utils import preprocess_text, comma_format, clean_text
 from collections import Counter, defaultdict
 import pandas as pd
 from konlpy.tag import Okt
@@ -54,25 +54,15 @@ class ConcertAnalysisService:
 
     def generate_wordclouds(self):
         """감정별 워드클라우드를 생성합니다."""
-        # 전체 리뷰 워드클라우드
-        all_reviews_texts = self.reviews.values_list("description", flat=True)
-        text_all = preprocess_text(all_reviews_texts)
-        img_all = generate_wordcloud_image(text_all, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
-        
-        # 긍정 리뷰 워드클라우드
+        # 워드클라우드 기능 비활성화
+        # 더미 데이터 반환
         positive_reviews = self.reviews.filter(emotion="긍정")
-        text_positive = preprocess_text(positive_reviews.values_list("description", flat=True))
-        img_positive = generate_wordcloud_image(text_positive, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
-        
-        # 부정 리뷰 워드클라우드
         negative_reviews = self.reviews.filter(emotion="부정")
-        text_negative = preprocess_text(negative_reviews.values_list("description", flat=True))
-        img_negative = generate_wordcloud_image(text_negative, wc_width=1200, wc_height=600, fig_width=12, fig_height=6)
         
         return {
-            "all": img_all,
-            "positive": img_positive,
-            "negative": img_negative,
+            "all": "",
+            "positive": "",
+            "negative": "",
             "positive_reviews": positive_reviews.order_by("-date"),
             "negative_reviews": negative_reviews.order_by("-date")
         }
@@ -135,16 +125,11 @@ class HomeAnalysisService:
 
     def generate_genre_wordclouds(self, reviews_by_genre):
         """장르별 워드클라우드를 생성합니다."""
+        # 워드클라우드 기능 비활성화
+        # 더미 데이터 반환
         wordclouds = {}
-        for genre, reviews in reviews_by_genre.items():
-            text = preprocess_text(reviews)
-            wordclouds[genre] = generate_wordcloud_image(
-                text, 
-                wc_width=1200, 
-                wc_height=600, 
-                fig_width=12, 
-                fig_height=6
-            )
+        for genre in reviews_by_genre.keys():
+            wordclouds[genre] = ""
         return wordclouds
 
     def get_emotion_reviews(self, reviews_by_genre):
@@ -164,18 +149,13 @@ class HomeAnalysisService:
 
     def generate_emotion_wordclouds(self, emotion_reviews):
         """감정별 워드클라우드를 생성합니다."""
+        # 워드클라우드 기능 비활성화
+        # 더미 데이터 반환
         wordclouds = {}
         for genre, emotions in emotion_reviews.items():
             wordclouds[genre] = {}
-            for emotion, reviews in emotions.items():
-                text = preprocess_text(reviews)
-                wordclouds[genre][emotion] = generate_wordcloud_image(
-                    text,
-                    wc_width=1200,
-                    wc_height=600,
-                    fig_width=12,
-                    fig_height=6
-                )
+            for emotion in emotions.keys():
+                wordclouds[genre][emotion] = ""
         return wordclouds
 
     def get_statistics(self):

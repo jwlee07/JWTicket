@@ -68,7 +68,6 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
-        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -76,9 +75,36 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ] if DEBUG else [
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
+            ],
         },
     },
 ]
+
+# 캐싱 설정 추가
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 기본 5분 캐시
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,  # 최대 캐시 항목 수
+            'CULL_FREQUENCY': 3,  # 캐시가 가득 찼을 때 제거할 항목 비율 (1/3)
+        }
+    }
+}
+
+# 데이터베이스 최적화 설정
+DATABASE_OPTIONS = {
+    'timeout': 30,  # 데이터베이스 연결 타임아웃 (초)
+}
 
 WSGI_APPLICATION = 'ticket.wsgi.application'
 
@@ -90,6 +116,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 30,  # 연결 타임아웃 설정
+        },
     }
 }
 
