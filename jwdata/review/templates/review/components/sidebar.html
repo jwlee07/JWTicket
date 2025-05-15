@@ -1,0 +1,92 @@
+<!-- 사이드바 -->
+<aside class="sidebar">
+    <nav class="sidebar-menu">
+        {% if concerts %}
+            <!-- 통합 메뉴 섹션 -->
+            <div class="menu-section">
+                <div class="menu-header">
+                    <span class="submenu-title">통합 메뉴</span>
+                </div>
+                
+                <div class="menu-items">
+                    <a href="{% url 'review:all_reviews' %}" 
+                       class="menu-item {% if request.resolver_match.url_name == 'all_reviews' %}active{% endif %}">
+                        <span>공연 리뷰</span>
+                    </a>
+                    
+                    <a href="{% url 'review:all_pattern' %}" 
+                       class="menu-item {% if request.resolver_match.url_name == 'all_pattern' %}active{% endif %}">
+                        <span>관람 패턴</span>
+                    </a>
+                    
+                    <a href="{% url 'review:all_seats' %}" 
+                       class="menu-item {% if request.resolver_match.url_name == 'all_seats' %}active{% endif %}">
+                        <span>잔여 좌석</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 장르별 메뉴 섹션 -->
+            <div class="menu-section">
+                <div class="menu-header">
+                    <span class="submenu-title">장르별 공연</span>
+                </div>
+                
+                <!-- 연극 드롭다운 -->
+                <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapsePlay" aria-expanded="false">
+                    <span>연극</span>
+                </a>
+                <div class="collapse" id="collapsePlay">
+                    <div class="submenu">
+                        {% for concert in concerts|dictsort:"name" %}
+                            {% if concert.genre == '연극' %}
+                                <div class="menu-item {% if concert.id|stringformat:'s' == active_concert_id %}active{% endif %}" 
+                                     onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
+                                    <span>{{ concert.name }}</span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- 뮤지컬 드롭다운 -->
+                <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseMusical" aria-expanded="false">
+                    <span>뮤지컬</span>
+                </a>
+                <div class="collapse" id="collapseMusical">
+                    <div class="submenu">
+                        {% for concert in concerts|dictsort:"name" %}
+                            {% if concert.genre == '뮤지컬' %}
+                                <div class="menu-item {% if concert.id|stringformat:'s' == active_concert_id %}active{% endif %}" 
+                                     onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
+                                    <span>{{ concert.name }}</span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- 콘서트 드롭다운 -->
+                <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseConcert" aria-expanded="false">
+                    <span>콘서트</span>
+                </a>
+                <div class="collapse" id="collapseConcert">
+                    <div class="submenu">
+                        {% for concert in concerts|dictsort:"name" %}
+                            {% if concert.genre == '콘서트' %}
+                                <div class="menu-item {% if concert.id|stringformat:'s' == active_concert_id %}active{% endif %}" 
+                                     onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
+                                    <span>{{ concert.name }}</span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-light text-center mt-4">
+                <p class="mb-0">현재 등록된 공연 정보가 없습니다.</p>
+            </div>
+        {% endif %}
+    </nav>
+</aside> 

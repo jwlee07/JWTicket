@@ -1,630 +1,514 @@
-{% extends "review/base.html" %}
+{% extends 'review/base.html' %}
 {% load static %}
 
-{% block content %}
-<!-- Chart.js 라이브러리 추가 -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block title %}{{ concert.name }} - 공연 상세{% endblock %}
 
-<!-- 네비게이션 바 (헤더뷰) -->
-<nav class="navbar navbar-expand-lg navbar-light">
-    <div class="container-fluid px-4 d-flex align-items-center">
-        <button class="btn btn-link d-lg-none me-2" type="button" id="sidebarToggle" aria-label="메뉴 열기">
-            메뉴
-        </button>
-        <a class="navbar-brand d-flex align-items-center" href="{% url 'review:home' %}">
-            <span style="color: #000000; font-weight: 700;">공연 리뷰 대시보드</span>
-        </a>
-        <div class="ms-auto">
-            <button onclick="logout()" class="btn btn-outline-danger btn-sm d-flex align-items-center">
-                <span>로그아웃</span>
-            </button>
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- 공연 상세 정보 카드 -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h1 class="display-6 fw-bold mb-3">{{ selected_concert.name }}</h1>
+                    <div class="d-flex flex-wrap gap-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                            <span class="text-gray-700 fw-medium">{{ selected_concert.place }}</span>
+                        </div>
+                        {% if selected_concert.genre %}
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-tag-fill text-primary me-2"></i>
+                            <span class="text-gray-700 fw-medium">{{ selected_concert.genre }}</span>
+                        </div>
+                        {% endif %}
+                        {% if selected_concert.date %}
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-calendar-event-fill text-primary me-2"></i>
+                            <span class="text-gray-700 fw-medium">{{ selected_concert.date }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</nav>
 
-<div class="d-flex w-100" style="min-height: 100vh;">
-    <!-- 사이드바 -->
-    <aside class="sidebar">
-        <nav class="sidebar-menu">
-            {% if concerts %}
-                <!-- 통합 메뉴 섹션 -->
-                <div class="menu-section">
-                    <div class="menu-header">
-                        <span class="submenu-title">통합 메뉴</span>
-                    </div>
-                    
-                    <div class="menu-items">
-                        <a href="{% url 'review:all_reviews' %}" 
-                           class="menu-item {% if request.resolver_match.url_name == 'all_reviews' %}active{% endif %}">
-                            <span>공연 리뷰</span>
-                        </a>
-                        
-                        <a href="{% url 'review:all_pattern' %}" 
-                           class="menu-item {% if request.resolver_match.url_name == 'all_pattern' %}active{% endif %}">
-                            <span>관람 패턴</span>
-                        </a>
-                        
-                        <a href="{% url 'review:all_seats' %}" 
-                           class="menu-item {% if request.resolver_match.url_name == 'all_seats' %}active{% endif %}">
-                            <span>잔여 좌석</span>
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- 장르별 메뉴 섹션 -->
-                <div class="menu-section">
-                    <div class="menu-header">
-                        <span class="submenu-title">장르별 공연</span>
-                    </div>
-                    
-                    <!-- 연극 드롭다운 -->
-                    <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapsePlay" aria-expanded="false">
-                        <span>연극</span>
-                    </a>
-                    <div class="collapse" id="collapsePlay">
-                        <div class="submenu">
-                            {% for concert in concerts|dictsort:"name" %}
-                                {% if concert.genre == '연극' %}
-                                    <div class="menu-item {% if concert.id == selected_concert.id %}active{% endif %}" 
-                                         onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
-                                        <span>{{ concert.name }}</span>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <!-- 뮤지컬 드롭다운 -->
-                    <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseMusical" aria-expanded="false">
-                        <span>뮤지컬</span>
-                    </a>
-                    <div class="collapse" id="collapseMusical">
-                        <div class="submenu">
-                            {% for concert in concerts|dictsort:"name" %}
-                                {% if concert.genre == '뮤지컬' %}
-                                    <div class="menu-item {% if concert.id == selected_concert.id %}active{% endif %}" 
-                                         onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
-                                        <span>{{ concert.name }}</span>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <!-- 콘서트 드롭다운 -->
-                    <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseConcert" aria-expanded="false">
-                        <span>콘서트</span>
-                    </a>
-                    <div class="collapse" id="collapseConcert">
-                        <div class="submenu">
-                            {% for concert in concerts|dictsort:"name" %}
-                                {% if concert.genre == '콘서트' %}
-                                    <div class="menu-item {% if concert.id == selected_concert.id %}active{% endif %}" 
-                                         onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
-                                        <span>{{ concert.name }}</span>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            {% else %}
-                <div class="alert alert-light text-center mt-4">
-                    <p class="mb-0">현재 등록된 공연 정보가 없습니다.</p>
-                </div>
-            {% endif %}
-        </nav>
-    </aside>
-
-    <!-- 메인 컨텐츠 영역 -->
-    <div class="main-content">
-        <div class="container-fluid py-4">
-            <!-- 공연 상세 정보 카드 -->
-            <div class="card shadow-sm mb-5">
+    <!-- 리뷰 평점 분석 카드 -->
+    <div class="row g-4 mb-5">
+        <!-- 전체 공연 리뷰 평균 평점 카드 -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-4">
-                        <div>
-                            <h1 class="display-6 fw-bold mb-3">{{ selected_concert.name }}</h1>
-                            <div class="d-flex flex-wrap gap-4">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-geo-alt-fill text-primary me-2"></i>
-                                    <span class="text-gray-700 fw-medium">{{ selected_concert.place }}</span>
-                                </div>
-                                {% if selected_concert.genre %}
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-tag-fill text-primary me-2"></i>
-                                    <span class="text-gray-700 fw-medium">{{ selected_concert.genre }}</span>
-                                </div>
-                                {% endif %}
-                                {% if selected_concert.date %}
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-calendar-event-fill text-primary me-2"></i>
-                                    <span class="text-gray-700 fw-medium">{{ selected_concert.date }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h5 class="card-title fw-bold mb-0 text-gray-800">전체 공연 리뷰 평점</h5>
+                        <i class="fas fa-chart-line fa-lg text-primary"></i>
+                    </div>
+                    <div class="text-center mb-4">
+                        <div class="display-4 fw-bold text-primary mb-1">{{ overall_avg|floatformat:1|default:"0.0" }}</div>
+                        <div class="text-gray-500 small fw-medium">/10점</div>
+                    </div>
+                    <div class="progress rounded-pill mb-3" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: {% widthratio overall_avg|default:0 10 100 %}%;" 
+                             aria-valuenow="{{ overall_avg|floatformat:1|default:'0' }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="10">
                         </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="fas fa-comments text-gray-400 me-2"></i>
+                        <span class="text-gray-600">총 <span class="fw-bold text-gray-800">{{ overall_count|default:"0" }}</span>건의 리뷰</span>
                     </div>
                 </div>
             </div>
-
-            <!-- 리뷰 평점 분석 카드 -->
-            <div class="row g-4 mb-5">
-                <!-- 전체 공연 리뷰 평균 평점 카드 -->
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm hover-card">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h5 class="card-title fw-bold mb-0 text-gray-800">전체 공연 리뷰 평점</h5>
-                                <i class="fas fa-chart-line fa-lg text-primary"></i>
-                            </div>
-                            <div class="text-center mb-4">
-                                <div class="display-4 fw-bold text-primary mb-1">{{ overall_avg|floatformat:1|default:"0.0" }}</div>
-                                <div class="text-gray-500 small fw-medium">/10점</div>
-                            </div>
-                            <div class="progress rounded-pill mb-3" style="height: 8px;">
-                                <div class="progress-bar bg-primary" role="progressbar" 
-                                     style="width: {% widthratio overall_avg|default:0 10 100 %}%;" 
-                                     aria-valuenow="{{ overall_avg|floatformat:1|default:'0' }}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="10">
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center">
-                                <i class="fas fa-comments text-gray-400 me-2"></i>
-                                <span class="text-gray-600">총 <span class="fw-bold text-gray-800">{{ overall_count|default:"0" }}</span>건의 리뷰</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 해당 장르 리뷰 평균 평점 카드 -->
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm hover-card">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h5 class="card-title fw-bold mb-0 text-gray-800">해당 장르 리뷰 평점</h5>
-                                <i class="fas fa-theater-masks fa-lg text-info"></i>
-                            </div>
-                            <div class="text-center mb-4">
-                                <div class="display-4 fw-bold text-info mb-1">{{ genre_avg|floatformat:1|default:"0.0" }}</div>
-                                <div class="text-gray-500 small fw-medium">/10점</div>
-                            </div>
-                            <div class="progress rounded-pill mb-3" style="height: 8px;">
-                                <div class="progress-bar bg-info" role="progressbar" 
-                                     style="width: {% widthratio genre_avg|default:0 10 100 %}%;" 
-                                     aria-valuenow="{{ genre_avg|floatformat:1|default:'0' }}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="10">
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center">
-                                <i class="fas fa-comments text-gray-400 me-2"></i>
-                                <span class="text-gray-600">장르 <span class="fw-bold text-gray-800">{{ genre_count|default:"0" }}</span>건의 리뷰</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 선택 공연 리뷰 평균 평점 카드 -->
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm hover-card">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h5 class="card-title fw-bold mb-0 text-gray-800">선택 공연 리뷰 평점</h5>
-                            </div>
-                            <div class="text-center mb-4">
-                                <div class="display-4 fw-bold text-success mb-1">{{ selected_avg|floatformat:1|default:"0.0" }}</div>
-                                <div class="text-gray-500 small fw-medium">/10점</div>
-                            </div>
-                            <div class="progress rounded-pill mb-3" style="height: 8px;">
-                                <div class="progress-bar bg-success" role="progressbar" 
-                                     style="width: {% widthratio selected_avg|default:0 10 100 %}%;" 
-                                     aria-valuenow="{{ selected_avg|floatformat:1|default:'0' }}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="10">
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-center">
-                                <span class="text-gray-600">공연 <span class="fw-bold text-gray-800">{{ selected_count|default:"0" }}</span>건의 리뷰</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ChatGPT 리뷰 분석 카드 -->
-            <div class="card shadow-sm mb-5">
-                <div class="card-header bg-white py-4 border-0">
-                    <h3 class="mb-0 fw-bold">ChatGPT 리뷰 분석</h3>
-                </div>
+        </div>
+        
+        <!-- 해당 장르 리뷰 평균 평점 카드 -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
-                    <div class="d-flex gap-3 mb-4">
-                        <button id="positiveSummaryBtn" 
-                                class="btn btn-primary rounded-3 d-flex align-items-center gap-2 px-4 py-2"
-                                data-url="{% url 'review:summarize_positive_reviews' selected_concert.id %}">
-                            긍정 리뷰 분석
-                        </button>
-                        <button id="negativeSummaryBtn" 
-                                class="btn btn-soft-danger rounded-3 d-flex align-items-center gap-2 px-4 py-2"
-                                data-url="{% url 'review:summarize_negative_reviews' selected_concert.id %}">
-                            부정 리뷰 분석
-                        </button>
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h5 class="card-title fw-bold mb-0 text-gray-800">해당 장르 리뷰 평점</h5>
+                        <i class="fas fa-theater-masks fa-lg text-info"></i>
                     </div>
-                    <!-- 요약 결과를 표시할 컨테이너 -->
-                    <div id="summaryResults">
-                        <div id="positiveSummaryContainer" class="mb-3">
-                            <!-- 긍정 요약 결과가 여기에 표시됩니다 -->
+                    <div class="text-center mb-4">
+                        <div class="display-4 fw-bold text-info mb-1">{{ genre_avg|floatformat:1|default:"0.0" }}</div>
+                        <div class="text-gray-500 small fw-medium">/10점</div>
+                    </div>
+                    <div class="progress rounded-pill mb-3" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: {% widthratio genre_avg|default:0 10 100 %}%;" 
+                             aria-valuenow="{{ genre_avg|floatformat:1|default:'0' }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="10">
                         </div>
-                        <div id="negativeSummaryContainer">
-                            <!-- 부정 요약 결과가 여기에 표시됩니다 -->
-                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="fas fa-comments text-gray-400 me-2"></i>
+                        <span class="text-gray-600">장르 <span class="fw-bold text-gray-800">{{ genre_count|default:"0" }}</span>건의 리뷰</span>
                     </div>
                 </div>
             </div>
+        </div>
+        
+        <!-- 선택 공연 리뷰 평균 평점 카드 -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h5 class="card-title fw-bold mb-0 text-gray-800">선택 공연 리뷰 평점</h5>
+                    </div>
+                    <div class="text-center mb-4">
+                        <div class="display-4 fw-bold text-success mb-1">{{ selected_avg|floatformat:1|default:"0.0" }}</div>
+                        <div class="text-gray-500 small fw-medium">/10점</div>
+                    </div>
+                    <div class="progress rounded-pill mb-3" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {% widthratio selected_avg|default:0 10 100 %}%;" 
+                             aria-valuenow="{{ selected_avg|floatformat:1|default:'0' }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="10">
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <span class="text-gray-600">공연 <span class="fw-bold text-gray-800">{{ selected_count|default:"0" }}</span>건의 리뷰</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <style>
-                .summary-content {
-                    background-color: var(--toss-gray-50);
-                    border-radius: 16px;
-                    padding: 1.5rem;
-                    margin-top: 1rem;
-                    font-size: 1rem;
-                    line-height: 1.6;
-                    color: var(--toss-gray-800);
-                }
-                
-                .summary-content.positive {
-                    border-left: 4px solid var(--bs-primary);
-                }
-                
-                .summary-content.negative {
-                    border-left: 4px solid var(--bs-danger);
-                }
-                
-                .loading-spinner {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 3rem;
-                }
+    <!-- ChatGPT 리뷰 분석 카드 -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-4 border-0">
+            <h3 class="mb-0 fw-bold">ChatGPT 리뷰 분석</h3>
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex gap-3 mb-4">
+                <button id="positiveSummaryBtn" 
+                        class="btn btn-primary rounded-3 d-flex align-items-center gap-2 px-4 py-2"
+                        data-url="{% url 'review:summarize_positive_reviews' selected_concert.id %}">
+                    긍정 리뷰 분석
+                </button>
+                <button id="negativeSummaryBtn" 
+                        class="btn btn-soft-danger rounded-3 d-flex align-items-center gap-2 px-4 py-2"
+                        data-url="{% url 'review:summarize_negative_reviews' selected_concert.id %}">
+                    부정 리뷰 분석
+                </button>
+            </div>
+            <!-- 요약 결과를 표시할 컨테이너 -->
+            <div id="summaryResults">
+                <div id="positiveSummaryContainer" class="mb-3">
+                    <!-- 긍정 요약 결과가 여기에 표시됩니다 -->
+                </div>
+                <div id="negativeSummaryContainer">
+                    <!-- 부정 요약 결과가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-                .btn-soft-danger {
-                    color: var(--bs-danger);
-                    background-color: rgba(220, 53, 69, 0.1);
-                    border: none;
-                }
+    <style>
+        .summary-content {
+            background-color: var(--toss-gray-50);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--toss-gray-800);
+        }
+        
+        .summary-content.positive {
+            border-left: 4px solid var(--bs-primary);
+        }
+        
+        .summary-content.negative {
+            border-left: 4px solid var(--bs-danger);
+        }
+        
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
 
-                .btn-soft-danger:hover {
-                    color: #fff;
-                    background-color: var(--bs-danger);
-                }
-            </style>
+        .btn-soft-danger {
+            color: var(--bs-danger);
+            background-color: rgba(220, 53, 69, 0.1);
+            border: none;
+        }
 
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const positiveSummaryBtn = document.getElementById('positiveSummaryBtn');
-                    const negativeSummaryBtn = document.getElementById('negativeSummaryBtn');
+        .btn-soft-danger:hover {
+            color: #fff;
+            background-color: var(--bs-danger);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const positiveSummaryBtn = document.getElementById('positiveSummaryBtn');
+            const negativeSummaryBtn = document.getElementById('negativeSummaryBtn');
+            
+            function showLoading(containerId) {
+                document.getElementById(containerId).innerHTML = `
+                    <div class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function handleSummaryClick(btn, containerId) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     
-                    function showLoading(containerId) {
+                    // URL 가져오기
+                    const url = btn.dataset.url;
+                    if (!url) {
+                        console.error('URL이 설정되지 않았습니다.');
+                        return;
+                    }
+                    
+                    // 버튼 비활성화 및 로딩 상태 표시
+                    btn.disabled = true;
+                    const originalContent = btn.innerHTML;
+                    btn.innerHTML = `
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        분석 중...
+                    `;
+                    
+                    // 로딩 표시
+                    showLoading(containerId);
+                    
+                    fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        const container = document.getElementById(containerId);
+                        container.innerHTML = `
+                            <div class="summary-content ${containerId.includes('positive') ? 'positive' : 'negative'}">
+                                ${html}
+                            </div>
+                        `;
+                    })
+                    .catch(error => {
                         document.getElementById(containerId).innerHTML = `
-                            <div class="loading-spinner">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
+                            <div class="alert alert-danger rounded-3 d-flex align-items-center p-4">
+                                <div>
+                                    <h6 class="alert-heading mb-1">요약 실패</h6>
+                                    <p class="mb-0">요약을 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.</p>
                                 </div>
                             </div>
                         `;
-                    }
-                    
-                    function handleSummaryClick(btn, containerId) {
-                        btn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            
-                            // URL 가져오기
-                            const url = btn.dataset.url;
-                            if (!url) {
-                                console.error('URL이 설정되지 않았습니다.');
-                                return;
-                            }
-                            
-                            // 버튼 비활성화 및 로딩 상태 표시
-                            btn.disabled = true;
-                            const originalContent = btn.innerHTML;
-                            btn.innerHTML = `
-                                <div class="spinner-border spinner-border-sm me-2" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                분석 중...
-                            `;
-                            
-                            // 로딩 표시
-                            showLoading(containerId);
-                            
-                            fetch(url, {
-                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('Network response was not ok');
-                                }
-                                return response.text();
-                            })
-                            .then(html => {
-                                const container = document.getElementById(containerId);
-                                container.innerHTML = `
-                                    <div class="summary-content ${containerId.includes('positive') ? 'positive' : 'negative'}">
-                                        ${html}
-                                    </div>
-                                `;
-                            })
-                            .catch(error => {
-                                document.getElementById(containerId).innerHTML = `
-                                    <div class="alert alert-danger rounded-3 d-flex align-items-center p-4">
-                                        <div>
-                                            <h6 class="alert-heading mb-1">요약 실패</h6>
-                                            <p class="mb-0">요약을 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.</p>
-                                        </div>
-                                    </div>
-                                `;
-                                console.error('Error:', error);
-                            })
-                            .finally(() => {
-                                // 버튼 상태 복구
-                                btn.disabled = false;
-                                btn.innerHTML = originalContent;
-                            });
-                        });
-                    }
-                    
-                    // 긍정 요약 버튼 이벤트 설정
-                    handleSummaryClick(positiveSummaryBtn, 'positiveSummaryContainer');
-                    
-                    // 부정 요약 버튼 이벤트 설정
-                    handleSummaryClick(negativeSummaryBtn, 'negativeSummaryContainer');
-                });
-            </script>
-
-            <!-- 리뷰 추이 분석 카드 -->
-            <div class="card shadow-sm mb-5">
-                <div class="card-header bg-white py-4 border-0">
-                    <h3 class="mb-0 fw-bold">리뷰 추이 분석</h3>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4">
-                        <div class="col-12">
-                            <div class="card shadow-sm">
-                                <div class="card-body p-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
-                                        <h4 class="card-title fw-bold mb-0">리뷰 수 추이</h4>
-                                    </div>
-                                    <div class="chart-container position-relative" style="height: 300px;">
-                                        <canvas id="reviewTrendChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="card shadow-sm">
-                                <div class="card-body p-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
-                                        <h4 class="card-title fw-bold mb-0">평균 평점 추이</h4>
-                                    </div>
-                                    <div class="chart-container position-relative" style="height: 300px;">
-                                        <canvas id="ratingTrendChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // 차트 공통 옵션
-                    const commonOptions = {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'bottom',
-                                labels: {
-                                    boxWidth: 12,
-                                    padding: 20,
-                                    font: {
-                                        size: 12,
-                                        family: "'Pretendard', sans-serif",
-                                        weight: 500
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                titleFont: {
-                                    size: 14,
-                                    family: "'Pretendard', sans-serif",
-                                    weight: 600
-                                },
-                                bodyFont: {
-                                    size: 13,
-                                    family: "'Pretendard', sans-serif"
-                                },
-                                cornerRadius: 8
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    font: {
-                                        family: "'Pretendard', sans-serif",
-                                        size: 12
-                                    }
-                                }
-                            },
-                            y: {
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                },
-                                ticks: {
-                                    font: {
-                                        family: "'Pretendard', sans-serif",
-                                        size: 12
-                                    }
-                                }
-                            }
-                        }
-                    };
-
-                    // 리뷰 추이 차트
-                    const dateSummary = {{ selected_date_summary|safe }};
-                    const reviewLabels = dateSummary.map(item => item.date_str);
-                    const reviewCounts = dateSummary.map(item => item.reviews_count);
-                    
-                    new Chart(document.getElementById("reviewTrendChart"), {
-                        type: 'line',
-                        data: {
-                            labels: reviewLabels,
-                            datasets: [{
-                                label: '일별 리뷰 수',
-                                data: reviewCounts,
-                                borderColor: 'rgb(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                pointRadius: 4,
-                                pointHoverRadius: 6
-                            }]
-                        },
-                        options: {
-                            ...commonOptions,
-                            scales: {
-                                ...commonOptions.scales,
-                                y: {
-                                    ...commonOptions.scales.y,
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: '리뷰 수',
-                                        font: {
-                                            family: "'Pretendard', sans-serif",
-                                            size: 13,
-                                            weight: 600
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    // 평점 추이 차트
-                    const ratingSummary = {{ selected_date_rating_summary|safe }};
-                    const ratingLabels = ratingSummary.map(item => item.date_str);
-                    const averageRatings = ratingSummary.map(item => item.average_rating);
-                    
-                    new Chart(document.getElementById("ratingTrendChart"), {
-                        type: 'line',
-                        data: {
-                            labels: ratingLabels,
-                            datasets: [{
-                                label: '일별 평균 평점',
-                                data: averageRatings,
-                                borderColor: 'rgb(255, 159, 64)',
-                                backgroundColor: 'rgba(255, 159, 64, 0.1)',
-                                fill: true,
-                                tension: 0.4,
-                                pointRadius: 4,
-                                pointHoverRadius: 6
-                            }]
-                        },
-                        options: {
-                            ...commonOptions,
-                            scales: {
-                                ...commonOptions.scales,
-                                y: {
-                                    ...commonOptions.scales.y,
-                                    beginAtZero: true,
-                                    max: 10,
-                                    title: {
-                                        display: true,
-                                        text: '평균 평점',
-                                        font: {
-                                            family: "'Pretendard', sans-serif",
-                                            size: 13,
-                                            weight: 600
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        console.error('Error:', error);
+                    })
+                    .finally(() => {
+                        // 버튼 상태 복구
+                        btn.disabled = false;
+                        btn.innerHTML = originalContent;
                     });
                 });
-            </script>
+            }
+            
+            // 긍정 요약 버튼 이벤트 설정
+            handleSummaryClick(positiveSummaryBtn, 'positiveSummaryContainer');
+            
+            // 부정 요약 버튼 이벤트 설정
+            handleSummaryClick(negativeSummaryBtn, 'negativeSummaryContainer');
+        });
+    </script>
 
-            <!-- 리뷰 분석 카드 -->
-            <div class="card shadow-sm mb-5">
-                <div class="card-header bg-white py-4 border-0">
-                    <h3 class="mb-0 fw-bold">리뷰 분석</h3>
-                </div>
-                <div class="card-body p-4">
-                    <!-- 감정 분석 -->
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-header bg-white border-0 py-4">
-                            <h5 class="mb-0 fw-bold">감정 분석</h5>
-                        </div>
+    <!-- 리뷰 추이 분석 카드 -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-4 border-0">
+            <h3 class="mb-0 fw-bold">리뷰 추이 분석</h3>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
                         <div class="card-body p-4">
-                            <div class="row">
-                                <div class="col-lg-6 mb-4 mb-lg-0">
-                                    <div style="height: 300px;">
-                                        <canvas id="emotionChart"></canvas>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="card-title fw-bold mb-0">리뷰 수 추이</h4>
+                            </div>
+                            <div class="chart-container position-relative" style="height: 300px;">
+                                <canvas id="reviewTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="card-title fw-bold mb-0">평균 평점 추이</h4>
+                            </div>
+                            <div class="chart-container position-relative" style="height: 300px;">
+                                <canvas id="ratingTrendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 차트 공통 옵션
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                                family: "'Pretendard', sans-serif",
+                                weight: 500
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            family: "'Pretendard', sans-serif",
+                            weight: 600
+                        },
+                        bodyFont: {
+                            size: 13,
+                            family: "'Pretendard', sans-serif"
+                        },
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Pretendard', sans-serif",
+                                size: 12
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                family: "'Pretendard', sans-serif",
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            };
+
+            // 리뷰 추이 차트
+            const dateSummary = {{ selected_date_summary|safe }};
+            const reviewLabels = dateSummary.map(item => item.date_str);
+            const reviewCounts = dateSummary.map(item => item.reviews_count);
+            
+            new Chart(document.getElementById("reviewTrendChart"), {
+                type: 'line',
+                data: {
+                    labels: reviewLabels,
+                    datasets: [{
+                        label: '일별 리뷰 수',
+                        data: reviewCounts,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '리뷰 수',
+                                font: {
+                                    family: "'Pretendard', sans-serif",
+                                    size: 13,
+                                    weight: 600
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 평점 추이 차트
+            const ratingSummary = {{ selected_date_rating_summary|safe }};
+            const ratingLabels = ratingSummary.map(item => item.date_str);
+            const averageRatings = ratingSummary.map(item => item.average_rating);
+            
+            new Chart(document.getElementById("ratingTrendChart"), {
+                type: 'line',
+                data: {
+                    labels: ratingLabels,
+                    datasets: [{
+                        label: '일별 평균 평점',
+                        data: averageRatings,
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            beginAtZero: true,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: '평균 평점',
+                                font: {
+                                    family: "'Pretendard', sans-serif",
+                                    size: 13,
+                                    weight: 600
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- 리뷰 분석 카드 -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-4 border-0">
+            <h3 class="mb-0 fw-bold">리뷰 분석</h3>
+        </div>
+        <div class="card-body p-4">
+            <!-- 감정 분석 -->
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-4">
+                    <h5 class="mb-0 fw-bold">감정 분석</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-lg-6 mb-4 mb-lg-0">
+                            <div style="height: 300px;">
+                                <canvas id="emotionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="d-flex flex-column gap-3">
+                                <div class="card border-0 bg-primary bg-opacity-10 p-4 rounded-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold text-primary">긍정적 리뷰</span>
+                                        </div>
+                                        <span class="badge bg-primary px-3 py-2 rounded-pill">{{ emotion.positive|default:0 }}개</span>
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
-                                    <div class="d-flex flex-column gap-3">
-                                        <div class="card border-0 bg-primary bg-opacity-10 p-4 rounded-4">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="fw-bold text-primary">긍정적 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-primary px-3 py-2 rounded-pill">{{ emotion.positive|default:0 }}개</span>
-                                            </div>
+                                
+                                <div class="card border-0 bg-danger bg-opacity-10 p-4 rounded-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold text-danger">부정적 리뷰</span>
                                         </div>
-                                        
-                                        <div class="card border-0 bg-danger bg-opacity-10 p-4 rounded-4">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="fw-bold text-danger">부정적 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-danger px-3 py-2 rounded-pill">{{ emotion.negative|default:0 }}개</span>
-                                            </div>
+                                        <span class="badge bg-danger px-3 py-2 rounded-pill">{{ emotion.negative|default:0 }}개</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="card border-0 bg-secondary bg-opacity-10 p-4 rounded-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold text-secondary">중립적 리뷰</span>
                                         </div>
-                                        
-                                        <div class="card border-0 bg-secondary bg-opacity-10 p-4 rounded-4">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="fw-bold text-secondary">중립적 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-secondary px-3 py-2 rounded-pill">{{ emotion.neutral|default:0 }}개</span>
-                                            </div>
+                                        <span class="badge bg-secondary px-3 py-2 rounded-pill">{{ emotion.neutral|default:0 }}개</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="card border-0 bg-dark bg-opacity-10 p-4 rounded-4 mt-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <span class="fw-bold">총 리뷰</span>
                                         </div>
-                                        
-                                        <div class="card border-0 bg-dark bg-opacity-10 p-4 rounded-4 mt-3">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="fw-bold">총 리뷰</span>
-                                                </div>
-                                                <span class="badge bg-dark px-3 py-2 rounded-pill">
-                                                    {{ emotion.positive|default:0|add:emotion.negative|default:0|add:emotion.neutral|default:0 }}개
-                                                </span>
-                                            </div>
-                                        </div>
+                                        <span class="badge bg-dark px-3 py-2 rounded-pill">
+                                            {{ emotion.positive|default:0|add:emotion.negative|default:0|add:emotion.neutral|default:0 }}개
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -632,89 +516,89 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- 긍정/부정 리뷰 카드 -->
-            <div class="card shadow-sm mb-5">
-                <div class="card-header bg-white py-4 border-0">
-                    <h3 class="mb-0 fw-bold">리뷰 모음</h3>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-4">
-                        <!-- 긍정 리뷰 섹션 -->
-                        <div class="col-md-6">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-4">
-                                    <div class="d-flex align-items-center">
-                                        <h5 class="mb-0 fw-bold">긍정 리뷰</h5>
-                                        <span class="badge bg-primary ms-2 px-3 py-2 rounded-pill">{{ positive_reviews|length }}개</span>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="review-container" style="max-height: 600px; overflow-y: auto;">
-                                        {% if positive_reviews %}
-                                            {% for review in positive_reviews %}
-                                                <div class="review-card p-4 {% if not forloop.last %}border-bottom{% endif %}">
-                                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-2">{{ review.title }}</h6>
-                                                            <div class="text-gray-500 small d-flex gap-3">
-                                                                <span>{{ review.nickname }}</span>
-                                                                <span>{{ review.date }}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="badge bg-primary bg-opacity-10 px-3 py-2 rounded-pill">
-                                                            <span class="fw-bold text-primary">{{ review.star_rating }}</span>
-                                                        </div>
-                                                    </div>
-                                                    <p class="mb-0 text-gray-700">{{ review.description }}</p>
-                                                </div>
-                                            {% endfor %}
-                                        {% else %}
-                                            <div class="text-center text-gray-500 py-5">
-                                                <p class="mb-0">긍정 리뷰가 없습니다.</p>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
+    <!-- 긍정/부정 리뷰 카드 -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-4 border-0">
+            <h3 class="mb-0 fw-bold">리뷰 모음</h3>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <!-- 긍정 리뷰 섹션 -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 fw-bold">긍정 리뷰</h5>
+                                <span class="badge bg-primary ms-2 px-3 py-2 rounded-pill">{{ positive_reviews|length }}개</span>
                             </div>
                         </div>
-
-                        <!-- 부정 리뷰 섹션 -->
-                        <div class="col-md-6">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-header bg-white border-0 py-4">
-                                    <div class="d-flex align-items-center">
-                                        <h5 class="mb-0 fw-bold">부정 리뷰</h5>
-                                        <span class="badge bg-danger ms-2 px-3 py-2 rounded-pill">{{ negative_reviews|length }}개</span>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="review-container" style="max-height: 600px; overflow-y: auto;">
-                                        {% if negative_reviews %}
-                                            {% for review in negative_reviews %}
-                                                <div class="review-card p-4 {% if not forloop.last %}border-bottom{% endif %}">
-                                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                                        <div>
-                                                            <h6 class="fw-bold mb-2">{{ review.title }}</h6>
-                                                            <div class="text-gray-500 small d-flex gap-3">
-                                                                <span>{{ review.nickname }}</span>
-                                                                <span>{{ review.date }}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="badge bg-danger bg-opacity-10 px-3 py-2 rounded-pill">
-                                                            <span class="fw-bold text-danger">{{ review.star_rating }}</span>
-                                                        </div>
+                        <div class="card-body p-0">
+                            <div class="review-container" style="max-height: 600px; overflow-y: auto;">
+                                {% if positive_reviews %}
+                                    {% for review in positive_reviews %}
+                                        <div class="review-card p-4 {% if not forloop.last %}border-bottom{% endif %}">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="fw-bold mb-2">{{ review.title }}</h6>
+                                                    <div class="text-gray-500 small d-flex gap-3">
+                                                        <span>{{ review.nickname }}</span>
+                                                        <span>{{ review.date }}</span>
                                                     </div>
-                                                    <p class="mb-0 text-gray-700">{{ review.description }}</p>
                                                 </div>
-                                            {% endfor %}
-                                        {% else %}
-                                            <div class="text-center text-gray-500 py-5">
-                                                <p class="mb-0">부정 리뷰가 없습니다.</p>
+                                                <div class="badge bg-primary bg-opacity-10 px-3 py-2 rounded-pill">
+                                                    <span class="fw-bold text-primary">{{ review.star_rating }}</span>
+                                                </div>
                                             </div>
-                                        {% endif %}
+                                            <p class="mb-0 text-gray-700">{{ review.description }}</p>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-gray-500 py-5">
+                                        <p class="mb-0">긍정 리뷰가 없습니다.</p>
                                     </div>
-                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 부정 리뷰 섹션 -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 fw-bold">부정 리뷰</h5>
+                                <span class="badge bg-danger ms-2 px-3 py-2 rounded-pill">{{ negative_reviews|length }}개</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="review-container" style="max-height: 600px; overflow-y: auto;">
+                                {% if negative_reviews %}
+                                    {% for review in negative_reviews %}
+                                        <div class="review-card p-4 {% if not forloop.last %}border-bottom{% endif %}">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="fw-bold mb-2">{{ review.title }}</h6>
+                                                    <div class="text-gray-500 small d-flex gap-3">
+                                                        <span>{{ review.nickname }}</span>
+                                                        <span>{{ review.date }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="badge bg-danger bg-opacity-10 px-3 py-2 rounded-pill">
+                                                    <span class="fw-bold text-danger">{{ review.star_rating }}</span>
+                                                </div>
+                                            </div>
+                                            <p class="mb-0 text-gray-700">{{ review.description }}</p>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-gray-500 py-5">
+                                        <p class="mb-0">부정 리뷰가 없습니다.</p>
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -723,383 +607,12 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- 푸터 -->
-<footer class="footer">
-    <div class="container-fluid px-4">
-        <div class="d-flex justify-content-end align-items-center py-3">
-            <span class="text-muted">담당자: 플랫폼팀 이진욱</span>
-        </div>
-    </div>
-</footer>
-
-<style>
-    /* 토스 스타일 기본 설정 */
-    :root {
-        --toss-blue: #3182f6;
-        --toss-blue-light: #e7f0ff;
-        --toss-gray-50: #f9fafb;
-        --toss-gray-100: #f2f4f6;
-        --toss-gray-200: #e5e8eb;
-        --toss-gray-300: #d1d6db;
-        --toss-gray-400: #b0b8c1;
-        --toss-gray-500: #8b95a1;
-        --toss-gray-600: #6b7684;
-        --toss-gray-700: #4e5968;
-        --toss-gray-800: #333d4b;
-        --toss-gray-900: #191f28;
-    }
-    
-    body {
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-        background-color: var(--toss-gray-50);
-        color: var(--toss-gray-900);
-        line-height: 1.5;
-        letter-spacing: -0.3px;
-        min-height: 100vh;
-        overflow-x: hidden;
-        width: 100%;
-        padding-top: 60px; /* 네비게이션 바 높이만큼 패딩 추가 */
-        padding-bottom: 60px; /* 푸터 높이만큼 패딩 추가 */
-    }
-    
-    /* 네비게이션 바 스타일 */
-    .navbar {
-        background-color: white;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
-        height: 60px;
-        padding: 0;
-        position: fixed;
-        top: 0;
-        right: 0;
-        left: 0;
-        z-index: 1030;
-        transition: box-shadow 0.2s ease-in-out;
-    }
-
-    .navbar:hover {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08), 0 2px 3px rgba(0,0,0,0.04);
-    }
-
-    .navbar .container-fluid {
-        height: 100%;
-    }
-
-    .navbar-brand {
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        font-weight: 700;
-        font-size: 1.25rem;
-        margin-right: 2rem;
-        letter-spacing: -0.02em;
-        transition: color 0.2s ease;
-    }
-    
-    /* 사이드바 스타일 */
-    .sidebar {
-        width: 280px;
-        background-color: white;
-        border-right: 1px solid var(--toss-gray-200);
-        height: calc(100vh - 60px); /* 네비게이션 바 높이 제외 */
-        overflow-y: auto;
-        position: fixed;
-        top: 60px; /* 네비게이션 바 아래에 위치 */
-        left: 0;
-        bottom: 60px; /* 푸터 위에 위치 */
-        padding: 24px 0;
-        z-index: 1000;
-    }
-    
-    /* 메인 컨텐츠 영역 */
-    .main-content {
-        margin-left: 280px; /* 사이드바 너비 */
-        padding: 1.5rem;
-        min-height: calc(100vh - 120px); /* 네비게이션 바와 푸터 높이 제외 */
-        box-sizing: border-box;
-        width: calc(100% - 280px); /* 사이드바 너비를 제외한 전체 너비 */
-        overflow-x: hidden;
-        flex-grow: 1;
-        max-width: 100%;
-    }
-    
-    /* 푸터 스타일 */
-    .footer {
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: #ffffff;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        font-size: 0.875rem;
-        z-index: 1020;
-        height: 60px;
-        display: flex;
-        align-items: center;
-    }
-
-    .footer .text-muted {
-        color: #6B7280 !important;
-        font-weight: 400;
-        letter-spacing: -0.01em;
-    }
-    
-    /* 모바일 대응 */
-    @media (max-width: 768px) {
-        .navbar {
-            height: 56px;
-        }
-        
-        body {
-            padding-top: 56px;
-        }
-        
-        .sidebar {
-            width: 100%;
-            transform: translateX(-100%);
-            z-index: 1040;
-            top: 56px;
-        }
-
-        .sidebar.show {
-            transform: translateX(0);
-        }
-
-        .main-content {
-            margin-left: 0;
-            padding: 1rem;
-            width: 100%;
-        }
-
-        body.sidebar-open {
-            overflow: hidden;
-        }
-
-        .main-content::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 1030;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s ease;
-        }
-
-        body.sidebar-open .main-content::before {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .footer {
-            left: 0;
-            width: 100%;
-        }
-    }
-
-    /* 태블릿 대응 */
-    @media (min-width: 769px) and (max-width: 1024px) {
-        .main-content {
-            width: calc(100% - 280px);
-        }
-    }
-
-    /* 대형 화면 대응 */
-    @media (min-width: 1400px) {
-        .main-content {
-            padding: 1.75rem;
-            max-width: calc(100% - 280px);
-        }
-        
-        .container-fluid, .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-    }
-    
-    /* 메뉴 스타일 */
-    .menu-section {
-        margin-bottom: 1.25rem;
-    }
-
-    .menu-item {
-        position: relative;
-        display: flex;
-        align-items: center;
-        padding: 0.875rem 1.125rem;
-        color: #4E5968;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        border-radius: 12px;
-        font-weight: 500;
-        letter-spacing: -0.02em;
-        margin: 0.25rem 0;
-        cursor: pointer;
-    }
-
-    .menu-item:hover {
-        color: #191F28;
-        background-color: #F2F4F6;
-        text-decoration: none;
-    }
-
-    .menu-item.active {
-        color: #3B82F6;
-        background-color: #EFF6FF;
-        font-weight: 600;
-    }
-
-    .menu-item span {
-        flex: 1;
-        font-size: 0.9375rem;
-    }
-
-    .submenu {
-        background-color: #F9FAFB;
-        padding: 0.75rem;
-        margin: 0.5rem 0;
-        border-radius: 12px;
-    }
-
-    .submenu .menu-item {
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
-        font-weight: 400;
-        margin: 0.125rem 0;
-    }
-
-    .menu-toggle::after {
-        display: inline-block;
-        margin-left: auto;
-        content: "";
-        width: 1rem;
-        height: 1rem;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238B95A1'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-        background-size: contain;
-        background-repeat: no-repeat;
-        transition: transform 0.2s ease;
-    }
-
-    .menu-toggle[aria-expanded="true"]::after {
-        transform: rotate(180deg);
-    }
-
-    .submenu-title {
-        padding: 0.5rem 1rem 0.375rem;
-        font-size: 0.75rem;
-        color: #8B95A1;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-    }
-
-    /* 토스 스타일 색상 변수 */
-    :root {
-        --text-gray-900: #191F28;
-        --text-gray-800: #333D4B;
-        --text-gray-700: #4E5968;
-        --text-gray-600: #6B7684;
-        --text-gray-500: #8B95A1;
-        --text-gray-400: #B0B8C1;
-    }
-
-    /* 카드 스타일 */
-    .card {
-        border-radius: 16px;
-        transition: all 0.2s ease;
-    }
-
-    .card.hover-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    /* 리뷰 컨테이너 스타일 */
-    .review-container {
-        scrollbar-width: thin;
-        scrollbar-color: var(--text-gray-400) transparent;
-    }
-
-    .review-container::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .review-container::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .review-container::-webkit-scrollbar-thumb {
-        background-color: var(--text-gray-400);
-        border-radius: 3px;
-    }
-
-    /* 리뷰 카드 스타일 */
-    .review-card {
-        transition: background-color 0.2s ease;
-    }
-
-    .review-card:hover {
-        background-color: var(--toss-gray-50);
-    }
-
-    /* 텍스트 스타일 */
-    .text-gray-900 { color: var(--text-gray-900) !important; }
-    .text-gray-800 { color: var(--text-gray-800) !important; }
-    .text-gray-700 { color: var(--text-gray-700) !important; }
-    .text-gray-600 { color: var(--text-gray-600) !important; }
-    .text-gray-500 { color: var(--text-gray-500) !important; }
-    .text-gray-400 { color: var(--text-gray-400) !important; }
-</style>
-
-<script>
-    // 사이드바 토글 기능
-    document.addEventListener('DOMContentLoaded', function() {
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const sidebar = document.querySelector('.sidebar');
-        const body = document.body;
-        
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('show');
-                body.classList.toggle('sidebar-open');
-            });
-        }
-        
-        // 화면 크기가 변경될 때 사이드바 상태 관리
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('show');
-                body.classList.remove('sidebar-open');
-            }
-        });
-        
-        // 현재 활성화된 공연이 있는 경우 해당 장르 드롭다운 자동 열기
-        const activeMenuItem = document.querySelector('.menu-item.active');
-        if (activeMenuItem) {
-            const parentCollapse = activeMenuItem.closest('.collapse');
-            if (parentCollapse) {
-                parentCollapse.classList.add('show');
-                const trigger = document.querySelector(`[data-bs-target="#${parentCollapse.id}"]`);
-                if (trigger) {
-                    trigger.setAttribute('aria-expanded', 'true');
-                }
-            }
-        }
-    });
-    
-    // 로그아웃 함수
-    function logout() {
-        window.location.href = "{% url 'review:user_logout' %}";
-    }
-</script>
-
+{% block extra_js %}
 <script>
     // 감정 분석 차트
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('emotionChart').getContext('2d');
         new Chart(ctx, {
             type: 'doughnut',

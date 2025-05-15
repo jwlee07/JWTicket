@@ -1,0 +1,16 @@
+<!-- 네비게이션 바 (헤더뷰) -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid px-4 d-flex align-items-center">
+        <button class="btn btn-link d-lg-none me-2" type="button" id="sidebarToggle" aria-label="메뉴 열기">
+            메뉴
+        </button>
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'review:home' %}">
+            <span style="color: #000000; font-weight: 700;">공연 리뷰 대시보드</span>
+        </a>
+        <div class="ms-auto">
+            <button onclick="logout()" class="btn btn-outline-danger btn-sm d-flex align-items-center">
+                <span>로그아웃</span>
+            </button>
+        </div>
+    </div>
+</nav> 
