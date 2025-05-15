@@ -2,36 +2,14 @@
 <aside class="sidebar">
     <nav class="sidebar-menu">
         {% if concerts %}
-            <!-- 통합 메뉴 섹션 -->
-            <div class="menu-section">
-                <div class="menu-header">
-                    <span class="submenu-title">통합 메뉴</span>
-                </div>
-                
-                <div class="menu-items">
-                    <a href="{% url 'review:all_reviews' %}" 
-                       class="menu-item {% if request.resolver_match.url_name == 'all_reviews' %}active{% endif %}">
-                        <span>공연 리뷰</span>
-                    </a>
-                    
-                    <a href="{% url 'review:all_pattern' %}" 
-                       class="menu-item {% if request.resolver_match.url_name == 'all_pattern' %}active{% endif %}">
-                        <span>관람 패턴</span>
-                    </a>
-                    
-                    <a href="{% url 'review:all_seats' %}" 
-                       class="menu-item {% if request.resolver_match.url_name == 'all_seats' %}active{% endif %}">
-                        <span>잔여 좌석</span>
-                    </a>
-                </div>
-            </div>
-            
             <!-- 장르별 메뉴 섹션 -->
             <div class="menu-section">
-                <div class="menu-header">
-                    <span class="submenu-title">장르별 공연</span>
-                </div>
                 
+                <!-- 전체 메뉴 -->
+                <a href="{% url 'review:home' %}" class="menu-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <span>전체</span>
+                </a>
+
                 <!-- 연극 드롭다운 -->
                 <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapsePlay" aria-expanded="false">
                     <span>연극</span>

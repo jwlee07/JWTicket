@@ -504,6 +504,30 @@
 
 {% block extra_js %}
 <script>
+    // 장르 전환 함수
+    function switchGenre(button) {
+        // 모든 버튼에서 active 클래스 제거
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-outline-primary');
+        });
+        
+        // 클릭된 버튼에 active 클래스 추가
+        button.classList.add('active');
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-primary');
+        
+        // 모든 컨텐츠 숨기기
+        document.querySelectorAll('.genre-content').forEach(content => {
+            content.classList.add('d-none');
+        });
+        
+        // 선택된 장르의 컨텐츠 표시
+        const selectedGenre = button.getAttribute('data-genre');
+        document.getElementById(`genre-${selectedGenre}`).classList.remove('d-none');
+    }
+
     // 감정 데이터 차트
     document.addEventListener('DOMContentLoaded', function () {
         const emotionAll = {{ emotion_all|safe }};

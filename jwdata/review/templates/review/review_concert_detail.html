@@ -42,7 +42,6 @@
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h5 class="card-title fw-bold mb-0 text-gray-800">전체 공연 리뷰 평점</h5>
-                        <i class="fas fa-chart-line fa-lg text-primary"></i>
                     </div>
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-primary mb-1">{{ overall_avg|floatformat:1|default:"0.0" }}</div>
@@ -57,7 +56,6 @@
                         </div>
                     </div>
                     <div class="d-flex align-items-center justify-content-center">
-                        <i class="fas fa-comments text-gray-400 me-2"></i>
                         <span class="text-gray-600">총 <span class="fw-bold text-gray-800">{{ overall_count|default:"0" }}</span>건의 리뷰</span>
                     </div>
                 </div>
@@ -70,7 +68,6 @@
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h5 class="card-title fw-bold mb-0 text-gray-800">해당 장르 리뷰 평점</h5>
-                        <i class="fas fa-theater-masks fa-lg text-info"></i>
                     </div>
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-info mb-1">{{ genre_avg|floatformat:1|default:"0.0" }}</div>
@@ -85,7 +82,6 @@
                         </div>
                     </div>
                     <div class="d-flex align-items-center justify-content-center">
-                        <i class="fas fa-comments text-gray-400 me-2"></i>
                         <span class="text-gray-600">장르 <span class="fw-bold text-gray-800">{{ genre_count|default:"0" }}</span>건의 리뷰</span>
                     </div>
                 </div>
