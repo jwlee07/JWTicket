@@ -1069,3 +1069,24 @@ def toggle_concert_slack(request, pk):
             'success': False,
             'message': str(e)
         }, status=500)
+
+@login_required
+def execute_crawl_reviews(request):
+    """크롤링 실행 뷰"""
+    if request.method == 'POST':
+        try:
+            from .tasks import crawl_all_concerts_reviews
+            crawl_all_concerts_reviews()
+            return JsonResponse({
+                'success': True,
+                'message': '크롤링이 성공적으로 완료되었습니다.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'크롤링 실행 중 오류가 발생했습니다: {str(e)}'
+            })
+    return JsonResponse({
+        'success': False,
+        'message': '잘못된 요청입니다.'
+    })

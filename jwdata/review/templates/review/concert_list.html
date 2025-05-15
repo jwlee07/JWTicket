@@ -24,9 +24,14 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">공연 목록</h1>
-        <a href="{% url 'review:concert_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>공연 등록
-        </a>
+        <div class="d-flex gap-2">
+            <button id="executeCrawlBtn" class="btn btn-secondary">
+                <i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행
+            </button>
+            <a href="{% url 'review:concert_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>공연 등록
+            </a>
+        </div>
     </div>
 
     <!-- 장르 필터 -->
@@ -194,6 +199,38 @@
             });
         });
     });
+
+    // 크롤링 실행 버튼
+    const executeCrawlBtn = document.getElementById('executeCrawlBtn');
+    if (executeCrawlBtn) {
+        executeCrawlBtn.addEventListener('click', function() {
+            if (!confirm('리뷰 크롤링을 실행하시겠습니까?')) {
+                return;
+            }
+
+            executeCrawlBtn.disabled = true;
+            executeCrawlBtn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>크롤링 실행 중...';
+
+            fetch('{% url "review:execute_crawl_reviews" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                alert('크롤링 실행 중 오류가 발생했습니다.');
+            })
+            .finally(() => {
+                executeCrawlBtn.disabled = false;
+                executeCrawlBtn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행';
+            });
+        });
+    }
 })();
 
 // CSRF 토큰 가져오기 함수

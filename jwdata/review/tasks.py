@@ -44,13 +44,19 @@ def log(message):
 def crawl_all_concerts_reviews():
     """
     매일 저녁 8시에 실행:
-    DB에 있는 모든 공연(Concert)을 대상으로 리뷰 크롤링을 수행.
+    크롤링이 활성화된 공연(Concert)을 대상으로 리뷰 크롤링을 수행.
+    각 공연의 crawling_url로 직접 접속하여 리뷰를 수집합니다.
     """
     log("[crawl_all_concerts_reviews] 시작")
     driver = get_chrome_driver()
     try:
-        concerts = Concert.objects.all()
-        log(f"[crawl_all_concerts_reviews] 총 {concerts.count()}개의 공연에 대해 리뷰 크롤링을 시도합니다.")
+        # 크롤링이 활성화된 공연만 필터링
+        concerts = Concert.objects.filter(
+            is_crawling_enabled=True,
+            crawling_url__isnull=False
+        ).exclude(crawling_url='')
+        
+        log(f"[crawl_all_concerts_reviews] 크롤링이 활성화된 공연 {concerts.count()}개에 대해 리뷰 크롤링을 시도합니다.")
 
         for concert in concerts:
             concert_name = concert.name.strip()
@@ -59,44 +65,15 @@ def crawl_all_concerts_reviews():
                 continue
 
             log(f"[INFO] 공연명: {concert_name}에 대한 리뷰 크롤링 시작")
-            # 인터파크 메인 페이지 접근
-            driver.get("https://tickets.interpark.com/")
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div'))
-            )
-            time.sleep(2)
-
-            # 검색 실행
-            search_box = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div')
-            search_box.click()
-            time.sleep(2)
-
-            active_input = driver.find_element(By.XPATH, '//*[@id="__next"]/div/header/div[2]/div[1]/div/div[3]/div/input')
-            active_input.send_keys(concert_name)
-            time.sleep(2)
-            active_input.send_keys(Keys.RETURN)
-            log(f"[DEBUG] '{concert_name}' 검색 완료, 검색 결과 페이지 로딩 중...")
-
-            # 첫 번째 검색 결과 클릭
+            
+            # crawling_url로 직접 접속
             try:
-                element = WebDriverWait(driver, 10).until(
-                    EC.any_of(
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[1]/div[2]/a[1]/ul')),
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="contents"]/div/div/div[2]/div[2]/a[1]/ul'))
-                    )
-                )
-                element.click()
+                driver.get(concert.crawling_url)
                 time.sleep(2)
-                log(f"[DEBUG] '{concert_name}' 검색 결과 첫 번째 항목 클릭 성공")
+                log(f"[DEBUG] '{concert_name}' 상세 페이지 직접 접속 완료")
             except Exception as e:
-                log(f"[ERROR] [{concert_name}] 검색 결과 클릭 실패: {e}")
+                log(f"[ERROR] [{concert_name}] crawling_url 접속 실패: {e}")
                 continue
-
-            # 새 창으로 전환(인터파크 상세 페이지)
-            if len(driver.window_handles) > 1:
-                driver.switch_to.window(driver.window_handles[1])
-                time.sleep(2)
-                log("[DEBUG] 상세 페이지로 전환")
 
             # 예매 안내 팝업 닫기
             try:
@@ -107,27 +84,9 @@ def crawl_all_concerts_reviews():
             except NoSuchElementException:
                 log(f"[INFO] [{concert_name}] 팝업 닫기 버튼 없음, 무시")
 
-            # 공연 정보 크롤링
-            crawled_concert = crawl_concert_info(driver)
-
-            if crawled_concert is None:
-                log(f"[WARN] [{concert_name}] 공연 정보가 None이어서 리뷰 크롤링을 스킵합니다.")
-                driver.close()
-                driver.switch_to.window(driver.window_handles[0])
-                time.sleep(2)
-                continue
-
-            log(f"[INFO] 공연 정보 크롤링 완료: {crawled_concert}")
-
             # 리뷰 크롤링
-            crawl_concert_reviews(driver, crawled_concert)
+            crawl_concert_reviews(driver, concert)
             log("[INFO] 리뷰 크롤링 완료")
-
-            # 상세 페이지 닫기
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-            time.sleep(2)
-            log("[DEBUG] 상세 페이지 닫기 및 메인 창 전환 완료")
 
     finally:
         driver.quit()
