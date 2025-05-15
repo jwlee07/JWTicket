@@ -9,9 +9,10 @@ class Concert(models.Model):
     end_date = models.DateField(verbose_name="공연 종료일")
     duration_minutes = models.IntegerField(verbose_name="공연 시간(분)", null=True, blank=True)
     genre = models.CharField(max_length=100, verbose_name="공연 장르", null=True, blank=True)
-    slack_channel_id = models.CharField(max_length=100, verbose_name="슬랙 채널 ID", null=True, blank=True)
     crawling_url = models.URLField(verbose_name="크롤링 URL", max_length=500, null=True, blank=True)
     is_crawling_enabled = models.BooleanField(verbose_name="크롤링 활성화 여부", default=False)
+    slack_channel_id = models.CharField(max_length=100, verbose_name="슬랙 채널 ID", null=True, blank=True)
+    is_slack_enabled = models.BooleanField(verbose_name="슬랙 알림 활성화 여부", default=False)
 
     class Meta:
         verbose_name = "공연 정보"
