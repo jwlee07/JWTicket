@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from django.db.models import F, Count, Min, Avg
@@ -39,7 +39,7 @@ from sklearn.cluster import KMeans
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import DetailView, TemplateView, ListView
+from django.views.generic import DetailView, TemplateView, ListView, CreateView, UpdateView, DeleteView
 
 from .chatgpt import (
     update_reviews_with_sentiment, 
@@ -60,6 +60,10 @@ from .sheets import (
 )
 
 from .services import ConcertAnalysisService, HomeAnalysisService, ReviewAnalysisService, AllAnalysisService
+
+from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
+import json
 
 # ==================================================================
 # chatgpt
@@ -972,3 +976,63 @@ class AllPatternView(LoginRequiredMixin, TemplateView):
             "combination_counts": combination_counts_dict,
         })
         return context
+
+# ==================================================================
+# Concert Management
+# ==================================================================
+
+class ConcertListView(LoginRequiredMixin, ListView):
+    model = Concert
+    template_name = 'review/concert_list.html'
+    context_object_name = 'concerts'
+    ordering = ['name']
+
+class ConcertCreateView(LoginRequiredMixin, CreateView):
+    model = Concert
+    template_name = 'review/concert_form.html'
+    fields = ['name', 'place', 'start_date', 'end_date', 'duration_minutes', 'genre', 'crawling_url', 'is_crawling_enabled']
+    success_url = reverse_lazy('review:concert_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = '공연 등록'
+        return context
+
+class ConcertUpdateView(LoginRequiredMixin, UpdateView):
+    model = Concert
+    template_name = 'review/concert_form.html'
+    fields = ['name', 'place', 'start_date', 'end_date', 'duration_minutes', 'genre', 'crawling_url', 'is_crawling_enabled']
+    success_url = reverse_lazy('review:concert_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = '공연 수정'
+        return context
+
+class ConcertDeleteView(LoginRequiredMixin, DeleteView):
+    model = Concert
+    template_name = 'review/concert_confirm_delete.html'
+    success_url = reverse_lazy('review:concert_list')
+
+@login_required
+@require_POST
+def toggle_concert_crawling(request, pk):
+    try:
+        concert = Concert.objects.get(pk=pk)
+        data = json.loads(request.body)
+        enabled = data.get('enabled', False)
+        
+        if enabled and not concert.crawling_url:
+            return JsonResponse({'success': False, 'message': '크롤링 URL이 설정되지 않았습니다.'})
+        
+        # 크롤링 활성화 상태 업데이트
+        concert.is_crawling_enabled = enabled
+        concert.save()
+        
+        return JsonResponse({'success': True})
+    except Concert.DoesNotExist:
+        return JsonResponse({'success': False, 'message': '공연을 찾을 수 없습니다.'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': '잘못된 요청입니다.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)

@@ -10,6 +10,13 @@ urlpatterns = [
     # 홈
     path('', views.HomeView.as_view(), name='home'),
 
+    # 공연 관리
+    path('concerts/', views.ConcertListView.as_view(), name='concert_list'),
+    path('concerts/create/', views.ConcertCreateView.as_view(), name='concert_create'),
+    path('concerts/<int:pk>/update/', views.ConcertUpdateView.as_view(), name='concert_update'),
+    path('concerts/<int:pk>/delete/', views.ConcertDeleteView.as_view(), name='concert_delete'),
+    path('concerts/<int:pk>/toggle-crawling/', views.toggle_concert_crawling, name='toggle_concert_crawling'),
+
     # 공연 상세
     path("concert/<int:pk>/", views.ConcertDetailView.as_view(), name="concert_detail"),
 

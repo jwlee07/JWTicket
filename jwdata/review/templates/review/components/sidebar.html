@@ -4,66 +4,15 @@
         {% if concerts %}
             <!-- 장르별 메뉴 섹션 -->
             <div class="menu-section">
-                
                 <!-- 전체 메뉴 -->
                 <a href="{% url 'review:home' %}" class="menu-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                     <span>전체</span>
                 </a>
 
-                <!-- 연극 드롭다운 -->
-                <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapsePlay" aria-expanded="false">
-                    <span>연극</span>
+                <!-- 공연 목록 메뉴 -->
+                <a href="{% url 'review:concert_list' %}" class="menu-item {% if request.resolver_match.url_name == 'concert_list' %}active{% endif %}">
+                    <span>공연 목록</span>
                 </a>
-                <div class="collapse" id="collapsePlay">
-                    <div class="submenu">
-                        {% for concert in concerts|dictsort:"name" %}
-                            {% if concert.genre == '연극' %}
-                                <div class="menu-item {% if concert.id|stringformat:'s' == active_concert_id %}active{% endif %}" 
-                                     onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
-                                    <span>{{ concert.name }}</span>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- 뮤지컬 드롭다운 -->
-                <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseMusical" aria-expanded="false">
-                    <span>뮤지컬</span>
-                </a>
-                <div class="collapse" id="collapseMusical">
-                    <div class="submenu">
-                        {% for concert in concerts|dictsort:"name" %}
-                            {% if concert.genre == '뮤지컬' %}
-                                <div class="menu-item {% if concert.id|stringformat:'s' == active_concert_id %}active{% endif %}" 
-                                     onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
-                                    <span>{{ concert.name }}</span>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- 콘서트 드롭다운 -->
-                <a href="#" class="menu-item menu-toggle" data-bs-toggle="collapse" data-bs-target="#collapseConcert" aria-expanded="false">
-                    <span>콘서트</span>
-                </a>
-                <div class="collapse" id="collapseConcert">
-                    <div class="submenu">
-                        {% for concert in concerts|dictsort:"name" %}
-                            {% if concert.genre == '콘서트' %}
-                                <div class="menu-item {% if concert.id|stringformat:'s' == active_concert_id %}active{% endif %}" 
-                                     onclick="location.href='{% url 'review:concert_detail' concert.id %}'">
-                                    <span>{{ concert.name }}</span>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        {% else %}
-            <div class="alert alert-light text-center mt-4">
-                <p class="mb-0">현재 등록된 공연 정보가 없습니다.</p>
             </div>
         {% endif %}
     </nav>

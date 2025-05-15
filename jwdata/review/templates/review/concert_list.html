@@ -1,0 +1,176 @@
+{% extends 'review/base.html' %}
+{% load static %}
+
+{% block title %}공연 목록{% endblock %}
+
+{% block extra_css %}
+<style>
+    .genre-filter .btn.active {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    .form-switch.large {
+        padding-left: 3rem;
+    }
+    .form-switch.large .form-check-input {
+        width: 3rem;
+        height: 1.5rem;
+        margin-left: -3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">공연 목록</h1>
+        <a href="{% url 'review:concert_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>공연 등록
+        </a>
+    </div>
+
+    <!-- 장르 필터 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="genre-filter btn-group">
+                <button type="button" class="btn btn-outline-primary active" data-genre="all">전체</button>
+                <button type="button" class="btn btn-outline-primary" data-genre="연극">연극</button>
+                <button type="button" class="btn btn-outline-primary" data-genre="뮤지컬">뮤지컬</button>
+                <button type="button" class="btn btn-outline-primary" data-genre="콘서트">콘서트</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>공연명</th>
+                            <th>장소</th>
+                            <th>장르</th>
+                            <th>공연 시간</th>
+                            <th>크롤링</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for concert in concerts %}
+                        <tr data-genre="{{ concert.genre|default:'' }}">
+                            <td>
+                                <a href="{% url 'review:concert_detail' concert.id %}" class="text-decoration-none">
+                                    {{ concert.name }}
+                                </a>
+                            </td>
+                            <td>{{ concert.place }}</td>
+                            <td>{{ concert.genre|default:'-' }}</td>
+                            <td>{{ concert.duration_minutes|default:'-' }}분</td>
+                            <td>
+                                <div class="form-check form-switch large">
+                                    <input class="form-check-input crawling-toggle" type="checkbox" 
+                                           id="crawlingToggle{{ concert.id }}" 
+                                           data-concert-id="{{ concert.id }}"
+                                           data-toggle-url="{% url 'review:toggle_concert_crawling' concert.id %}"
+                                           {% if concert.is_crawling_enabled %}checked{% endif %}>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'review:concert_update' concert.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'review:concert_delete' concert.id %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                등록된 공연이 없습니다.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 페이지 로드 시 한 번만 실행되도록 즉시 실행 함수로 감싸기
+(function() {
+    // 장르 필터링
+    const genreButtons = document.querySelectorAll('.genre-filter .btn');
+    const concertRows = document.querySelectorAll('tbody tr[data-genre]');
+
+    genreButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // 버튼 활성화 상태 변경
+            genreButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+
+            // 공연 필터링
+            const selectedGenre = this.dataset.genre;
+            concertRows.forEach(row => {
+                if (selectedGenre === 'all' || row.dataset.genre === selectedGenre) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // 크롤링 토글
+    const crawlingToggles = document.querySelectorAll('.crawling-toggle');
+    crawlingToggles.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const toggleUrl = this.dataset.toggleUrl;
+            const isEnabled = this.checked;
+            
+            fetch(toggleUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ enabled: isEnabled })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    this.checked = !isEnabled;  // 실패시 토글 상태 되돌리기
+                    alert(data.message || '크롤링 상태 변경에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                this.checked = !isEnabled;  // 에러시 토글 상태 되돌리기
+                alert('크롤링 상태 변경 중 오류가 발생했습니다.');
+            });
+        });
+    });
+})();
+
+// CSRF 토큰 가져오기 함수
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %} 
