@@ -1,64 +1,104 @@
 # JWTicket
 
-## 세팅 순서
+공연 리뷰 및 좌석 정보를 자동으로 수집하고 분석하여 슬랙으로 알림을 전송하는 Django 기반 웹 애플리케이션입니다.
 
-### VSCODE 설치 및 초기 세팅
-1. vscode 설치
-2. Python Extension Pack 설치
+## 주요 기능
 
-### 가상환경 세팅
-1. python -m venv venv 
-2. source venv/bin/active
+### 1. 공연 정보 관리
+- 공연 등록/수정/삭제
+- 공연별 크롤링 설정
+- 공연별 슬랙 알림 설정
 
-### Django 설치
-1. pip install django
-2. pip install django-lint
+### 2. 자동 데이터 수집
+- 인터파크 티켓 사이트에서 리뷰 자동 크롤링
+- 공연별 좌석 정보 수집
+- 설정된 URL 기반 자동 크롤링
 
-### pip list
-Package            Version
------------------- -----------
-asgiref            3.8.1
-attrs              24.2.0
-beautifulsoup4     4.12.3
-bs4                0.0.2
-certifi            2024.8.30
-charset-normalizer 3.4.0
-Django             5.1.3
-django-bootstrap5  24.3
-django-crontab     0.7.1
-h11                0.14.0
-idna               3.10
-joblib             1.4.2
-jpype1             1.5.1
-konlpy             0.6.0
-lxml               5.3.0
-numpy              2.1.3
-outcome            1.3.0.post0
-packaging          24.2
-pandas             2.2.3
-pip                24.3.1
-PySocks            1.7.1
-python-dateutil    2.9.0.post0
-pytz               2024.2
-requests           2.32.3
-scikit-learn       1.5.2
-scipy              1.14.1
-selenium           4.27.1
-six                1.17.0
-sniffio            1.3.1
-sortedcontainers   2.4.0
-soupsieve          2.6
-sqlparse           0.5.2
-threadpoolctl      3.5.0
-trio               0.27.0
-trio-websocket     0.11.1
-typing_extensions  4.12.2
-tzdata             2024.2
-urllib3            2.2.3
-websocket-client   1.8.0
-wsproto            1.2.0
+### 3. 리뷰 분석
+- ChatGPT를 활용한 리뷰 감정 분석
+- 긍정/부정 리뷰 요약 생성
+- 리뷰 트렌드 분석
 
-### data 저장 순서
+### 4. 슬랙 알림
+- 분석된 리뷰 요약 자동 전송
+- 공연별 개별 채널 설정
+- 긍정/부정 리뷰 분리 전송
 
-1. 구글 시트에 이미 데이터가 있는지 확인 후, 없으면 데이터 추가 있으면 데이터 수정
-2. 구글 시트 전체 데이터를 다시 읽어와 DB에 없는 레코드만 추가로 저장
+## 자동화 스케줄링
+
+프로젝트는 다음과 같은 자동화 작업이 스케줄링되어 있습니다:
+
+1. 리뷰 크롤링 (매일 저녁 8시)
+   - 실행 함수: `review.tasks.crawl_all_concerts_reviews`
+   - 크롤링이 활성화된 공연의 리뷰 수집
+   - 중복 리뷰 자동 필터링
+
+2. 감정 분석 (매주 화요일 오전 10시)
+   - 실행 함수: `review.chatgpt.update_reviews_with_sentiment`
+   - ChatGPT를 활용한 리뷰 감정 분석
+   - 분석되지 않은 리뷰 자동 처리
+
+3. 슬랙 알림 전송 (매주 화요일 오전 11시)
+   - 실행 함수: `review.tasks.summarize_reviews_cron`
+   - 분석된 리뷰 요약 생성
+   - 설정된 슬랙 채널로 자동 전송
+
+## 실행 방법
+
+### 1. 환경 설정
+```bash
+# 가상환경 생성 및 활성화
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 의존성 설치
+pip install -r requirements.txt
+```
+
+### 2. 환경 변수 설정
+```bash
+# .env 파일 생성
+cp .env.example .env
+
+# 필요한 환경 변수 설정
+- OPENAI_API_KEY: ChatGPT API 키
+- SLACK_BOT_TOKEN: 슬랙 봇 토큰
+```
+
+### 3. 데이터베이스 설정
+```bash
+# 마이그레이션 적용
+python manage.py migrate
+```
+
+### 4. 크론 작업 설정
+```bash
+# 크론 작업 등록
+python manage.py crontab add
+```
+
+### 5. 서버 실행
+```bash
+python manage.py runserver
+```
+
+## 수동 실행 기능
+
+웹 인터페이스에서 다음 기능들을 수동으로 실행할 수 있습니다:
+
+1. 리뷰 크롤링 실행
+   - 공연 목록 페이지의 "리뷰 크롤링 실행" 버튼
+   - 크롤링이 활성화된 모든 공연 처리
+
+2. 슬랙 알림 전송
+   - 공연 목록 페이지의 "슬랙알림 전송" 버튼
+   - 슬랙 알림이 활성화된 모든 공연 처리
+
+## 기술 스택
+
+- Backend: Django
+- Database: SQLite
+- Crawling: Selenium
+- Analysis: OpenAI GPT-3.5
+- Notification: Slack API
+- Scheduling: Django-crontab
