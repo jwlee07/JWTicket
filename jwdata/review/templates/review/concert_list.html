@@ -57,10 +57,8 @@
                         <tr>
                             <th>장르</th>
                             <th>공연명</th>
-                            <th>장소</th>
-                            <th style="white-space: nowrap;">공연시간</th>
                             <th>크롤링</th>
-                            <th style="white-space: nowrap;">슬랙알림</th>
+                            <th>슬랙알림</th>
                             <th>관리</th>
                         </tr>
                     </thead>
@@ -73,8 +71,6 @@
                                     {{ concert.name }}
                                 </a>
                             </td>
-                            <td>{{ concert.place }}</td>
-                            <td>{{ concert.start_date|date:"Y.m.d" }} ~ {{ concert.end_date|date:"Y.m.d" }}</td>
                             <td>
                                 <div class="form-check form-switch large">
                                     <input class="form-check-input crawling-toggle" type="checkbox" 

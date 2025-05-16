@@ -123,6 +123,9 @@ class ConcertDetailView(LoginRequiredMixin, DetailView):
             "selected_date_summary": trends["review_counts"],
             "selected_date_rating_summary": trends["rating_averages"],
         })
+
+        # 감정별 키워드 데이터 가져오기
+        context["keywords"] = analysis_service.get_keywords_by_emotion()
         
         return context
 

@@ -5,204 +5,204 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- 평점 요약 카드 -->
+        <!-- 평점 요약 카드 -->
     <div class="mb-5">
         <h3 class="mb-3 fw-bold">리뷰 평균 평점</h3>
         <div class="row g-3">
-            <!-- 전체 평균 평점 카드 -->
+                <!-- 전체 평균 평점 카드 -->
             <div class="col-6 col-md-3">
-                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center mb-2">
                             <h5 class="card-title mb-0 fw-bold">전체 평균</h5>
-                        </div>
+                            </div>
                         <div class="d-flex align-items-baseline mb-2">
                             <div class="display-5 fw-bold text-primary me-2">{{ avg_all|floatformat:1|default:"0.0" }}</div>
                             <div class="text-muted">/10점</div>
                         </div>
                         <div class="progress mb-2" style="height: 8px;">
-                            <div class="progress-bar bg-primary" role="progressbar" 
-                                 style="width: {% widthratio avg_all|default:0 10 100 %}%;" 
-                                 aria-valuenow="{{ avg_all|floatformat:1|default:'0' }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="10">
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                     style="width: {% widthratio avg_all|default:0 10 100 %}%;" 
+                                     aria-valuenow="{{ avg_all|floatformat:1|default:'0' }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="10">
+                                </div>
                             </div>
-                        </div>
                         <div class="d-flex align-items-center">
                             <p class="text-muted mb-0">
                                 총 <span class="fw-bold">{{ count_all|default:"0" }}</span>건의 리뷰
                             </p>
                         </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 연극 평균 평점 카드 -->
+                
+                <!-- 연극 평균 평점 카드 -->
             <div class="col-6 col-md-3">
-                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center mb-2">
                             <h5 class="card-title mb-0 fw-bold">연극 평균</h5>
-                        </div>
+                            </div>
                         <div class="d-flex align-items-baseline mb-2">
                             <div class="display-5 fw-bold text-info me-2">{{ avg_play|floatformat:1|default:"0.0" }}</div>
                             <div class="text-muted">/10점</div>
                         </div>
                         <div class="progress mb-2" style="height: 8px;">
-                            <div class="progress-bar bg-info" role="progressbar" 
-                                 style="width: {% widthratio avg_play|default:0 10 100 %}%;" 
-                                 aria-valuenow="{{ avg_play|floatformat:1|default:'0' }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="10">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {% widthratio avg_play|default:0 10 100 %}%;" 
+                                     aria-valuenow="{{ avg_play|floatformat:1|default:'0' }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="10">
+                                </div>
                             </div>
-                        </div>
                         <div class="d-flex align-items-center">
                             <p class="text-muted mb-0">
                                 총 <span class="fw-bold">{{ count_play|default:"0" }}</span>건의 리뷰
                             </p>
                         </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 뮤지컬 평균 평점 카드 -->
+                
+                <!-- 뮤지컬 평균 평점 카드 -->
             <div class="col-6 col-md-3">
-                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center mb-2">
                             <h5 class="card-title mb-0 fw-bold">뮤지컬 평균</h5>
-                        </div>
+                            </div>
                         <div class="d-flex align-items-baseline mb-2">
                             <div class="display-5 fw-bold text-success me-2">{{ avg_musical|floatformat:1|default:"0.0" }}</div>
                             <div class="text-muted">/10점</div>
                         </div>
                         <div class="progress mb-2" style="height: 8px;">
-                            <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: {% widthratio avg_musical|default:0 10 100 %}%;" 
-                                 aria-valuenow="{{ avg_musical|floatformat:1|default:'0' }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="10">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {% widthratio avg_musical|default:0 10 100 %}%;" 
+                                     aria-valuenow="{{ avg_musical|floatformat:1|default:'0' }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="10">
+                                </div>
                             </div>
-                        </div>
                         <div class="d-flex align-items-center">
                             <p class="text-muted mb-0">
                                 총 <span class="fw-bold">{{ count_musical|default:"0" }}</span>건의 리뷰
                             </p>
                         </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 콘서트 평균 평점 카드 -->
+                
+                <!-- 콘서트 평균 평점 카드 -->
             <div class="col-6 col-md-3">
-                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center mb-2">
                             <h5 class="card-title mb-0 fw-bold">콘서트 평균</h5>
-                        </div>
+                            </div>
                         <div class="d-flex align-items-baseline mb-2">
                             <div class="display-5 fw-bold text-warning me-2">{{ avg_concert|floatformat:1|default:"0.0" }}</div>
                             <div class="text-muted">/10점</div>
                         </div>
                         <div class="progress mb-2" style="height: 8px;">
-                            <div class="progress-bar bg-warning" role="progressbar" 
-                                 style="width: {% widthratio avg_concert|default:0 10 100 %}%;" 
-                                 aria-valuenow="{{ avg_concert|floatformat:1|default:'0' }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="10">
+                                <div class="progress-bar bg-warning" role="progressbar" 
+                                     style="width: {% widthratio avg_concert|default:0 10 100 %}%;" 
+                                     aria-valuenow="{{ avg_concert|floatformat:1|default:'0' }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="10">
+                                </div>
                             </div>
-                        </div>
                         <div class="d-flex align-items-center">
                             <p class="text-muted mb-0">
                                 총 <span class="fw-bold">{{ count_concert|default:"0" }}</span>건의 리뷰
                             </p>
                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 공연별 요약 테이블 -->
+        <!-- 공연별 요약 테이블 -->
     <div class="mb-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
                     <h3 class="mb-0 fw-bold">공연별 요약 정보</h3>
+                    </div>
                 </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="concertTable">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="concertTable">
                         <thead>
-                            <tr>
+                                <tr>
                                 <th class="px-3 py-3" onclick="sortTable(0)">
-                                    <div class="d-flex align-items-center">
+                                        <div class="d-flex align-items-center">
                                         <span>장르</span>
-                                    </div>
-                                </th>
+                                        </div>
+                                    </th>
                                 <th class="px-3 py-3" onclick="sortTable(1)">
-                                    <div class="d-flex align-items-center">
+                                        <div class="d-flex align-items-center">
                                         <span>공연명</span>
-                                    </div>
-                                </th>
+                                        </div>
+                                    </th>
                                 <th class="px-3 py-3 text-center" onclick="sortTable(2)">
-                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="d-flex align-items-center justify-content-center">
                                         <span>평균 평점</span>
-                                    </div>
-                                </th>
+                                        </div>
+                                    </th>
                                 <th class="px-3 py-3 text-center" onclick="sortTable(3)">
-                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="d-flex align-items-center justify-content-center">
                                         <span>총 리뷰 수</span>
-                                    </div>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for concert in concert_summary %}
-                            <tr class="concert-row align-middle" data-genre="{{ concert.concert__genre }}">
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for concert in concert_summary %}
+                                <tr class="concert-row align-middle" data-genre="{{ concert.concert__genre }}">
                                 <td class="px-3 py-2">
-                                    {% if concert.concert__genre == '연극' %}
+                                        {% if concert.concert__genre == '연극' %}
                                         <span class="badge bg-info bg-opacity-10 text-info py-2 px-3">연극</span>
-                                    {% elif concert.concert__genre == '뮤지컬' %}
+                                        {% elif concert.concert__genre == '뮤지컬' %}
                                         <span class="badge bg-success bg-opacity-10 text-success py-2 px-3">뮤지컬</span>
-                                    {% else %}
+                                        {% else %}
                                         <span class="badge bg-warning bg-opacity-10 text-warning py-2 px-3">콘서트</span>
-                                    {% endif %}
-                                </td>
+                                        {% endif %}
+                                    </td>
                                 <td class="px-3 py-2 fw-medium">{{ concert.concert__name }}</td>
                                 <td class="px-3 py-2 text-center">
-                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="d-flex align-items-center justify-content-center">
                                         <div class="me-3">
                                             <div class="fw-bold" style="font-size: 1.1rem;">{{ concert.average_rating|floatformat:1 }}</div>
                                             <div class="progress mt-1" style="width: 80px; height: 5px; border-radius: 3px;">
-                                                <div class="progress-bar {% if concert.concert__genre == '연극' %}bg-info{% elif concert.concert__genre == '뮤지컬' %}bg-success{% else %}bg-warning{% endif %}" 
-                                                     role="progressbar" 
-                                                     style="width: {% widthratio concert.average_rating 10 100 %}%;">
+                                                    <div class="progress-bar {% if concert.concert__genre == '연극' %}bg-info{% elif concert.concert__genre == '뮤지컬' %}bg-success{% else %}bg-warning{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {% widthratio concert.average_rating 10 100 %}%;">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
+                                    </td>
                                 <td class="px-3 py-2 text-center">
                                     <div class="d-flex align-items-center justify-content-center">
                                         <span class="fw-medium">{{ concert.total_reviews }}개</span>
                                     </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 공연별 리뷰 수 추이 차트 -->
+        <!-- 공연별 리뷰 수 추이 차트 -->
     <div class="mb-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
                     <h3 class="mb-0 fw-bold">공연별 리뷰 수 추이</h3>
                     <div class="badge bg-primary bg-opacity-10 text-primary py-1 px-2 fw-medium">
                         최근 30일
@@ -210,25 +210,25 @@
                 </div>
             </div>
             <div class="card-body p-3">
-                <div class="position-relative">
+                    <div class="position-relative">
                     <canvas id="reviewChart" width="100%" height="45"></canvas>
-                    <div id="chartLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none">
-                        <div class="d-flex justify-content-center align-items-center h-100">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                        <div id="chartLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none">
+                            <div class="d-flex justify-content-center align-items-center h-100">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 평균 평점 추이 차트 -->
+        <!-- 평균 평점 추이 차트 -->
     <div class="mb-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
                     <h3 class="mb-0 fw-bold">공연별 평균 평점 추이</h3>
                     <div class="badge bg-primary bg-opacity-10 text-primary py-1 px-2 fw-medium">
                         최근 30일
@@ -236,57 +236,57 @@
                 </div>
             </div>
             <div class="card-body p-3">
-                <div class="position-relative">
+                    <div class="position-relative">
                     <canvas id="ratingChart" width="100%" height="45"></canvas>
-                    <div id="ratingChartLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none">
-                        <div class="d-flex justify-content-center align-items-center h-100">
-                            <div class="spinner-border text-warning" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                        <div id="ratingChartLoading" class="position-absolute top-0 start-0 w-100 h-100 d-none">
+                            <div class="d-flex justify-content-center align-items-center h-100">
+                                <div class="spinner-border text-warning" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 리뷰 워드클라우드 및 감정 분석 섹션 -->
+        <!-- 리뷰 워드클라우드 및 감정 분석 섹션 -->
     <div class="mb-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <h3 class="mb-0 fw-bold mb-2 mb-md-0">리뷰 감정 분석</h3>
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-primary position-relative active px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="all" onclick="switchGenre(this)">
                             전체
-                        </button>
+                            </button>
                         <button type="button" class="btn btn-outline-primary position-relative px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="play" onclick="switchGenre(this)">
                             연극
-                        </button>
+                            </button>
                         <button type="button" class="btn btn-outline-primary position-relative px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="musical" onclick="switchGenre(this)">
                             뮤지컬
-                        </button>
+                            </button>
                         <button type="button" class="btn btn-outline-primary position-relative px-2 py-1" style="white-space: nowrap; min-width: 70px;" data-genre="concert" onclick="switchGenre(this)">
                             콘서트
-                        </button>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
             <div class="card-body p-3">
-                <!-- 장르별 분석 컨텐츠 -->
-                <div class="genre-content" id="genre-all">
+                    <!-- 장르별 분석 컨텐츠 -->
+                    <div class="genre-content" id="genre-all">
                     <div class="row g-3">
                         <!-- 감정 분석 카드 -->
                         <div class="col-12">
                             <div class="card h-100 border-0">
-                                <div class="card-header bg-white border-0 py-3">
+                                    <div class="card-header bg-white border-0 py-3">
                                     <h5 class="mb-0 fw-bold">감정 분석</h5>
-                                </div>
+                                    </div>
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
                                             <canvas id="emotionChartAll" style="width: 100%; height: 100%;"></canvas>
-                                        </div>
+                                                    </div>
                                         <div class="col-lg-6">
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
@@ -294,55 +294,55 @@
                                                 </div>
                                                 <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_all.positive|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-danger">부정적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_all.negative|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-secondary">중립적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_all.neutral|default:0 }}개
-                                                </div>
                                             </div>
+                                        </div>
                                             <hr class="my-3">
                                             <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-bold text-dark">총 리뷰</span>
-                                                </div>
+                                    </div>
                                                 <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
                                                     {{ emotion_all.positive|default:0|add:emotion_all.negative|default:0|add:emotion_all.neutral|default:0 }}개
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
+                                    </div>
+                                        </div>
+                                                </div>
+                                            </div>
+                                                </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 연극 분석 컨텐츠 -->
-                <div class="genre-content d-none" id="genre-play">
+                    <!-- 연극 분석 컨텐츠 -->
+                    <div class="genre-content d-none" id="genre-play">
                     <div class="row g-3">
                         <!-- 감정 분석 카드 -->
                         <div class="col-12">
                             <div class="card h-100 border-0">
-                                <div class="card-header bg-white border-0 py-3">
+                                    <div class="card-header bg-white border-0 py-3">
                                     <h5 class="mb-0 fw-bold">연극 감정 분석</h5>
-                                </div>
+                                    </div>
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
                                             <canvas id="emotionChartPlay" style="width: 100%; height: 100%;"></canvas>
-                                        </div>
+                                                    </div>
                                         <div class="col-lg-6">
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
@@ -350,55 +350,55 @@
                                                 </div>
                                                 <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_play.positive|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-danger">부정적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_play.negative|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-secondary">중립적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_play.neutral|default:0 }}개
-                                                </div>
                                             </div>
+                                        </div>
                                             <hr class="my-3">
                                             <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-bold text-dark">총 리뷰</span>
-                                                </div>
+                                    </div>
                                                 <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
                                                     {{ emotion_play.positive|default:0|add:emotion_play.negative|default:0|add:emotion_play.neutral|default:0 }}개
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
+                                    </div>
+                                        </div>
+                                                </div>
+                                            </div>
+                                                </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 뮤지컬 분석 컨텐츠 -->
-                <div class="genre-content d-none" id="genre-musical">
+                    <!-- 뮤지컬 분석 컨텐츠 -->
+                    <div class="genre-content d-none" id="genre-musical">
                     <div class="row g-3">
                         <!-- 감정 분석 카드 -->
                         <div class="col-12">
                             <div class="card h-100 border-0">
-                                <div class="card-header bg-white border-0 py-3">
+                                    <div class="card-header bg-white border-0 py-3">
                                     <h5 class="mb-0 fw-bold">뮤지컬 감정 분석</h5>
-                                </div>
+                                    </div>
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
                                             <canvas id="emotionChartMusical" style="width: 100%; height: 100%;"></canvas>
-                                        </div>
+                                                    </div>
                                         <div class="col-lg-6">
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
@@ -406,55 +406,55 @@
                                                 </div>
                                                 <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_musical.positive|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-danger">부정적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_musical.negative|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-secondary">중립적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_musical.neutral|default:0 }}개
-                                                </div>
                                             </div>
+                                        </div>
                                             <hr class="my-3">
                                             <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-bold text-dark">총 리뷰</span>
-                                                </div>
+                                    </div>
                                                 <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
                                                     {{ emotion_musical.positive|default:0|add:emotion_musical.negative|default:0|add:emotion_musical.neutral|default:0 }}개
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
+                                    </div>
+                                        </div>
+                                                </div>
+                                            </div>
+                                                </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 콘서트 분석 컨텐츠 -->
-                <div class="genre-content d-none" id="genre-concert">
+                    <!-- 콘서트 분석 컨텐츠 -->
+                    <div class="genre-content d-none" id="genre-concert">
                     <div class="row g-3">
                         <!-- 감정 분석 카드 -->
                         <div class="col-12">
                             <div class="card h-100 border-0">
-                                <div class="card-header bg-white border-0 py-3">
+                                    <div class="card-header bg-white border-0 py-3">
                                     <h5 class="mb-0 fw-bold">콘서트 감정 분석</h5>
-                                </div>
+                                    </div>
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-lg-6 mb-4 mb-lg-0" style="height: 300px;">
                                             <canvas id="emotionChartConcert" style="width: 100%; height: 100%;"></canvas>
-                                        </div>
+                                                    </div>
                                         <div class="col-lg-6">
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
@@ -462,24 +462,24 @@
                                                 </div>
                                                 <div class="badge bg-white text-primary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_concert.positive|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-danger">부정적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-danger py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_concert.negative|default:0 }}개
-                                                </div>
                                             </div>
+                                                    </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
                                                     <span class="fw-medium text-secondary">중립적 리뷰</span>
                                                 </div>
                                                 <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_concert.neutral|default:0 }}개
-                                                </div>
                                             </div>
+                                        </div>
                                             <hr class="my-3">
                                             <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
                                                 <div class="d-flex align-items-center">
@@ -487,7 +487,6 @@
                                                 </div>
                                                 <div class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm">
                                                     {{ emotion_concert.positive|default:0|add:emotion_concert.negative|default:0|add:emotion_concert.neutral|default:0 }}개
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -499,6 +498,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}
 
@@ -639,7 +639,7 @@
                 .map(item => {
                     const itemDate = new Date(item.date_str);
                     return {
-                        x: item.date_str,
+                x: item.date_str,
                         y: item.reviews_count,
                         date: itemDate
                     };
@@ -671,7 +671,7 @@
                 .map(item => {
                     const itemDate = new Date(item.date_str);
                     return {
-                        x: item.date_str,
+                x: item.date_str,
                         y: item.average_rating,
                         date: itemDate
                     };
@@ -784,14 +784,14 @@
                             padding: 15
                         }
                     }
-                }
             }
-        });
+            }
     });
+});
 
     // 공연 상세 페이지로 이동
     function showConcert(concertId) {
         window.location.href = "{% url 'review:concert_detail' pk=0 %}".replace('0', concertId);
-    }
+}
 </script>
 {% endblock %}

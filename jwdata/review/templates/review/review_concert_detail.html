@@ -36,9 +36,9 @@
 
     <!-- 리뷰 평점 분석 카드 -->
     <div class="row g-4 mb-5">
-        <!-- 전체 공연 리뷰 평균 평점 카드 -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm hover-card">
+                <!-- 전체 공연 리뷰 평균 평점 카드 -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h5 class="card-title fw-bold mb-0 text-gray-800">전체 공연 리뷰 평점</h5>
@@ -46,25 +46,25 @@
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-primary mb-1">{{ overall_avg|floatformat:1|default:"0.0" }}</div>
                         <div class="text-gray-500 small fw-medium">/10점</div>
-                    </div>
+                            </div>
                     <div class="progress rounded-pill mb-3" style="height: 8px;">
-                        <div class="progress-bar bg-primary" role="progressbar" 
-                             style="width: {% widthratio overall_avg|default:0 10 100 %}%;" 
-                             aria-valuenow="{{ overall_avg|floatformat:1|default:'0' }}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="10">
-                        </div>
-                    </div>
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                     style="width: {% widthratio overall_avg|default:0 10 100 %}%;" 
+                                     aria-valuenow="{{ overall_avg|floatformat:1|default:'0' }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="10">
+                                </div>
+                            </div>
                     <div class="d-flex align-items-center justify-content-center">
                         <span class="text-gray-600">총 <span class="fw-bold text-gray-800">{{ overall_count|default:"0" }}</span>건의 리뷰</span>
                     </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- 해당 장르 리뷰 평균 평점 카드 -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm hover-card">
+                
+                <!-- 해당 장르 리뷰 평균 평점 카드 -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h5 class="card-title fw-bold mb-0 text-gray-800">해당 장르 리뷰 평점</h5>
@@ -72,25 +72,25 @@
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-info mb-1">{{ genre_avg|floatformat:1|default:"0.0" }}</div>
                         <div class="text-gray-500 small fw-medium">/10점</div>
-                    </div>
+                            </div>
                     <div class="progress rounded-pill mb-3" style="height: 8px;">
-                        <div class="progress-bar bg-info" role="progressbar" 
-                             style="width: {% widthratio genre_avg|default:0 10 100 %}%;" 
-                             aria-valuenow="{{ genre_avg|floatformat:1|default:'0' }}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="10">
-                        </div>
-                    </div>
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {% widthratio genre_avg|default:0 10 100 %}%;" 
+                                     aria-valuenow="{{ genre_avg|floatformat:1|default:'0' }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="10">
+                                </div>
+                            </div>
                     <div class="d-flex align-items-center justify-content-center">
                         <span class="text-gray-600">장르 <span class="fw-bold text-gray-800">{{ genre_count|default:"0" }}</span>건의 리뷰</span>
                     </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- 선택 공연 리뷰 평균 평점 카드 -->
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm hover-card">
+                
+                <!-- 선택 공연 리뷰 평균 평점 카드 -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h5 class="card-title fw-bold mb-0 text-gray-800">선택 공연 리뷰 평점</h5>
@@ -98,15 +98,15 @@
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-success mb-1">{{ selected_avg|floatformat:1|default:"0.0" }}</div>
                         <div class="text-gray-500 small fw-medium">/10점</div>
-                    </div>
+                            </div>
                     <div class="progress rounded-pill mb-3" style="height: 8px;">
-                        <div class="progress-bar bg-success" role="progressbar" 
-                             style="width: {% widthratio selected_avg|default:0 10 100 %}%;" 
-                             aria-valuenow="{{ selected_avg|floatformat:1|default:'0' }}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="10">
-                        </div>
-                    </div>
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {% widthratio selected_avg|default:0 10 100 %}%;" 
+                                     aria-valuenow="{{ selected_avg|floatformat:1|default:'0' }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="10">
+                                </div>
+                            </div>
                     <div class="d-flex align-items-center justify-content-center">
                         <span class="text-gray-600">공연 <span class="fw-bold text-gray-800">{{ selected_count|default:"0" }}</span>건의 리뷰</span>
                     </div>
@@ -140,6 +140,85 @@
                 </div>
                 <div id="negativeSummaryContainer">
                     <!-- 부정 요약 결과가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 키워드 분석 카드 -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-white py-4 border-0">
+            <h3 class="mb-0 fw-bold">주요 키워드 분석</h3>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <!-- 전체 키워드 -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 fw-bold">전체 리뷰 키워드</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if keywords.all %}
+                                {% for keyword, score in keywords.all %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-gray-700">{{ keyword }}</span>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1">{{ score }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center mb-0">키워드 데이터가 없습니다.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 긍정 키워드 -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 fw-bold">긍정 리뷰 키워드</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if keywords.positive %}
+                                {% for keyword, score in keywords.positive %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-gray-700">{{ keyword }}</span>
+                                        <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">{{ score }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center mb-0">긍정 키워드 데이터가 없습니다.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 부정 키워드 -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 py-4">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 fw-bold">부정 리뷰 키워드</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if keywords.negative %}
+                                {% for keyword, score in keywords.negative %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-gray-700">{{ keyword }}</span>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1">{{ score }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center mb-0">부정 키워드 데이터가 없습니다.</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -457,7 +536,7 @@
         </div>
         <div class="card-body p-4">
             <!-- 감정 분석 -->
-            <div class="card h-100 border-0 shadow-sm">
+                    <div class="card h-100 border-0 shadow-sm">
                 <div class="card-header bg-white border-0 py-4">
                     <h5 class="mb-0 fw-bold">감정 분석</h5>
                 </div>
@@ -494,14 +573,14 @@
                                             <span class="fw-bold text-secondary">중립적 리뷰</span>
                                         </div>
                                         <span class="badge bg-secondary px-3 py-2 rounded-pill">{{ emotion.neutral|default:0 }}개</span>
-                                    </div>
-                                </div>
-                                
+                    </div>
+                </div>
+
                                 <div class="card border-0 bg-dark bg-opacity-10 p-4 rounded-4 mt-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="d-flex align-items-center">
                                             <span class="fw-bold">총 리뷰</span>
-                                        </div>
+                        </div>
                                         <span class="badge bg-dark px-3 py-2 rounded-pill">
                                             {{ emotion.positive|default:0|add:emotion.negative|default:0|add:emotion.neutral|default:0 }}개
                                         </span>
@@ -608,49 +687,49 @@
 {% block extra_js %}
 <script>
     // 감정 분석 차트
-    document.addEventListener('DOMContentLoaded', function () {
-        const ctx = document.getElementById('emotionChart').getContext('2d');
-        new Chart(ctx, {
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('emotionChart').getContext('2d');
+    new Chart(ctx, {
             type: 'doughnut',
-            data: {
+        data: {
                 labels: ['긍정', '부정', '중립'],
-                datasets: [{
-                    data: [
+            datasets: [{
+                data: [
                         {{ emotion.positive|default:0 }},
                         {{ emotion.negative|default:0 }},
                         {{ emotion.neutral|default:0 }}
-                    ],
-                    backgroundColor: [
+                ],
+                backgroundColor: [
                         'rgba(13, 110, 253, 0.8)',  // 긍정 (파란색)
                         'rgba(220, 53, 69, 0.8)',   // 부정 (빨간색)
                         'rgba(108, 117, 125, 0.8)'  // 중립 (회색)
-                    ],
-                    borderColor: [
+                ],
+                borderColor: [
                         'rgba(13, 110, 253, 1)',
                         'rgba(220, 53, 69, 1)',
                         'rgba(108, 117, 125, 1)'
-                    ],
+                ],
                     borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
                         position: 'bottom',
                         labels: {
                             padding: 20,
                             font: {
                                 family: "'Pretendard', sans-serif",
                                 size: 13
-                            }
                         }
                     }
-                },
+                }
+            },
                 cutout: '60%'
-            }
-        });
+        }
     });
+});
 </script>
 {% endblock %}

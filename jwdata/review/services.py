@@ -109,6 +109,73 @@ class ConcertAnalysisService:
             "rating_averages": list(date_rating_summary)
         }
 
+    def get_keywords_by_emotion(self):
+        """감정별 주요 키워드를 추출합니다."""
+        # 감정별 리뷰 분류
+        all_reviews = self.reviews.values_list("description", flat=True)
+        positive_reviews = self.reviews.filter(emotion="긍정").values_list("description", flat=True)
+        negative_reviews = self.reviews.filter(emotion="부정").values_list("description", flat=True)
+        
+        # 각 감정별 키워드 추출
+        def extract_keywords(reviews, top_n=10):
+            if not reviews:
+                return []
+            
+            try:
+                # 텍스트 전처리
+                processed_reviews = [clean_text(review) for review in reviews if review]
+                if not processed_reviews:
+                    return []
+                
+                text = " ".join(processed_reviews)
+                if not text.strip():
+                    return []
+                
+                # 불용어 설정
+                stop_words = [
+                    # 일반적인 불용어
+                    "것", "등", "및", "에서", "그리고", "그런데", "하지만", "그래서", "때문에",
+                    "이런", "저런", "이렇게", "저렇게", "매우", "정말", "진짜", "너무", "아주",
+                    "거의", "모든", "어떤", "같은", "이런", "저런", "많은", "적은", "좀", "약간",
+                    "다른", "어느", "바로", "정도", "대해", "통해", "더욱", "역시", "만약", "아마",
+                    
+                    # 시간 관련
+                    "오늘", "내일", "모레", "어제", "그저께", "이번", "저번", "다음", "이전",
+                    "올해", "작년", "내년", "최근", "요즘", "앞으로", "지금", "현재", "과거",
+                    
+                    # 문장 종결 표현
+                    "입니다", "습니다", "었습니다", "였습니다", "합니다", "했습니다", "이에요",
+                    "예요", "네요", "어요", "았어요", "였어요", "해요", "했어요",
+                    
+                ]
+                
+                # TF-IDF 벡터화 - 파라미터 조정
+                tfidf = TfidfVectorizer(
+                    ngram_range=(1, 2),  # 단일 단어와 두 단어 조합 모두 포함
+                    min_df=1,  # 최소 1번 이상 등장한 단어 포함
+                    max_df=1.0,  # max_df 제한 없음
+                    max_features=50,  # 최대 50개의 특성만 사용
+                    stop_words=stop_words  # 불용어 설정
+                )
+                
+                X = tfidf.fit_transform([text])
+                feature_names = tfidf.get_feature_names_out()
+                scores = X.toarray()[0]
+                
+                # 점수가 높은 순으로 정렬
+                keywords = [(feature_names[i], round(scores[i], 3)) 
+                          for i in scores.argsort()[::-1][:top_n]]
+                return keywords
+            except Exception as e:
+                print(f"키워드 추출 중 오류 발생: {str(e)}")
+                return []
+        
+        return {
+            "all": extract_keywords(all_reviews),
+            "positive": extract_keywords(positive_reviews),
+            "negative": extract_keywords(negative_reviews)
+        }
+
 class HomeAnalysisService:
     def __init__(self):
         self.reviews = Review.objects.all()

@@ -179,6 +179,4 @@ CRONJOBS = [
     ('0 10 * * TUE', 'review.chatgpt.update_reviews_with_sentiment'),
     # 매주 화요일 오전 11시에 리뷰 요약 슬랙 메세지 전송
     ('0 11 * * TUE', 'review.tasks.summarize_reviews_cron'),
-    # 매일 00시, 06시, 12시, 18시에 잔여 좌석 크롤링
-    # ('0 0,6,12,18 * * *', 'review.tasks.crawl_all_concerts_seats'),
 ]

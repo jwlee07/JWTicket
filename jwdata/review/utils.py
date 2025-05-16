@@ -61,7 +61,7 @@ def preprocess_text(texts):
     for doc in texts:
         # 원본 텍스트에서 특수문자 제거 + 여백 정리
         cleaned = clean_text(doc)
-
+        
         # 명사만 추출
         nouns = okt.nouns(cleaned)
         nouns = [n for n in nouns if n not in stop_words]

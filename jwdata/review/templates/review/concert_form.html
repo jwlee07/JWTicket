@@ -107,8 +107,7 @@
                             <input type="url" class="form-control {% if form.crawling_url.errors %}is-invalid{% endif %}"
                                    id="{{ form.crawling_url.id_for_label }}"
                                    name="{{ form.crawling_url.name }}"
-                                   value="{{ form.crawling_url.value|default:'' }}"
-                                   placeholder="https://example.com">
+                                   value="{{ form.crawling_url.value|default:'' }}">
                             {% if form.crawling_url.errors %}
                             <div class="invalid-feedback">
                                 {{ form.crawling_url.errors|join:", " }}
@@ -139,8 +138,7 @@
                             <input type="text" class="form-control {% if form.slack_channel_id.errors %}is-invalid{% endif %}"
                                    id="{{ form.slack_channel_id.id_for_label }}"
                                    name="{{ form.slack_channel_id.name }}"
-                                   value="{{ form.slack_channel_id.value|default:'' }}"
-                                   placeholder="C0123456789">
+                                   value="{{ form.slack_channel_id.value|default:'' }}">
                             {% if form.slack_channel_id.errors %}
                             <div class="invalid-feedback">
                                 {{ form.slack_channel_id.errors|join:", " }}
