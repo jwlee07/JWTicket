@@ -88,7 +88,7 @@ def summarize_positive_reviews(request, concert_id, slack_channel_id=None):
         concert_id=concert_id,
         emotion="긍정",
         description__isnull=False
-    ).exclude(description="").order_by("-date")[:30]
+    ).exclude(description="").order_by("-date")[:50]
     
     if not positive_reviews:
         print("분석할 긍정 리뷰가 없습니다.")
@@ -163,7 +163,7 @@ def summarize_negative_reviews(request, concert_id, slack_channel_id=None):
         concert_id=concert_id,
         emotion="부정",
         description__isnull=False
-    ).exclude(description="").order_by("-date")[:30]
+    ).exclude(description="").order_by("-date")[:50]
     
     if not negative_reviews:
         print("분석할 부정 리뷰가 없습니다.")

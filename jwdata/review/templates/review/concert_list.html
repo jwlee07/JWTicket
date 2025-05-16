@@ -25,6 +25,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">공연 목록</h1>
         <div class="d-flex gap-2">
+            <button id="executeSlackBtn" class="btn btn-info">
+                <i class="bi bi-slack me-2"></i>슬랙알림 전송
+            </button>
             <button id="executeCrawlBtn" class="btn btn-secondary">
                 <i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행
             </button>
@@ -52,26 +55,26 @@
                 <table class="table table-hover mb-0">
                     <thead class="bg-light">
                         <tr>
+                            <th>장르</th>
                             <th>공연명</th>
                             <th>장소</th>
-                            <th>장르</th>
-                            <th>공연 시간</th>
+                            <th style="white-space: nowrap;">공연시간</th>
                             <th>크롤링</th>
-                            <th>슬랙 알림</th>
+                            <th style="white-space: nowrap;">슬랙알림</th>
                             <th>관리</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for concert in concerts %}
                         <tr data-genre="{{ concert.genre|default:'' }}">
+                            <td>{{ concert.genre|default:'-' }}</td>
                             <td>
                                 <a href="{% url 'review:concert_detail' concert.id %}" class="text-decoration-none">
                                     {{ concert.name }}
                                 </a>
                             </td>
                             <td>{{ concert.place }}</td>
-                            <td>{{ concert.genre|default:'-' }}</td>
-                            <td>{{ concert.duration_minutes|default:'-' }}분</td>
+                            <td>{{ concert.start_date|date:"Y.m.d" }} ~ {{ concert.end_date|date:"Y.m.d" }}</td>
                             <td>
                                 <div class="form-check form-switch large">
                                     <input class="form-check-input crawling-toggle" type="checkbox" 
@@ -199,6 +202,38 @@
             });
         });
     });
+
+    // 슬랙 알림 전송 버튼
+    const executeSlackBtn = document.getElementById('executeSlackBtn');
+    if (executeSlackBtn) {
+        executeSlackBtn.addEventListener('click', function() {
+            if (!confirm('슬랙 알림을 전송하시겠습니까?')) {
+                return;
+            }
+
+            executeSlackBtn.disabled = true;
+            executeSlackBtn.innerHTML = '<i class="bi bi-slack me-2"></i>알림 전송 중...';
+
+            fetch('{% url "review:execute_slack_summary" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                alert('슬랙 알림 전송 중 오류가 발생했습니다.');
+            })
+            .finally(() => {
+                executeSlackBtn.disabled = false;
+                executeSlackBtn.innerHTML = '<i class="bi bi-slack me-2"></i>슬랙알림 전송';
+            });
+        });
+    }
 
     // 크롤링 실행 버튼
     const executeCrawlBtn = document.getElementById('executeCrawlBtn');

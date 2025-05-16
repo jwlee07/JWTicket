@@ -1090,3 +1090,38 @@ def execute_crawl_reviews(request):
         'success': False,
         'message': '잘못된 요청입니다.'
     })
+
+@login_required
+@require_http_methods(["POST"])
+def execute_slack_summary(request):
+    """슬랙 알림 전송 뷰"""
+    try:
+        # 슬랙 알림이 활성화된 공연만 필터링
+        concerts = Concert.objects.filter(
+            is_slack_enabled=True,
+            slack_channel_id__isnull=False
+        ).exclude(slack_channel_id='')
+
+        for concert in concerts:
+            print(f"[{concert.name}] 슬랙 알림 전송 시작")
+            try:
+                # 긍정 리뷰 요약 전송
+                summarize_positive_reviews(request, concert.id, concert.slack_channel_id)
+                # 부정 리뷰 요약 전송
+                summarize_negative_reviews(request, concert.id, concert.slack_channel_id)
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'공연 {concert.name}의 리뷰 요약 전송 중 오류가 발생했습니다: {str(e)}'
+                })
+
+        return JsonResponse({
+            'success': True,
+            'message': f'총 {concerts.count()}개 공연의 리뷰 요약이 슬랙으로 전송되었습니다.'
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'슬랙 알림 전송 중 오류가 발생했습니다: {str(e)}'
+        })
