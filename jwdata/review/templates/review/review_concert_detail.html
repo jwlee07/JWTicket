@@ -41,7 +41,13 @@
                     <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h5 class="card-title fw-bold mb-0 text-gray-800">전체 공연 리뷰 평점</h5>
+                        <div class="d-flex align-items-center">
+                            <h5 class="card-title fw-bold mb-0 text-gray-800">전체 공연 리뷰 평점</h5>
+                            <i class="bi bi-question-circle ms-2" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               title="모든 공연의 전체 리뷰 평점 평균"></i>
+                        </div>
                     </div>
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-primary mb-1">{{ overall_avg|floatformat:1|default:"0.0" }}</div>
@@ -67,7 +73,13 @@
                     <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h5 class="card-title fw-bold mb-0 text-gray-800">해당 장르 리뷰 평점</h5>
+                        <div class="d-flex align-items-center">
+                            <h5 class="card-title fw-bold mb-0 text-gray-800">해당 장르 리뷰 평점</h5>
+                            <i class="bi bi-question-circle ms-2" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               title="동일 장르 공연들의 리뷰 평점 평균"></i>
+                        </div>
                     </div>
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-info mb-1">{{ genre_avg|floatformat:1|default:"0.0" }}</div>
@@ -93,7 +105,13 @@
                     <div class="card h-100 border-0 shadow-sm hover-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h5 class="card-title fw-bold mb-0 text-gray-800">선택 공연 리뷰 평점</h5>
+                        <div class="d-flex align-items-center">
+                            <h5 class="card-title fw-bold mb-0 text-gray-800">선택 공연 리뷰 평점</h5>
+                            <i class="bi bi-question-circle ms-2" 
+                               data-bs-toggle="tooltip" 
+                               data-bs-placement="top" 
+                               title="현재 선택된 공연의 리뷰 평점 평균"></i>
+                        </div>
                     </div>
                     <div class="text-center mb-4">
                         <div class="display-4 fw-bold text-success mb-1">{{ selected_avg|floatformat:1|default:"0.0" }}</div>
@@ -118,7 +136,13 @@
     <!-- ChatGPT 리뷰 분석 카드 -->
     <div class="card shadow-sm mb-5">
         <div class="card-header bg-white py-4 border-0">
-            <h3 class="mb-0 fw-bold">ChatGPT 리뷰 분석</h3>
+            <div class="d-flex align-items-center">
+                <h3 class="mb-0 fw-bold">ChatGPT 리뷰 분석</h3>
+                <i class="bi bi-question-circle ms-2" 
+                   data-bs-toggle="tooltip" 
+                   data-bs-placement="top" 
+                   title="ChatGPT가 분석한 긍정/부정 리뷰 요약"></i>
+            </div>
         </div>
         <div class="card-body p-4">
             <div class="d-flex gap-3 mb-4">
@@ -148,7 +172,13 @@
     <!-- 키워드 분석 카드 -->
     <div class="card shadow-sm mb-5">
         <div class="card-header bg-white py-4 border-0">
-            <h3 class="mb-0 fw-bold">주요 키워드 분석</h3>
+            <div class="d-flex align-items-center">
+                <h3 class="mb-0 fw-bold">주요 키워드 분석</h3>
+                <i class="bi bi-question-circle ms-2" 
+                   data-bs-toggle="tooltip" 
+                   data-bs-placement="top" 
+                   title="리뷰에서 자주 등장하는 주요 키워드 분석"></i>
+            </div>
         </div>
         <div class="card-body p-4">
             <div class="row g-4">
@@ -158,6 +188,10 @@
                         <div class="card-header bg-white border-0 py-4">
                             <div class="d-flex align-items-center">
                                 <h5 class="mb-0 fw-bold">전체 리뷰 키워드</h5>
+                                <i class="bi bi-question-circle ms-2" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="모든 리뷰에서 추출한 주요 키워드"></i>
                             </div>
                         </div>
                         <div class="card-body p-4">
@@ -181,6 +215,10 @@
                         <div class="card-header bg-white border-0 py-4">
                             <div class="d-flex align-items-center">
                                 <h5 class="mb-0 fw-bold">긍정 리뷰 키워드</h5>
+                                <i class="bi bi-question-circle ms-2" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="긍정적인 리뷰에서 추출한 주요 키워드"></i>
                             </div>
                         </div>
                         <div class="card-body p-4">
@@ -204,6 +242,10 @@
                         <div class="card-header bg-white border-0 py-4">
                             <div class="d-flex align-items-center">
                                 <h5 class="mb-0 fw-bold">부정 리뷰 키워드</h5>
+                                <i class="bi bi-question-circle ms-2" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="부정적인 리뷰에서 추출한 주요 키워드"></i>
                             </div>
                         </div>
                         <div class="card-body p-4">
@@ -342,6 +384,14 @@
             
             // 부정 요약 버튼 이벤트 설정
             handleSummaryClick(negativeSummaryBtn, 'negativeSummaryContainer');
+        });
+
+        // 툴팁 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         });
     </script>
 
