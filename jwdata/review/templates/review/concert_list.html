@@ -22,18 +22,23 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
         <h1 class="h3 mb-0">공연 목록</h1>
-        <div class="d-flex gap-2">
-            <button id="executeSlackBtn" class="btn btn-info">
-                <i class="bi bi-slack me-2"></i>슬랙알림 전송
-            </button>
-            <button id="executeCrawlBtn" class="btn btn-secondary">
-                <i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행
-            </button>
+        <div class="d-flex flex-column align-items-end gap-2">
             <a href="{% url 'review:concert_create' %}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>공연 등록
             </a>
+            <div class="d-flex gap-2">
+                <button id="updateSentimentBtn" class="btn btn-warning">
+                    <i class="bi bi-emoji-smile me-2"></i>감정 분석 업데이트
+                </button>
+                <button id="executeSlackBtn" class="btn btn-info">
+                    <i class="bi bi-slack me-2"></i>슬랙알림 전송
+                </button>
+                <button id="executeCrawlBtn" class="btn btn-secondary">
+                    <i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행
+                </button>
+            </div>
         </div>
     </div>
 
@@ -254,11 +259,43 @@
                 alert(data.message);
             })
             .catch(error => {
-                alert('크롤링 실행 중 오류가 발생했습니다.');
+                alert('리뷰 크롤링 실행 중 오류가 발생했습니다.');
             })
             .finally(() => {
                 executeCrawlBtn.disabled = false;
                 executeCrawlBtn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행';
+            });
+        });
+    }
+
+    // 감정 분석 업데이트 버튼
+    const updateSentimentBtn = document.getElementById('updateSentimentBtn');
+    if (updateSentimentBtn) {
+        updateSentimentBtn.addEventListener('click', function() {
+            if (!confirm('모든 리뷰의 감정 분석을 업데이트하시겠습니까?\n이 작업은 시간이 걸릴 수 있습니다.')) {
+                return;
+            }
+
+            updateSentimentBtn.disabled = true;
+            updateSentimentBtn.innerHTML = '<i class="bi bi-emoji-smile me-2"></i>감정 분석 중...';
+
+            fetch('{% url "review:update_reviews_sentiment" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || '감정 분석이 완료되었습니다.');
+            })
+            .catch(error => {
+                alert('감정 분석 업데이트 중 오류가 발생했습니다.');
+            })
+            .finally(() => {
+                updateSentimentBtn.disabled = false;
+                updateSentimentBtn.innerHTML = '<i class="bi bi-emoji-smile me-2"></i>감정 분석 업데이트';
             });
         });
     }

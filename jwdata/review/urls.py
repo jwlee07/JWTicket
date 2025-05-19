@@ -46,6 +46,7 @@ urlpatterns = [
 
     # Chatgpt 감정 분석
     path('update-sentiment/', views.update_reviews_with_sentiment, name='update_sentiment'),
+    path('update-reviews-sentiment/', chatgpt.update_reviews_with_sentiment, name='update_reviews_sentiment'),
 
     # Chatgpt 긍정 리뷰 요약 분석
     path('summarize/positive/<int:concert_id>/', views.summarize_positive_reviews, name='summarize_positive_reviews'),
