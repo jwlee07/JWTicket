@@ -1,19 +1,17 @@
 <!-- 사이드바 -->
 <aside class="sidebar">
     <nav class="sidebar-menu">
-        {% if concerts %}
-            <!-- 장르별 메뉴 섹션 -->
-            <div class="menu-section">
-                <!-- 전체 메뉴 -->
-                <a href="{% url 'review:home' %}" class="menu-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-                    <span>전체</span>
-                </a>
+        <!-- 장르별 메뉴 섹션 -->
+        <div class="menu-section">
+            <!-- 전체 메뉴 -->
+            <a href="{% url 'review:home' %}" class="menu-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span>전체</span>
+            </a>
 
-                <!-- 공연 목록 메뉴 -->
-                <a href="{% url 'review:concert_list' %}" class="menu-item {% if request.resolver_match.url_name == 'concert_list' %}active{% endif %}">
-                    <span>공연 목록</span>
-                </a>
-            </div>
-        {% endif %}
+            <!-- 공연 목록 메뉴 -->
+            <a href="{% url 'review:concert_list' %}" class="menu-item {% if request.resolver_match.url_name == 'concert_list' %}active{% endif %}">
+                <span>공연 목록</span>
+            </a>
+        </div>
     </nav>
 </aside> 
