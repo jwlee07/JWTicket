@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.db import transaction
+from django.http import JsonResponse
 
 import time
 
@@ -62,25 +63,65 @@ def analyze_sentiment(review_text):
 
 def update_reviews_with_sentiment(request):
     sleep_time = 2
+    results = {
+        "total": 0,
+        "success": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": []
+    }
 
     reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")
 
     if not reviews_to_update.exists():
-        print("감정 분석이 필요한 리뷰가 없습니다.")
-        return redirect("home")
+        message = "감정 분석이 필요한 리뷰가 없습니다."
+        print(message)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({"message": message})
+        return redirect("review:home")
 
-    with transaction.atomic():
-        total_count = reviews_to_update.count()
-        print(f"총 {total_count}개의 리뷰에 대해 감정 분석을 시작합니다.")
-        for index, review in enumerate(reviews_to_update):
-            sentiment = analyze_sentiment(review.description)
-            if sentiment:
-                review.emotion = sentiment
-                review.save(update_fields=["emotion"])
-            print(f"[{index+1}/{total_count}] 공연 명: {review.concert} / 리뷰 제목: {review.title} >>> 감정: {sentiment}")
-            time.sleep(sleep_time)
+    total_count = reviews_to_update.count()
+    results["total"] = total_count
+    print(f"총 {total_count}개의 리뷰에 대해 감정 분석을 시작합니다.")
 
-    print(f"{total_count}개의 리뷰 감정 분석 완료 및 저장됨.")
+    for index, review in enumerate(reviews_to_update, 1):
+        try:
+            with transaction.atomic():
+                sentiment = analyze_sentiment(review.description)
+                if sentiment:
+                    review.emotion = sentiment
+                    review.save(update_fields=["emotion"])
+                    results["success"] += 1
+                else:
+                    results["skipped"] += 1
+                    results["errors"].append({
+                        "review_id": review.id,
+                        "title": review.title,
+                        "error": "감정 분석 결과가 없음"
+                    })
+                
+                print(f"[{index}/{total_count}] 공연 명: {review.concert} / 리뷰 제목: {review.title} >>> 감정: {sentiment}")
+                
+        except Exception as e:
+            results["failed"] += 1
+            results["errors"].append({
+                "review_id": review.id,
+                "title": review.title,
+                "error": str(e)
+            })
+            print(f"오류 발생 - 리뷰 ID: {review.id}, 제목: {review.title}, 오류: {str(e)}")
+        
+        time.sleep(sleep_time)
+
+    message = f"감정 분석 완료 - 총 {results['total']}개 중 성공: {results['success']}, 실패: {results['failed']}, 건너뜀: {results['skipped']}"
+    print(message)
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            "message": message,
+            "results": results
+        })
+    
     return redirect('review:home')
 
 def summarize_positive_reviews(request, concert_id, slack_channel_id=None):
