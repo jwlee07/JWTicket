@@ -62,6 +62,7 @@
                         <tr>
                             <th>장르</th>
                             <th>공연명</th>
+                            <th>공연 기간</th>
                             <th>크롤링</th>
                             <th>슬랙알림</th>
                             <th>관리</th>
@@ -75,6 +76,13 @@
                                 <a href="{% url 'review:concert_detail' concert.id %}" class="text-decoration-none">
                                     {{ concert.name }}
                                 </a>
+                            </td>
+                            <td>
+                                {% if concert.start_date and concert.end_date %}
+                                    {{ concert.start_date|date:"Y.m.d" }} ~ {{ concert.end_date|date:"Y.m.d" }}
+                                {% else %}
+                                    -
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="form-check form-switch large">

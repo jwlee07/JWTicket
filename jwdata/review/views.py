@@ -988,7 +988,7 @@ class ConcertListView(LoginRequiredMixin, ListView):
     model = Concert
     template_name = 'review/concert_list.html'
     context_object_name = 'concerts'
-    ordering = ['name']
+    ordering = ['-end_date', 'name']
 
 class ConcertCreateView(LoginRequiredMixin, CreateView):
     model = Concert

@@ -12,22 +12,20 @@
                 <div>
                     <h1 class="display-6 fw-bold mb-3">{{ selected_concert.name }}</h1>
                     <div class="d-flex flex-wrap gap-4">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>
-                            <span class="text-gray-700 fw-medium">{{ selected_concert.place }}</span>
-                        </div>
                         {% if selected_concert.genre %}
                         <div class="d-flex align-items-center">
                             <i class="bi bi-tag-fill text-primary me-2"></i>
                             <span class="text-gray-700 fw-medium">{{ selected_concert.genre }}</span>
                         </div>
                         {% endif %}
-                        {% if selected_concert.date %}
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                            <span class="text-gray-700 fw-medium">{{ selected_concert.place }}</span>
+                        </div>
                         <div class="d-flex align-items-center">
                             <i class="bi bi-calendar-event-fill text-primary me-2"></i>
-                            <span class="text-gray-700 fw-medium">{{ selected_concert.date }}</span>
+                            <span class="text-gray-700 fw-medium">{{ selected_concert.start_date|date:"Y.m.d" }} ~ {{ selected_concert.end_date|date:"Y.m.d" }}</span>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
