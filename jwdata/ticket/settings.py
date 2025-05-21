@@ -171,6 +171,35 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Login
 LOGIN_URL = '/review/login/'
 
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'review': {  # review 앱의 로그 설정
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
 # CRONTAB List
 CRONJOBS = [
     # 매일 저녁 8시에 모든 콘서트 리뷰 크롤링

@@ -7,8 +7,12 @@ from selenium.common.exceptions import NoSuchElementException
 
 from datetime import datetime
 import time
+import logging
 
 from .models import Concert, Review, Seat
+
+# 로거 설정
+logger = logging.getLogger(__name__)
 
 def crawl_concert_info(driver):
     # 공연 정보 파싱
@@ -17,7 +21,7 @@ def crawl_concert_info(driver):
     date_text = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[2]/div/p').text
     duration_text = driver.find_element(By.XPATH, '//*[@id="container"]/div[2]/div[1]/div[2]/div[1]/div/div[2]/ul/li[3]/div/p').text.replace('분', '').strip()
 
-    print(f"[공연 정보] 공연명: {name}, 장소: {place}, 기간: {date_text}, 시간: {duration_text}")
+    logger.info(f"[공연 정보] 공연명: {name}, 장소: {place}, 기간: {date_text}, 시간: {duration_text}")
 
     # 날짜 처리
     try:
@@ -32,16 +36,16 @@ def crawl_concert_info(driver):
         start_date = None
         end_date = None
 
-    print(f"[공연 정보][날짜 처리] 시작일: {start_date}, 종료일: {end_date}")
+    logger.info(f"[공연 정보][날짜 처리] 시작일: {start_date}, 종료일: {end_date}")
 
     # DB 저장 (중복 체크)
     concert_qs = Concert.objects.filter(name=name)
 
     if concert_qs.exists():
         concert = concert_qs.first()
-        print(f"[공연 정보][DB 저장] 기존 Concert: {concert}")
+        logger.info(f"[공연 정보][DB 저장] 기존 Concert: {concert}")
     else:
-        print(f"[공연 정보][DB 저장] 해당 공연이 존재하지 않아 Concert를 생성하지 않고 None을 반환합니다.")
+        logger.info(f"[공연 정보][DB 저장] 해당 공연이 존재하지 않아 Concert를 생성하지 않고 None을 반환합니다.")
         return None
 
     return concert

@@ -1,5 +1,6 @@
 from datetime import datetime
 import time
+import logging
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -19,6 +20,9 @@ from .views import (
     crawl_concert_reviews, 
     crawl_concert_seats)
 
+# 로거 설정
+logger = logging.getLogger(__name__)
+
 def get_chrome_driver():
     """
     Headless Chrome 드라이버를 반환하는 함수.
@@ -34,20 +38,13 @@ def get_chrome_driver():
     # return webdriver.Chrome(options=chrome_options)
     return webdriver.Chrome()
 
-def log(message):
-    """
-    메시지를 /tmp/cron_test.log 파일에 기록하는 함수.
-    """
-    with open('/tmp/cron_test.log', 'a') as f:
-        f.write(f"실행 시간: {datetime.now()}, 메세지: {message}\n")
-
 def crawl_all_concerts_reviews():
     """
     매일 저녁 8시에 실행:
     크롤링이 활성화된 공연(Concert)을 대상으로 리뷰 크롤링을 수행.
     각 공연의 crawling_url로 직접 접속하여 리뷰를 수집합니다.
     """
-    log("[crawl_all_concerts_reviews] 시작")
+    logger.info("[crawl_all_concerts_reviews] 시작")
     driver = get_chrome_driver()
     try:
         # 크롤링이 활성화된 공연만 필터링
@@ -56,23 +53,23 @@ def crawl_all_concerts_reviews():
             crawling_url__isnull=False
         ).exclude(crawling_url='')
         
-        log(f"[crawl_all_concerts_reviews] 크롤링이 활성화된 공연 {concerts.count()}개에 대해 리뷰 크롤링을 시도합니다.")
+        logger.info(f"[crawl_all_concerts_reviews] 크롤링이 활성화된 공연 {concerts.count()}개에 대해 리뷰 크롤링을 시도합니다.")
 
         for concert in concerts:
             concert_name = concert.name.strip()
             if not concert_name:
-                log("[WARN] 공연 이름이 비어있어 스킵합니다.")
+                logger.warning("[WARN] 공연 이름이 비어있어 스킵합니다.")
                 continue
 
-            log(f"[INFO] 공연명: {concert_name}에 대한 리뷰 크롤링 시작")
+            logger.info(f"[INFO] 공연명: {concert_name}에 대한 리뷰 크롤링 시작")
             
             # crawling_url로 직접 접속
             try:
                 driver.get(concert.crawling_url)
                 time.sleep(2)
-                log(f"[DEBUG] '{concert_name}' 상세 페이지 직접 접속 완료")
+                logger.debug(f"[DEBUG] '{concert_name}' 상세 페이지 직접 접속 완료")
             except Exception as e:
-                log(f"[ERROR] [{concert_name}] crawling_url 접속 실패: {e}")
+                logger.error(f"[ERROR] [{concert_name}] crawling_url 접속 실패: {e}")
                 continue
 
             # 예매 안내 팝업 닫기
@@ -80,36 +77,36 @@ def crawl_all_concerts_reviews():
                 popup_close_button = driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/button')
                 driver.execute_script("arguments[0].click();", popup_close_button)
                 time.sleep(2)
-                log("[DEBUG] 팝업 닫기 성공")
+                logger.debug("[DEBUG] 팝업 닫기 성공")
             except NoSuchElementException:
-                log(f"[INFO] [{concert_name}] 팝업 닫기 버튼 없음, 무시")
+                logger.info(f"[INFO] [{concert_name}] 팝업 닫기 버튼 없음, 무시")
 
             # 리뷰 크롤링
             crawl_concert_reviews(driver, concert)
-            log("[INFO] 리뷰 크롤링 완료")
+            logger.info("[INFO] 리뷰 크롤링 완료")
 
     finally:
         driver.quit()
-        log("[crawl_all_concerts_reviews] 종료")
+        logger.info("[crawl_all_concerts_reviews] 종료")
 
 def crawl_all_concerts_seats():
     """
     매일 00시,06시,12시,18시에 실행:
     DB에 있는 모든 공연(Concert)에 대해 좌석 정보 크롤링 수행.
     """
-    log("[crawl_all_concerts_seats] 시작")
+    logger.info("[crawl_all_concerts_seats] 시작")
     driver = get_chrome_driver()
     try:
         concerts = Concert.objects.all()
-        log(f"[crawl_all_concerts_seats] 총 {concerts.count()}개의 공연에 대해 좌석 크롤링을 시도합니다.")
+        logger.info(f"[crawl_all_concerts_seats] 총 {concerts.count()}개의 공연에 대해 좌석 크롤링을 시도합니다.")
 
         for concert in concerts:
             concert_name = concert.name.strip()
             if not concert_name:
-                log("[WARN] 공연 이름이 비어있어 스킵합니다.")
+                logger.warning("[WARN] 공연 이름이 비어있어 스킵합니다.")
                 continue
 
-            log(f"[INFO] 공연명: {concert_name}에 대한 좌석 크롤링 시작")
+            logger.info(f"[INFO] 공연명: {concert_name}에 대한 좌석 크롤링 시작")
             # 인터파크 메인 페이지 접근
             driver.get("https://tickets.interpark.com/")
             WebDriverWait(driver, 10).until(
@@ -126,7 +123,7 @@ def crawl_all_concerts_seats():
             active_input.send_keys(concert_name)
             time.sleep(2)
             active_input.send_keys(Keys.RETURN)
-            log(f"[DEBUG] '{concert_name}' 검색 완료, 검색 결과 페이지 로딩 중...")
+            logger.debug(f"[DEBUG] '{concert_name}' 검색 완료, 검색 결과 페이지 로딩 중...")
 
             # 첫 번째 검색 결과 클릭
             try:
@@ -138,60 +135,60 @@ def crawl_all_concerts_seats():
                 )
                 element.click()
                 time.sleep(2)
-                log(f"[DEBUG] '{concert_name}' 검색 결과 첫 번째 항목 클릭 성공")
+                logger.debug(f"[DEBUG] '{concert_name}' 검색 결과 첫 번째 항목 클릭 성공")
             except Exception as e:
-                log(f"[ERROR] [{concert_name}] 검색 결과 클릭 실패: {e}")
+                logger.error(f"[ERROR] [{concert_name}] 검색 결과 클릭 실패: {e}")
                 continue
 
             # 새 창으로 전환(인터파크 상세 페이지)
             if len(driver.window_handles) > 1:
                 driver.switch_to.window(driver.window_handles[1])
                 time.sleep(2)
-                log("[DEBUG] 상세 페이지로 전환")
+                logger.debug("[DEBUG] 상세 페이지로 전환")
 
             # 예매 안내 팝업 닫기
             try:
                 popup_close_button = driver.find_element(By.XPATH, '//*[@id="popup-prdGuide"]/div/div[3]/button')
                 driver.execute_script("arguments[0].click();", popup_close_button)
                 time.sleep(2)
-                log("[DEBUG] 팝업 닫기 성공")
+                logger.debug("[DEBUG] 팝업 닫기 성공")
             except NoSuchElementException:
-                log(f"[INFO] [{concert_name}] 팝업 닫기 버튼 없음, 무시")
+                logger.info(f"[INFO] [{concert_name}] 팝업 닫기 버튼 없음, 무시")
 
             # 공연 정보 크롤링
             crawled_concert = crawl_concert_info(driver)
 
             if crawled_concert is None:
-                log(f"[WARN] [{concert_name}] 공연 정보가 None이어서 좌석 크롤링을 스킵합니다.")
+                logger.warning(f"[WARN] [{concert_name}] 공연 정보가 None이어서 좌석 크롤링을 스킵합니다.")
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
                 time.sleep(2)
                 continue            
 
-            log(f"[INFO] 공연 정보 크롤링 완료: {crawled_concert}")
+            logger.info(f"[INFO] 공연 정보 크롤링 완료: {crawled_concert}")
 
             # 좌석 크롤링
             crawl_concert_seats(driver, crawled_concert)
-            log("[INFO] 좌석 크롤링 완료")
+            logger.info("[INFO] 좌석 크롤링 완료")
 
             # 상세 페이지 닫기
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
             time.sleep(2)
-            log("[DEBUG] 상세 페이지 닫기 및 메인 창 전환 완료")
+            logger.debug("[DEBUG] 상세 페이지 닫기 및 메인 창 전환 완료")
 
     finally:
         driver.quit()
-        log("[crawl_all_concerts_seats] 종료")
+        logger.info("[crawl_all_concerts_seats] 종료")
 
 def crawl_specific_concert_review(concert_name):
-    log(f"[crawl_specific_concert_review] '{concert_name}' 리뷰 크롤링 시작")
+    logger.info(f"[crawl_specific_concert_review] '{concert_name}' 리뷰 크롤링 시작")
     driver = get_chrome_driver()
 
     try:
         concert_qs = Concert.objects.filter(name__icontains=concert_name.strip())
         if not concert_qs.exists():
-            log(f"[ERROR] '{concert_name}'에 해당하는 Concert 객체를 찾을 수 없습니다.")
+            logger.error(f"[ERROR] '{concert_name}'에 해당하는 Concert 객체를 찾을 수 없습니다.")
             return
 
         concert = concert_qs.first()
@@ -235,7 +232,7 @@ def crawl_specific_concert_review(concert_name):
 
         # 리뷰 크롤링
         crawl_concert_reviews(driver, concert)
-        log("[crawl_specific_concert_review] 완료")
+        logger.info("[crawl_specific_concert_review] 완료")
 
     finally:
         driver.quit()
