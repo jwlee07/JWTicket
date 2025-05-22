@@ -17,6 +17,127 @@
         height: 1.5rem;
         margin-left: -3rem;
     }
+
+    /* 수동 실행 버튼 스타일 */
+    .manual-actions {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        margin-top: 0.5rem;
+        min-width: 240px;
+        z-index: 1000;
+    }
+
+    .manual-actions.show {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .manual-actions .btn {
+        width: 100%;
+        text-align: left;
+        justify-content: flex-start;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .header-actions {
+        position: relative;
+    }
+
+    /* 토스 스타일의 버튼 호버 효과 */
+    .btn-manual {
+        background-color: var(--toss-gray-100);
+        color: var(--toss-gray-700);
+    }
+
+    .btn-manual:hover {
+        background-color: var(--toss-gray-200);
+        color: var(--toss-gray-800);
+    }
+
+    .btn-manual.active {
+        background-color: var(--toss-blue);
+        color: white;
+    }
+
+    /* 비밀번호 모달 스타일 */
+    .password-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .password-modal.show {
+        display: flex;
+    }
+
+    .password-modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .password-modal-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .password-modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--toss-gray-900);
+        margin: 0;
+    }
+
+    .password-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--toss-gray-200);
+        border-radius: 8px;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .password-input:focus {
+        border-color: var(--toss-blue);
+        box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+    }
+
+    .password-error {
+        color: #FF4545;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .password-error.show {
+        display: block;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
 </style>
 {% endblock %}
 
@@ -24,21 +145,26 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-start mb-4">
         <h1 class="h3 mb-0">공연 목록</h1>
-        <div class="d-flex flex-column align-items-end gap-2">
+        <div class="header-actions d-flex gap-2">
+            <div class="position-relative">
+                <button id="toggleManualBtn" class="btn btn-manual">
+                    <i class="bi bi-gear me-2"></i>수동 실행
+                </button>
+                <div id="manualActions" class="manual-actions">
+                    <button id="updateSentimentBtn" class="btn btn-warning">
+                        <i class="bi bi-emoji-smile me-2"></i>감정분석 업데이트
+                    </button>
+                    <button id="executeSlackBtn" class="btn btn-info">
+                        <i class="bi bi-slack me-2"></i>슬랙알림 전송
+                    </button>
+                    <button id="executeCrawlBtn" class="btn btn-secondary">
+                        <i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행
+                    </button>
+                </div>
+            </div>
             <a href="{% url 'review:concert_create' %}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>공연 등록
             </a>
-            <div class="d-flex gap-2">
-                <button id="updateSentimentBtn" class="btn btn-warning">
-                    <i class="bi bi-emoji-smile me-2"></i>감정 분석 업데이트
-                </button>
-                <button id="executeSlackBtn" class="btn btn-info">
-                    <i class="bi bi-slack me-2"></i>슬랙알림 전송
-                </button>
-                <button id="executeCrawlBtn" class="btn btn-secondary">
-                    <i class="bi bi-arrow-repeat me-2"></i>리뷰 크롤링 실행
-                </button>
-            </div>
         </div>
     </div>
 
@@ -50,6 +176,21 @@
                 <button type="button" class="btn btn-outline-primary" data-genre="연극">연극</button>
                 <button type="button" class="btn btn-outline-primary" data-genre="뮤지컬">뮤지컬</button>
                 <button type="button" class="btn btn-outline-primary" data-genre="콘서트">콘서트</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 확인 모달 -->
+    <div id="passwordModal" class="password-modal">
+        <div class="password-modal-content">
+            <div class="password-modal-header">
+                <h5 class="password-modal-title">비밀번호 확인</h5>
+            </div>
+            <input type="password" id="passwordInput" class="password-input" placeholder="비밀번호를 입력하세요">
+            <div id="passwordError" class="password-error">비밀번호가 일치하지 않습니다.</div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closePasswordModal()">취소</button>
+                <button class="btn btn-primary" onclick="checkPassword()">확인</button>
             </div>
         </div>
     </div>
@@ -385,5 +526,74 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// 수동 실행 토글 버튼
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleManualBtn = document.getElementById('toggleManualBtn');
+    const manualActions = document.getElementById('manualActions');
+    const passwordModal = document.getElementById('passwordModal');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordError = document.getElementById('passwordError');
+
+    if (toggleManualBtn && manualActions) {
+        // 토글 버튼 클릭 이벤트
+        toggleManualBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openPasswordModal();
+        });
+
+        // 문서 클릭 시 메뉴 닫기
+        document.addEventListener('click', function(e) {
+            if (!manualActions.contains(e.target) && !toggleManualBtn.contains(e.target)) {
+                manualActions.classList.remove('show');
+            }
+        });
+
+        // 메뉴 내부 클릭 시 이벤트 전파 중단
+        manualActions.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    // 비밀번호 모달 열기
+    window.openPasswordModal = function() {
+        passwordModal.classList.add('show');
+        passwordInput.value = '';
+        passwordError.classList.remove('show');
+        passwordInput.focus();
+    }
+
+    // 비밀번호 모달 닫기
+    window.closePasswordModal = function() {
+        passwordModal.classList.remove('show');
+    }
+
+    // 비밀번호 확인
+    window.checkPassword = function() {
+        const password = passwordInput.value;
+        if (password === '950305') {
+            passwordModal.classList.remove('show');
+            manualActions.classList.add('show');
+            passwordError.classList.remove('show');
+        } else {
+            passwordError.classList.add('show');
+            passwordInput.focus();
+        }
+    }
+
+    // 엔터 키로 비밀번호 확인
+    passwordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkPassword();
+        }
+    });
+
+    // 모달 외부 클릭 시 닫기
+    passwordModal.addEventListener('click', function(e) {
+        if (e.target === passwordModal) {
+            closePasswordModal();
+        }
+    });
+});
 </script>
 {% endblock %} 
