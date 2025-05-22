@@ -138,13 +138,201 @@
         gap: 0.5rem;
         justify-content: flex-end;
     }
+
+    /* 테이블 디자인 개선 */
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead {
+        background-color: var(--toss-gray-50);
+    }
+
+    .table th {
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        color: var(--toss-gray-700);
+        border-bottom: 1px solid var(--toss-gray-100);
+        white-space: nowrap;
+    }
+
+    .table td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--toss-gray-100);
+        color: var(--toss-gray-800);
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--toss-gray-50);
+    }
+
+    /* 장르 뱃지 스타일링 */
+    .table td:first-child {
+        padding: 0.75rem 1.5rem;
+    }
+
+    .table td:first-child span {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .table td:first-child span.badge-theater {
+        background-color: rgba(13, 202, 240, 0.1);
+        color: var(--bs-info);
+    }
+
+    .table td:first-child span.badge-musical {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: var(--bs-success);
+    }
+
+    .table td:first-child span.badge-concert {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--bs-warning);
+    }
+
+    /* 토글 스위치 컨테이너 정렬 */
+    .form-check.form-switch.large {
+        display: flex;
+        justify-content: center;
+        margin: 0;
+    }
+
+    /* 관리 버튼 스타일링 */
+    .table .btn-group {
+        gap: 0.25rem;
+    }
+
+    .table .btn-group .btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+
+    .table .btn-group .btn i {
+        font-size: 1rem;
+    }
+
+    /* 빈 상태 메시지 스타일링 */
+    .table td[colspan="6"] {
+        padding: 2rem 1.5rem;
+        text-align: center;
+        color: var(--toss-gray-500);
+    }
+
+    /* 장르 필터 버튼 스타일링 */
+    .genre-filter {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .genre-filter .btn {
+        padding: 0.35rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        background: none;
+    }
+
+    .genre-filter .btn[data-genre="all"] {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--bs-secondary);
+    }
+
+    .genre-filter .btn[data-genre="all"].active {
+        background-color: var(--bs-secondary);
+        color: white;
+    }
+
+    .genre-filter .btn[data-genre="연극"] {
+        background-color: rgba(13, 202, 240, 0.1);
+        color: var(--bs-info);
+    }
+
+    .genre-filter .btn[data-genre="연극"].active {
+        background-color: var(--bs-info);
+        color: white;
+    }
+
+    .genre-filter .btn[data-genre="뮤지컬"] {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: var(--bs-success);
+    }
+
+    .genre-filter .btn[data-genre="뮤지컬"].active {
+        background-color: var(--bs-success);
+        color: white;
+    }
+
+    .genre-filter .btn[data-genre="콘서트"] {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--bs-warning);
+    }
+
+    .genre-filter .btn[data-genre="콘서트"].active {
+        background-color: var(--bs-warning);
+        color: white;
+    }
+
+    .genre-filter .btn:hover:not(.active) {
+        opacity: 0.8;
+    }
+
+    /* 필터 영역 레이아웃 */
+    .filter-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    /* 검색창 스타일링 */
+    .search-container {
+        position: relative;
+        width: 300px;
+    }
+
+    .search-container .form-control {
+        padding-right: 2.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--toss-gray-200);
+        font-size: 0.875rem;
+    }
+
+    .search-container .form-control:focus {
+        border-color: var(--toss-blue-500);
+        box-shadow: 0 0 0 3px rgba(0, 100, 255, 0.1);
+    }
+
+    .search-container .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--toss-gray-400);
+        pointer-events: none;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-start mb-4">
-        <h1 class="h3 mb-0">공연 목록</h1>
+        <h3 class="fw-bold">공연 목록</h3>
         <div class="header-actions d-flex gap-2">
             <div class="position-relative">
                 <button id="toggleManualBtn" class="btn btn-manual">
@@ -171,11 +359,17 @@
     <!-- 장르 필터 -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <div class="genre-filter btn-group">
-                <button type="button" class="btn btn-outline-primary active" data-genre="all">전체</button>
-                <button type="button" class="btn btn-outline-primary" data-genre="연극">연극</button>
-                <button type="button" class="btn btn-outline-primary" data-genre="뮤지컬">뮤지컬</button>
-                <button type="button" class="btn btn-outline-primary" data-genre="콘서트">콘서트</button>
+            <div class="filter-container">
+                <div class="genre-filter">
+                    <button type="button" class="btn btn-outline-primary active" data-genre="all">전체</button>
+                    <button type="button" class="btn btn-outline-primary" data-genre="연극">연극</button>
+                    <button type="button" class="btn btn-outline-primary" data-genre="뮤지컬">뮤지컬</button>
+                    <button type="button" class="btn btn-outline-primary" data-genre="콘서트">콘서트</button>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="form-control" id="concertSearch" placeholder="공연명 검색">
+                    <i class="bi bi-search search-icon"></i>
+                </div>
             </div>
         </div>
     </div>
@@ -231,7 +425,15 @@
                     <tbody>
                         {% for concert in concerts %}
                         <tr data-genre="{{ concert.genre|default:'' }}">
-                            <td>{{ concert.genre|default:'-' }}</td>
+                            <td>
+                                {% if concert.genre == '연극' %}
+                                <span class="badge-theater">연극</span>
+                                {% elif concert.genre == '뮤지컬' %}
+                                <span class="badge-musical">뮤지컬</span>
+                                {% else %}
+                                <span class="badge-concert">콘서트</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 <a href="{% url 'review:concert_detail' concert.id %}" class="text-decoration-none">
                                     {{ concert.name }}
@@ -305,27 +507,38 @@
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-    // 장르 필터링
+    // 장르 필터링과 검색을 위한 변수 선언
     const genreButtons = document.querySelectorAll('.genre-filter .btn');
+    const searchInput = document.getElementById('concertSearch');
     const concertRows = document.querySelectorAll('tbody tr[data-genre]');
 
+    // 테이블 행 필터링 함수
+    function filterConcertRows() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const activeGenre = document.querySelector('.genre-filter .btn.active').dataset.genre;
+
+        concertRows.forEach(row => {
+            const concertName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const rowGenre = row.dataset.genre;
+            
+            const matchesGenre = activeGenre === 'all' || rowGenre === activeGenre;
+            const matchesSearch = concertName.includes(searchTerm);
+
+            row.style.display = (matchesGenre && matchesSearch) ? '' : 'none';
+        });
+    }
+
+    // 장르 버튼 클릭 이벤트
     genreButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // 버튼 활성화 상태 변경
             genreButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-
-            // 공연 필터링
-            const selectedGenre = this.dataset.genre;
-            concertRows.forEach(row => {
-                if (selectedGenre === 'all' || row.dataset.genre === selectedGenre) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+            filterConcertRows();
         });
     });
+
+    // 검색 입력 이벤트
+    searchInput.addEventListener('input', filterConcertRows);
 
     // 크롤링 토글
     const crawlingToggles = document.querySelectorAll('.crawling-toggle');
@@ -593,6 +806,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target === passwordModal) {
             closePasswordModal();
         }
+    });
+
+    // 검색 기능 구현
+    const searchInput = document.getElementById('concertSearch');
+    const concertRows = document.querySelectorAll('tbody tr');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        concertRows.forEach(row => {
+            const concertName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const isVisible = row.style.display !== 'none';  // 현재 장르 필터에 의해 보이는 상태인지
+            
+            if (isVisible) {  // 장르 필터에 의해 보이는 상태일 때만 검색 필터 적용
+                if (concertName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
     });
 });
 </script>
