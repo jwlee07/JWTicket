@@ -17,6 +17,7 @@ urlpatterns = [
     path('concerts/<int:pk>/delete/', views.ConcertDeleteView.as_view(), name='concert_delete'),
     path('concerts/<int:pk>/toggle-crawling/', views.toggle_concert_crawling, name='toggle_concert_crawling'),
     path('concerts/<int:pk>/toggle-slack/', views.toggle_concert_slack, name='toggle_concert_slack'),
+    path('concerts/<int:pk>/toggle-sentiment/', views.toggle_concert_sentiment, name='toggle_concert_sentiment'),
     path('execute-crawl-reviews/', views.execute_crawl_reviews, name='execute_crawl_reviews'),
     path('execute-slack-summary/', views.execute_slack_summary, name='execute_slack_summary'),
 

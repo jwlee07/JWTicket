@@ -13,6 +13,7 @@ class Concert(models.Model):
     is_crawling_enabled = models.BooleanField(verbose_name="크롤링 활성화 여부", default=False)
     slack_channel_id = models.CharField(max_length=100, verbose_name="슬랙 채널 ID", null=True, blank=True)
     is_slack_enabled = models.BooleanField(verbose_name="슬랙 알림 활성화 여부", default=False)
+    is_sentiment_enabled = models.BooleanField(verbose_name="감정분석 활성화 여부", default=False)
 
     class Meta:
         verbose_name = "공연 정보"

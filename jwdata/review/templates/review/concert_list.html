@@ -64,6 +64,7 @@
                             <th>공연명</th>
                             <th>공연 기간</th>
                             <th>크롤링</th>
+                            <th>감정분석</th>
                             <th>슬랙알림</th>
                             <th>관리</th>
                         </tr>
@@ -91,6 +92,15 @@
                                            data-concert-id="{{ concert.id }}"
                                            data-toggle-url="{% url 'review:toggle_concert_crawling' concert.id %}"
                                            {% if concert.is_crawling_enabled %}checked{% endif %}>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch large">
+                                    <input class="form-check-input sentiment-toggle" type="checkbox" 
+                                           id="sentimentToggle{{ concert.id }}" 
+                                           data-concert-id="{{ concert.id }}"
+                                           data-toggle-url="{% url 'review:toggle_concert_sentiment' concert.id %}"
+                                           {% if concert.is_sentiment_enabled %}checked{% endif %}>
                                 </div>
                             </td>
                             <td>
@@ -201,13 +211,42 @@
             .then(response => response.json())
             .then(data => {
                 if (!data.success) {
-                    this.checked = !isEnabled;  // 실패시 토글 상태 되돌리기
+                    this.checked = !isEnabled;
                     alert(data.message || '슬랙 알림 상태 변경에 실패했습니다.');
                 }
             })
             .catch(error => {
-                this.checked = !isEnabled;  // 에러시 토글 상태 되돌리기
+                this.checked = !isEnabled;
                 alert('슬랙 알림 상태 변경 중 오류가 발생했습니다.');
+            });
+        });
+    });
+
+    // 감정분석 토글
+    const sentimentToggles = document.querySelectorAll('.sentiment-toggle');
+    sentimentToggles.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const toggleUrl = this.dataset.toggleUrl;
+            const isEnabled = this.checked;
+            
+            fetch(toggleUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ enabled: isEnabled })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    this.checked = !isEnabled;
+                    alert(data.message || '감정분석 상태 변경에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                this.checked = !isEnabled;
+                alert('감정분석 상태 변경 중 오류가 발생했습니다.');
             });
         });
     });

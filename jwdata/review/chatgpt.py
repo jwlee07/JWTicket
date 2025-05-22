@@ -71,7 +71,12 @@ def update_reviews_with_sentiment(request):
         "errors": []
     }
 
-    reviews_to_update = Review.objects.filter(emotion__isnull=True, description__isnull=False).exclude(description="")
+    # 감정분석이 활성화된 공연의 리뷰만 가져오기
+    reviews_to_update = Review.objects.filter(
+        emotion__isnull=True,
+        description__isnull=False,
+        concert__is_sentiment_enabled=True  # 감정분석이 활성화된 공연만
+    ).exclude(description="")
 
     if not reviews_to_update.exists():
         message = "감정 분석이 필요한 리뷰가 없습니다."
@@ -85,6 +90,16 @@ def update_reviews_with_sentiment(request):
     print(f"총 {total_count}개의 리뷰에 대해 감정 분석을 시작합니다.")
 
     for index, review in enumerate(reviews_to_update, 1):
+        # 리뷰 처리 전에 공연의 감정분석 활성화 상태 다시 확인
+        if not review.concert.is_sentiment_enabled:
+            results["skipped"] += 1
+            results["errors"].append({
+                "review_id": review.id,
+                "title": review.title,
+                "error": "공연의 감정분석이 비활성화되어 있음"
+            })
+            continue
+
         try:
             with transaction.atomic():
                 sentiment = analyze_sentiment(review.description)

@@ -40,6 +40,8 @@ from sklearn.cluster import KMeans
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import DetailView, TemplateView, ListView, CreateView, UpdateView, DeleteView
+from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 from .chatgpt import (
     update_reviews_with_sentiment, 
@@ -62,7 +64,6 @@ from .sheets import (
 from .services import ConcertAnalysisService, HomeAnalysisService, ReviewAnalysisService, AllAnalysisService
 
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_POST, require_http_methods
 import json
 
 # ==================================================================
@@ -1040,38 +1041,33 @@ def toggle_concert_crawling(request, pk):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
-@login_required
-@require_http_methods(["POST"])
+@require_POST
+@csrf_exempt
 def toggle_concert_slack(request, pk):
     try:
         concert = Concert.objects.get(pk=pk)
         data = json.loads(request.body)
-        enabled = data.get('enabled', False)
-
-        # 슬랙 채널 ID가 없는데 활성화하려고 하면 에러
-        if enabled and not concert.slack_channel_id:
-            return JsonResponse({
-                'success': False,
-                'message': '슬랙 알림을 활성화하려면 먼저 슬랙 채널 ID를 설정해야 합니다.'
-            })
-
-        concert.is_slack_enabled = enabled
-        concert.save()
-        
-        return JsonResponse({
-            'success': True,
-            'message': '슬랙 알림 상태가 변경되었습니다.'
-        })
+        concert.is_slack_enabled = data.get('enabled', False)
+        concert.save(update_fields=['is_slack_enabled'])
+        return JsonResponse({'success': True})
     except Concert.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'message': '공연을 찾을 수 없습니다.'
-        }, status=404)
+        return JsonResponse({'success': False, 'message': '공연을 찾을 수 없습니다.'})
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': str(e)
-        }, status=500)
+        return JsonResponse({'success': False, 'message': str(e)})
+
+@require_POST
+@csrf_exempt
+def toggle_concert_sentiment(request, pk):
+    try:
+        concert = Concert.objects.get(pk=pk)
+        data = json.loads(request.body)
+        concert.is_sentiment_enabled = data.get('enabled', False)
+        concert.save(update_fields=['is_sentiment_enabled'])
+        return JsonResponse({'success': True})
+    except Concert.DoesNotExist:
+        return JsonResponse({'success': False, 'message': '공연을 찾을 수 없습니다.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
 
 @login_required
 def execute_crawl_reviews(request):
