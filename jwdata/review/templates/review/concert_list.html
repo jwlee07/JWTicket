@@ -63,9 +63,27 @@
                             <th>장르</th>
                             <th>공연명</th>
                             <th>공연 기간</th>
-                            <th>크롤링</th>
-                            <th>감정분석</th>
-                            <th>슬랙알림</th>
+                            <th>
+                                크롤링
+                                <i class="bi bi-question-circle ms-1" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="매일 저녁 8시에 자동으로 리뷰를 수집합니다."></i>
+                            </th>
+                            <th>
+                                감정분석
+                                <i class="bi bi-question-circle ms-1" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="매주 화요일 오전 10시에 ChatGPT를 활용하여 리뷰의 감정을 분석합니다."></i>
+                            </th>
+                            <th>
+                                슬랙알림
+                                <i class="bi bi-question-circle ms-1" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="매주 화요일 오전 11시에 분석된 리뷰 요약을 슬랙으로 전송합니다."></i>
+                            </th>
                             <th>관리</th>
                         </tr>
                     </thead>
@@ -142,6 +160,10 @@
 <script>
 // 페이지 로드 시 한 번만 실행되도록 즉시 실행 함수로 감싸기
 (function() {
+    // 툴팁 초기화
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
     // 장르 필터링
     const genreButtons = document.querySelectorAll('.genre-filter .btn');
     const concertRows = document.querySelectorAll('tbody tr[data-genre]');

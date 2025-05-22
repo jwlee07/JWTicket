@@ -43,7 +43,7 @@ def analyze_sentiment(review_text):
             {"role": "system", "content": "당신은 공연 리뷰 감정 분석 전문가입니다."},
             {"role": "user", "content": prompt}
         ],
-        model="gpt-4",
+        model="gpt-3.5-turbo",
     )
     
     # 응답 후 로그 출력
