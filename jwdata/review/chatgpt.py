@@ -62,7 +62,7 @@ def analyze_sentiment(review_text):
         return None
 
 def update_reviews_with_sentiment(request):
-    sleep_time = 2
+    sleep_time = 3
     results = {
         "total": 0,
         "success": 0,
