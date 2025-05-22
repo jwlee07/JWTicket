@@ -291,12 +291,13 @@ class HomeAnalysisService:
         
         # 공연별 요약
         concert_summary = (
-            all_reviews.values("concert__name", "concert__place", "concert__genre")
+            all_reviews.values("concert__name", "concert__place", "concert__genre",
+                             "concert__start_date", "concert__end_date")
             .annotate(
                 average_rating=Avg("star_rating") * 2,
                 total_reviews=Count("id")
             )
-            .order_by("concert__name")
+            .order_by("-concert__end_date", "concert__name")
         )
         
         # 최근 30일 기준 날짜 계산

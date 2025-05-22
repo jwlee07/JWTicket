@@ -146,6 +146,11 @@
                                         <span>공연명</span>
                                         </div>
                                     </th>
+                                <th class="px-3 py-3" onclick="sortTable(2)">
+                                        <div class="d-flex align-items-center">
+                                        <span>공연 기간</span>
+                                        </div>
+                                    </th>
                                 <th class="px-3 py-3 text-center" onclick="sortTable(2)">
                                         <div class="d-flex align-items-center justify-content-center">
                                         <span>평균 평점</span>
@@ -171,6 +176,13 @@
                                         {% endif %}
                                     </td>
                                 <td class="px-3 py-2 fw-medium">{{ concert.concert__name }}</td>
+                                <td class="px-3 py-2">
+                                        {% if concert.concert__start_date and concert.concert__end_date %}
+                                            {{ concert.concert__start_date|date:"Y.m.d" }} ~ {{ concert.concert__end_date|date:"Y.m.d" }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
                                 <td class="px-3 py-2 text-center">
                                         <div class="d-flex align-items-center justify-content-center">
                                         <div class="me-3">
@@ -310,7 +322,6 @@
                                                 </div>
                                                 <div class="badge bg-white text-secondary py-2 px-3 fw-medium shadow-sm">
                                                     {{ emotion_all.neutral|default:0 }}개
-                                            </div>
                                         </div>
                                             <hr class="my-3">
                                             <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-sm">
