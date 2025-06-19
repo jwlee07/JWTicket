@@ -192,7 +192,7 @@ def summarize_positive_reviews(request, concert_id, slack_channel_id=None):
             {"role": "system", "content": "당신은 공연 리뷰 분석 전문가입니다."},
             {"role": "user", "content": prompt_positive}
         ],
-        model="gpt-4",
+        model="gpt-4o",
     )
     
     print("summarize_positive_reviews 응답:")
@@ -267,7 +267,7 @@ def summarize_negative_reviews(request, concert_id, slack_channel_id=None):
             {"role": "system", "content": "당신은 공연 리뷰 분석 전문가입니다."},
             {"role": "user", "content": prompt_negative}
         ],
-        model="gpt-4",
+        model="gpt-4o",
     )
     
     print("summarize_negative_reviews 응답:")
