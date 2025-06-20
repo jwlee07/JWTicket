@@ -47,10 +47,10 @@ if __name__ == '__main__':
         CronTrigger(hour=20, minute=0)
     )
     
-    # 매주 화요일 오전 10시에 감정 분석
+    # 매주 화요일 오전 9시에 감정 분석
     scheduler.add_job(
         run_sentiment_analysis,
-        CronTrigger(day_of_week='tue', hour=10, minute=0)
+        CronTrigger(day_of_week='tue', hour=9, minute=0)
     )
     
     # 매주 화요일 오전 11시에 슬랙 알림
