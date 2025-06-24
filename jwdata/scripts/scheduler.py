@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ticket.settings')
 django.setup()
 
 from review.tasks import crawl_all_concerts_reviews
-from review.chatgpt import update_reviews_with_sentiment
+from review.chatgpt import update_reviews_with_sentiment_cron
 from review.tasks import summarize_reviews_cron
 
 def run_crawling():
@@ -25,7 +25,7 @@ def run_crawling():
 def run_sentiment_analysis():
     print(f"[{datetime.now()}] Starting sentiment analysis...")
     try:
-        update_reviews_with_sentiment()
+        update_reviews_with_sentiment_cron()
         print(f"[{datetime.now()}] Sentiment analysis completed successfully")
     except Exception as e:
         print(f"[{datetime.now()}] Error during sentiment analysis: {str(e)}")

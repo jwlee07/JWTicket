@@ -2,6 +2,7 @@ from django.conf import settings
 from django.shortcuts import render, redirect
 from django.db import transaction
 from django.http import JsonResponse
+from django.test import RequestFactory
 
 import time
 
@@ -60,6 +61,75 @@ def analyze_sentiment(review_text):
         return "부정"
     else:
         return None
+
+def update_reviews_with_sentiment_cron():
+    """스케줄러용 감정 분석 함수 (request 매개변수 불필요)"""
+    sleep_time = 3
+    results = {
+        "total": 0,
+        "success": 0,
+        "failed": 0,
+        "skipped": 0,
+        "errors": []
+    }
+
+    # 감정분석이 활성화된 공연의 리뷰만 가져오기
+    reviews_to_update = Review.objects.filter(
+        emotion__isnull=True,
+        description__isnull=False,
+        concert__is_sentiment_enabled=True  # 감정분석이 활성화된 공연만
+    ).exclude(description="")
+
+    if not reviews_to_update.exists():
+        message = "감정 분석이 필요한 리뷰가 없습니다."
+        print(message)
+        return
+
+    total_count = reviews_to_update.count()
+    results["total"] = total_count
+    print(f"총 {total_count}개의 리뷰에 대해 감정 분석을 시작합니다.")
+
+    for index, review in enumerate(reviews_to_update, 1):
+        # 리뷰 처리 전에 공연의 감정분석 활성화 상태 다시 확인
+        if not review.concert.is_sentiment_enabled:
+            results["skipped"] += 1
+            results["errors"].append({
+                "review_id": review.id,
+                "title": review.title,
+                "error": "공연의 감정분석이 비활성화되어 있음"
+            })
+            continue
+
+        try:
+            with transaction.atomic():
+                sentiment = analyze_sentiment(review.description)
+                if sentiment:
+                    review.emotion = sentiment
+                    review.save(update_fields=["emotion"])
+                    results["success"] += 1
+                else:
+                    results["skipped"] += 1
+                    results["errors"].append({
+                        "review_id": review.id,
+                        "title": review.title,
+                        "error": "감정 분석 결과가 없음"
+                    })
+                
+                print(f"[{index}/{total_count}] 공연 명: {review.concert} / 리뷰 제목: {review.title} >>> 감정: {sentiment}")
+                
+        except Exception as e:
+            results["failed"] += 1
+            results["errors"].append({
+                "review_id": review.id,
+                "title": review.title,
+                "error": str(e)
+            })
+            print(f"오류 발생 - 리뷰 ID: {review.id}, 제목: {review.title}, 오류: {str(e)}")
+        
+        time.sleep(sleep_time)
+
+    message = f"감정 분석 완료 - 총 {results['total']}개 중 성공: {results['success']}, 실패: {results['failed']}, 건너뜀: {results['skipped']}"
+    print(message)
 
 def update_reviews_with_sentiment(request):
     sleep_time = 3
