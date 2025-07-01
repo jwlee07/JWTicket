@@ -166,6 +166,16 @@
         vertical-align: middle;
         border-bottom: 1px solid var(--toss-gray-100);
         color: var(--toss-gray-800);
+        white-space: nowrap;
+    }
+
+    /* 장르, 공연명, 공연기간 셀은 텍스트 줄임 없이 전체 출력 */
+    .table td:nth-child(1),  /* 장르 */
+    .table td:nth-child(2),  /* 공연명 */
+    .table td:nth-child(3) { /* 공연기간 */
+        white-space: nowrap;
+        text-overflow: clip;
+        overflow: visible;
     }
 
     .table tbody tr:hover {
